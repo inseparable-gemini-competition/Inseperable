@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { StyleSheet, Alert, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { View, Text, Card, Button, LoaderScreen, Image } from 'react-native-ui-lib';
-import { useQuery } from '@tanstack/react-query';
+import { View, Text, Card, Button, LoaderScreen } from 'react-native-ui-lib';
+import { useInfiniteQuery } from '@tanstack/react-query';
 
 interface Organization {
   id: string;
@@ -27,26 +27,31 @@ const mockData: { [key: number]: Organization[] } = {
   ],
 };
 
-const fetchOrganizations = async ({ queryKey }: any): Promise<FetchResponse> => {
-  const [_key, page] = queryKey;
+const fetchOrganizations = async ({ pageParam = 1 }): Promise<FetchResponse> => {
   return new Promise((resolve) => {
     setTimeout(() => {
       resolve({
-        organizations: mockData[page],
-        hasMore: page < 2,
+        organizations: mockData[pageParam],
+        hasMore: pageParam < 2,
       });
     }, 1000);
   });
 };
 
 const Donate = () => {
-  const [page, setPage] = useState(1);
-
-  const { data, error, isLoading, isFetching } = useQuery<FetchResponse>({
-    queryKey: ['organizations', page],
+  const {
+    data,
+    error,
+    isLoading,
+    isFetching,
+    fetchNextPage,
+    hasNextPage,
+  } = useInfiniteQuery<FetchResponse>({
+    queryKey: ['organizations'],
     queryFn: fetchOrganizations,
-    staleTime: 1000, 
-    });
+    getNextPageParam: (lastPage, pages) => (lastPage.hasMore ? pages.length + 1 : undefined),
+    staleTime: 1000, // This keeps the data fresh for 1 second
+  });
 
   const donateToOrganization = (organization: Organization) => {
     Alert.alert('Donate', `You have donated to: ${organization.name}`);
@@ -59,7 +64,7 @@ const Donate = () => {
       {error && <Text style={styles.errorText}>Something went wrong while fetching organizations.</Text>}
       {data && (
         <FlatList
-          data={(data as any).organizations}
+          data={data.pages.flatMap((page: any) => page.organizations)}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <View style={styles.itemContainer}>
@@ -71,16 +76,13 @@ const Donate = () => {
               <Button label="Donate" onPress={() => donateToOrganization(item)} style={styles.donateButton} />
             </View>
           )}
-          ListFooterComponent={
-            <View style={styles.pagination}>
-              <Button
-                label="Previous"
-                disabled={page === 1 || isFetching}
-                onPress={() => setPage((prev) => Math.max(prev - 1, 1))}
-              />
-              <Button label="Next" disabled={!data.hasMore || isFetching} onPress={() => setPage((prev) => prev + 1)} />
-            </View>
-          }
+          onEndReached={() => {
+            if (hasNextPage && !isFetching) {
+              fetchNextPage();
+            }
+          }}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={isFetching ? <LoaderScreen color="blue" message="Loading more..." overlay /> : null}
         />
       )}
       {!data && !isLoading && <Text style={styles.noDataText}>No organizations available</Text>}
@@ -130,11 +132,6 @@ const styles = StyleSheet.create({
   errorText: {
     color: 'red',
     textAlign: 'center',
-  },
-  pagination: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    padding: 10,
   },
 });
 
