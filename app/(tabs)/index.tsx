@@ -1,18 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Button, Image, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import * as Speech from 'expo-speech';
+import Voice from '@react-native-voice/voice';
 
 const Identify = () => {
   const [image, setImage] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [identificationResult, setIdentificationResult] = useState<string | null>(null);
+  const [isListening, setIsListening] = useState<boolean>(false);
 
   useEffect(() => {
     (async () => {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
       setHasPermission(status === 'granted');
     })();
+    Voice.onSpeechResults = onSpeechResults;
   }, []);
 
   const pickImage = async () => {
@@ -47,15 +51,43 @@ const Identify = () => {
     setLoading(true);
     setTimeout(() => {
       // Simulate a fake identification result
-      setIdentificationResult('This is a famous statue of Liberty located in New York City, USA.');
+      const result = 'This is a famous statue of Liberty located in New York City, USA.';
+      setIdentificationResult(result);
+      Speech.speak(result);
       setLoading(false);
     }, 2000); // Simulate a delay for the identification process
+  };
+
+  const onSpeechResults = (event: any) => {
+    const command = event.value[0].toLowerCase();
+    if (command.includes('pick image')) {
+      pickImage();
+    }
+  };
+
+  const startListening = async () => {
+    setIsListening(true);
+    try {
+      await Voice.start('en-US');
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const stopListening = async () => {
+    setIsListening(false);
+    try {
+      await Voice.stop();
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Identify Statues</Text>
       <Button title="Pick an image from camera roll" onPress={pickImage} />
+      <Button title={isListening ? "Stop Listening" : "Start Listening"} onPress={isListening ? stopListening : startListening} />
       {loading && <ActivityIndicator size="large" color="#0000ff" />}
       {image && !loading && <Image source={{ uri: image }} style={styles.image} />}
       {identificationResult && (
