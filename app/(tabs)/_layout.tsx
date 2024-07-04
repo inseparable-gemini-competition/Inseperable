@@ -15,20 +15,47 @@ export default function TabLayout() {
         headerShown: false,
       }}>
       <Tabs.Screen
-        name="index"
+        name="Identify"
         options={{
-          title: 'Home',
+          title: 'Identify',
           tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name={focused ? 'home' : 'home-outline'} color={color} />
+            <TabBarIcon name={focused ? 'camera' : 'camera-outline'} color={color} />
           ),
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name="PriceRanges"
         options={{
-          title: 'Explore',
+          title: 'Price Range',
           tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name={focused ? 'code-slash' : 'code-slash-outline'} color={color} />
+            <TabBarIcon name={focused ? 'pricetag' : 'pricetag-outline'} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="Translation"
+        options={{
+          title: 'Communicate',
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon name={focused ? 'language' : 'language-outline'} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="HandmadeItems"
+        options={{
+          title: 'Buy',
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon name={focused ? 'basket' : 'basket-outline'} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="Donate"
+        options={{
+          title: 'Donate',
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon name={focused ? 'heart' : 'heart-outline'} color={color} />
           ),
         }}
       />
