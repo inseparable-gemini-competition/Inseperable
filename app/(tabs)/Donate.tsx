@@ -3,7 +3,7 @@ import { StyleSheet, Alert, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { View, Text, Card, Button, LoaderScreen, Image } from 'react-native-ui-lib';
 
-const DonateScreen = () => {
+const Donate = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [organizations, setOrganizations] = useState<Array<{ id: string; name: string; description: string; image: string }> | null>(null);
 
@@ -109,4 +109,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default DonateScreen;
+export default Donate;

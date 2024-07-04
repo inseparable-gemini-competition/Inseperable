@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, Button, Image, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 
-const IdentifyStatuesScreen = () => {
+const Identify = () => {
   const [image, setImage] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
@@ -98,4 +98,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default IdentifyStatuesScreen;
+export default Identify;

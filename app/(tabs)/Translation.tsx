@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 
-const TranslationScreen = () => {
+const Translation = () => {
   const [text, setText] = useState<string>('');
   const [translatedText, setTranslatedText] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
@@ -76,4 +76,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default TranslationScreen;
+export default Translation;

@@ -3,7 +3,7 @@ import { StyleSheet, Alert, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { View, Text, Card, Image, Button, LoaderScreen } from 'react-native-ui-lib';
 
-const BuyScreen = () => {
+const HandMade = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [items, setItems] = useState<Array<{ id: string; name: string; price: string; image: string; carbonPrint: string }> | null>(null);
 
@@ -104,4 +104,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default BuyScreen;
+export default HandMade;

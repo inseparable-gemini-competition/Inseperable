@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, Button, Image, FlatList, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 
-const PriceRangesScreen = () => {
+const PriceRanges = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [image, setImage] = useState<string | null>(null);
   const [prices, setPrices] = useState<Array<{ item: string; price: string }> | null>(null);
@@ -117,4 +117,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default PriceRangesScreen;
+export default PriceRanges;
