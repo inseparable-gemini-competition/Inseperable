@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
-import { useCameraPermissions } from 'expo-camera';
+import { useCameraPermissions, CameraView } from 'expo-camera';
 import * as Speech from 'expo-speech';
 import Voice from '@react-native-voice/voice';
 import { Ionicons } from '@expo/vector-icons';
@@ -253,13 +253,13 @@ const Identify = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.cameraPlaceholder}>
+        <CameraView style={styles.cameraPlaceholder} facing={facing}>
         <View style={styles.buttonContainer}>
           <TouchableOpacity style={styles.flipButton} onPress={toggleCameraFacing}>
             <Text style={styles.buttonText}>Flip Camera</Text>
           </TouchableOpacity>
         </View>
-      </View>
+      </CameraView>
       <View style={styles.optionsContainer}>
         {loading && <ActivityIndicator size="large" color="#0000ff" />}
         {!loading && (
