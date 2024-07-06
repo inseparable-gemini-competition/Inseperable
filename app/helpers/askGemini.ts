@@ -40,7 +40,6 @@ const askGemini = async (data: any) => {
           },
         }
       );
-      console.log('text ', text, response.data?.candidates?.[0]?.content?.parts?.[0]?.text)
       return response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
     } else {
       throw new Error("Failed to convert image to Base64.");
