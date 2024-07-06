@@ -1,22 +1,21 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Dimensions, ScrollView } from 'react-native';
 import { useCameraPermissions, CameraView } from 'expo-camera';
 import * as Speech from 'expo-speech';
-import Voice from '@react-native-voice/voice';
+import Voice, { SpeechResultsEvent } from '@react-native-voice/voice';
 import { Ionicons } from '@expo/vector-icons';
 
-const Identify = () => {
-  const [facing, setFacing] = useState('back');
+const Identify: React.FC = () => {
+  const [facing, setFacing] = useState<'back' | 'front'>('back');
   const [permission, requestPermission] = useCameraPermissions();
   const [loading, setLoading] = useState(false);
-  const [resultText, setResultText] = useState(null);
+  const [resultText, setResultText] = useState<string | null>(null);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isListening, setIsListening] = useState(false);
-  const [voiceError, setVoiceError] = useState(null);
-  const [retryCount, setRetryCount] = useState(0); // Track retries
-  const hasProcessedResultsRef = useRef(false); // Use ref to track processed results
+  const [retryCount, setRetryCount] = useState(0);
+  const hasProcessedResultsRef = useRef(false);
 
-  const timeoutRef = useRef(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     console.log('useEffect for permissions triggered');
@@ -28,78 +27,19 @@ const Identify = () => {
     return () => {
       console.log('Cleaning up: destroying Voice and clearing timeout');
       Voice.destroy().then(Voice.removeAllListeners);
-      clearTimeout(timeoutRef.current);
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
     };
   }, [permission]);
 
-  const onSpeechResults = useCallback(async (event) => {
-    if (hasProcessedResultsRef.current) {
-      console.log('Results already processed, ignoring duplicate call');
-      return;
-    }
-    hasProcessedResultsRef.current = true;
-
-    console.log('Speech results:', event.value);
-    let spokenText = event.value[0].toLowerCase().trim();
-    console.log('Processed spoken text:', spokenText);
-
-    // Handle common misinterpretations
-    if (spokenText === 'id') {
-      spokenText = 'identify';
-    }
-
-    if (isValidCommand(spokenText)) {
-      console.log('Valid command detected:', spokenText);
-      await stopVoiceRecognition();
-      handleVoiceCommand(spokenText);
-    } else {
-      console.log('Invalid command, prompting retry');
-      await retryVoiceRecognition();
-    }
-
-    // Immediately remove listeners after processing results to avoid duplicate calls
-    Voice.destroy().then(Voice.removeAllListeners);
-  }, [stopVoiceRecognition, handleVoiceCommand, retryVoiceRecognition]);
-
-  const onSpeechError = useCallback(async (event) => {
-    console.log('Speech error:', event.error.message);
-    await stopVoiceRecognition();
-    setIsListening(false);
-    setVoiceError(event.error.message);
-
-    // Immediately remove listeners after processing error to avoid duplicate calls
-    Voice.destroy().then(Voice.removeAllListeners);
-    setTimeout(async () => {
-       Voice.onSpeechResults = onSpeechResults;
-    Voice.onSpeechError = onSpeechError;
-      startVoiceRecognition();
-    }, 1000);
-       
-
-  }, [stopVoiceRecognition]);
-
-  useEffect(() => {
-    console.log('Setting up Voice listeners');
-    Voice.onSpeechResults = onSpeechResults;
-    Voice.onSpeechError = onSpeechError;
-    setTimeout(() => {
-      startVoiceRecognition();
-
-    }, 1000);
-
-    return () => {
-      console.log('Cleaning up Voice listeners');
-      Voice.destroy().then(Voice.removeAllListeners);
-    };
-  }, [onSpeechResults, onSpeechError]);
-
-  const isValidCommand = (command) => {
+  const isValidCommand = (command: string): boolean => {
     const isValid = /identify|price|read|flip/i.test(command);
     console.log('Command validity check:', command, isValid);
     return isValid;
   };
 
-  const handleVoiceCommand = useCallback((command) => {
+  const handleVoiceCommand = useCallback((command: string) => {
     if (isSpeaking) {
       console.log('Currently speaking, ignoring command:', command);
       return;
@@ -134,10 +74,9 @@ const Identify = () => {
       return;
     }
     console.log('Starting voice recognition');
-    setVoiceError(null);
     setResultText(null);
-    hasProcessedResultsRef.current = false; // Reset the ref
-    setRetryCount(0); // Reset retry count
+    hasProcessedResultsRef.current = false;
+    setRetryCount(0);
 
     try {
       await Voice.start('en-US');
@@ -159,11 +98,12 @@ const Identify = () => {
   };
 
   const stopVoiceRecognition = async () => {
-    clearTimeout(timeoutRef.current); 
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
     try {
       await Voice.stop();
       setIsListening(false);
-      // setResultText('Stopped listening.');
     } catch (error) {
       console.log('Error stopping voice recognition:', error);
       showError('An error occurred while stopping voice recognition.');
@@ -197,14 +137,14 @@ const Identify = () => {
     }, 1000);
   };
 
-  const simulateIdentification = async (type) => {
+  const simulateIdentification = async (type: string) => {
     console.log('Simulating identification:', type);
     setLoading(true);
     setResultText('Processing...');
     setIsSpeaking(true);
 
     try {
-      let result;
+      let result: string;
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
       switch (type) {
@@ -245,22 +185,78 @@ const Identify = () => {
     startVoiceRecognition();
   };
 
-  const showError = (message) => {
+  const showError = (message: string) => {
     console.log('Error:', message);
     setResultText(message);
     Speech.speak(message);
   };
 
+
+  const onSpeechResults = useCallback(async (event: SpeechResultsEvent) => {
+    if (hasProcessedResultsRef.current) {
+      console.log('Results already processed, ignoring duplicate call');
+      return;
+    }
+    hasProcessedResultsRef.current = true;
+
+    console.log('Speech results:', event.value);
+    let spokenText = event.value?.[0].toLowerCase().trim() || '';
+    console.log('Processed spoken text:', spokenText);
+
+    if (spokenText === 'id') {
+      spokenText = 'identify';
+    }
+
+    if (isValidCommand(spokenText)) {
+      console.log('Valid command detected:', spokenText);
+      await stopVoiceRecognition();
+      handleVoiceCommand(spokenText);
+    } else {
+      console.log('Invalid command, prompting retry');
+      await retryVoiceRecognition();
+    }
+
+    Voice.destroy().then(Voice.removeAllListeners);
+  }, [stopVoiceRecognition, handleVoiceCommand, retryVoiceRecognition]);
+
+  const onSpeechError = useCallback(async (event: any) => {
+    console.log('Speech error:', event.error.message);
+    await stopVoiceRecognition();
+    setIsListening(false);
+
+    Voice.destroy().then(Voice.removeAllListeners);
+    setTimeout(async () => {
+      Voice.onSpeechResults = onSpeechResults;
+      Voice.onSpeechError = onSpeechError;
+      startVoiceRecognition();
+    }, 1000);
+  }, [stopVoiceRecognition]);
+
+  useEffect(() => {
+    console.log('Setting up Voice listeners');
+    Voice.onSpeechResults = onSpeechResults;
+    Voice.onSpeechError = onSpeechError;
+    setTimeout(() => {
+      startVoiceRecognition();
+    }, 1000);
+
+    return () => {
+      console.log('Cleaning up Voice listeners');
+      Voice.destroy().then(Voice.removeAllListeners);
+    };
+  }, [onSpeechResults, onSpeechError]);
+
+  
   return (
     <View style={styles.container}>
-        <CameraView style={styles.cameraPlaceholder} facing={facing}>
+      <CameraView style={styles.cameraPlaceholder} facing={facing}>
         <View style={styles.buttonContainer}>
           <TouchableOpacity style={styles.flipButton} onPress={toggleCameraFacing}>
             <Text style={styles.buttonText}>Flip Camera</Text>
           </TouchableOpacity>
         </View>
       </CameraView>
-      <View style={styles.optionsContainer}>
+      <ScrollView contentContainerStyle={styles.optionsContainer}>
         {loading && <ActivityIndicator size="large" color="#0000ff" />}
         {!loading && (
           <>
@@ -281,11 +277,12 @@ const Identify = () => {
             </View>
           </>
         )}
-        {/* {voiceError && <Text style={styles.errorText}>Voice Error: {voiceError}</Text>} */}
-      </View>
+      </ScrollView>
     </View>
   );
 };
+
+const { width, height } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
   container: {
@@ -294,19 +291,16 @@ const styles = StyleSheet.create({
   },
   cameraPlaceholder: {
     width: '100%',
-    height: '66%',
+    height: height * 0.5, // Decreased height to 40% of the screen
     backgroundColor: '#000',
+    justifyContent: 'flex-end',
   },
   buttonContainer: {
-    flex: 1,
-    backgroundColor: 'transparent',
     flexDirection: 'row',
     justifyContent: 'center',
-    alignItems: 'flex-end',
+    padding: 10,
   },
   flipButton: {
-    position: 'absolute',
-    bottom: 20,
     backgroundColor: '#007aff',
     borderRadius: 50,
     padding: 15,
