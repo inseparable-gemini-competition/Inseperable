@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Dimensions, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, ScrollView, Dimensions } from 'react-native';
 import { useCameraPermissions, CameraView } from 'expo-camera';
 import * as Speech from 'expo-speech';
 import Voice, { SpeechResultsEvent } from '@react-native-voice/voice';
 import { Ionicons } from '@expo/vector-icons';
 
+const { height } = Dimensions.get('window');
+
 const Identify: React.FC = () => {
-  const [facing, setFacing] = useState<'back' | 'front'>('back');
+  const [facing, setFacing] = useState<'back' | 'front'>('front');
   const [permission, requestPermission] = useCameraPermissions();
   const [loading, setLoading] = useState(false);
   const [resultText, setResultText] = useState<string | null>(null);
@@ -191,7 +193,6 @@ const Identify: React.FC = () => {
     Speech.speak(message);
   };
 
-
   const onSpeechResults = useCallback(async (event: SpeechResultsEvent) => {
     if (hasProcessedResultsRef.current) {
       console.log('Results already processed, ignoring duplicate call');
@@ -246,17 +247,16 @@ const Identify: React.FC = () => {
     };
   }, [onSpeechResults, onSpeechError]);
 
-  
   return (
     <View style={styles.container}>
-      <CameraView style={styles.cameraPlaceholder} facing={facing}>
+      <CameraView style={styles.camera} facing={facing}>
         <View style={styles.buttonContainer}>
           <TouchableOpacity style={styles.flipButton} onPress={toggleCameraFacing}>
             <Text style={styles.buttonText}>Flip Camera</Text>
           </TouchableOpacity>
         </View>
       </CameraView>
-      <ScrollView contentContainerStyle={styles.optionsContainer}>
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
         {loading && <ActivityIndicator size="large" color="#0000ff" />}
         {!loading && (
           <>
@@ -282,16 +282,13 @@ const Identify: React.FC = () => {
   );
 };
 
-const { width, height } = Dimensions.get('window');
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f8f9fa',
   },
-  cameraPlaceholder: {
-    width: '100%',
-    height: height * 0.5, // Decreased height to 40% of the screen
+  camera: {
+    height: height / 2, // Take half of the screen height
     backgroundColor: '#000',
     justifyContent: 'flex-end',
   },
@@ -312,9 +309,9 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#fff',
   },
-  optionsContainer: {
-    flex: 1,
-    padding: 20,
+  scrollContainer: {
+    flexGrow: 1,
+    paddingVertical: 20,
     alignItems: 'center',
     justifyContent: 'center',
   },
