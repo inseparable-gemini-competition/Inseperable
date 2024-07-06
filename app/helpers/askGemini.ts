@@ -1,41 +1,54 @@
 import axios from "axios";
 import { useMutation } from "react-query";
+import * as ImageManipulator from "expo-image-manipulator";
 
-// API call function
-const askGemini = async (data) => {
-  const { text, imagePath: originalImage } = data;
-  const imagePath = imagePath;
+const askGemini = async (data: any) => {
+  const { text, imageUri } = data;
   const apiKey = "AIzaSyBYXid8tKhYNmK0cPP4V6i459HRiPjdMAA";
 
-  console.log("text :>> ", text);
-  console.log("imagePath :>> ", imagePath);
+  try {
+    const imageData = await ImageManipulator.manipulateAsync(
+      `${imageUri}`,
+      [{ resize: { width: 512 } }],
+      { base64: true }
+    );
 
-  const response = await axios.post(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=AIzaSyBYXid8tKhYNmK0cPP4V6i459HRiPjdMAA`,
-    {
-      contents: [
+    const base64Image = imageData.base64;
+
+    if (base64Image) {
+
+      const response = await axios.post(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
         {
-          parts: [
-            { text: "What do you think about this image?" },
+          contents: [
             {
-              inline_data: {
-                mime_type: "image/png",
-                data: imagePath,
-              },
+              parts: [
+                { text },
+                {
+                  inline_data: {
+                    mime_type: "image/png",
+                    data: base64Image,
+                  },
+                },
+              ],
             },
           ],
         },
-      ],
-    },
-    {
-      headers: {
-        "Content-Type": "application/json",
-      },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      console.log('text ', text, response.data?.candidates?.[0]?.content?.parts?.[0]?.text)
+      return response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    } else {
+      throw new Error("Failed to convert image to Base64.");
     }
-  );
-  console.log("hello", response.data?.candidates?.[0]?.content?.parts[0]?.text);
-
-  return response.data;
+  } catch (error) {
+    console.error("Error processing image:", JSON.stringify(error));
+    throw error; // Rethrow the error to be handled by react-query
+  }
 };
 
 export const useFetchContent = () => {

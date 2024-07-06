@@ -27,7 +27,10 @@
     "expo": "~51.0.18",
     "expo-camera": "^15.0.13",
     "expo-constants": "~16.0.2",
+    "expo-dev-client": "~4.0.19",
+    "expo-file-system": "~17.0.1",
     "expo-font": "~12.0.7",
+    "expo-image-manipulator": "~12.0.5",
     "expo-image-picker": "^15.0.7",
     "expo-linking": "~6.3.1",
     "expo-local-authentication": "~14.0.1",
@@ -48,8 +51,7 @@
     "react-native-screens": "^3.31.1",
     "react-native-ui-lib": "^7.25.0",
     "react-native-web": "~0.19.10",
-    "react-query": "^3.39.3",
-    "expo-file-system": "~17.0.1"
+    "react-query": "^3.39.3"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
