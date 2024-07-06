@@ -135,7 +135,7 @@ const Identify: React.FC = () => {
   };
 
   const retryVoiceRecognition = async () => {
-    if (retryCount < 3) {
+    if (retryCount < 300) {
       setRetryCount(retryCount + 1);
       await startVoiceRecognition();
     } else {
