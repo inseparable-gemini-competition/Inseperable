@@ -57,7 +57,7 @@ const useVoiceCommands = (
     return () => {
       Voice.destroy().then(Voice.removeAllListeners);
     };
-  }, [onSpeechResults, onSpeechError, startVoiceRecognition]);
+  }, []);
 };
 
 const Identify: React.FC = () => {
@@ -190,7 +190,7 @@ const Identify: React.FC = () => {
     try {
       const tasks: { [key: string]: () => Promise<any> } = {
         identify: () => mutateAsync({ text: "Identify this image", imageUri: uri }),
-        price: () => mutateAsync({ text: "What is the fair price of this?", imageUri: uri }),
+        price: () => mutateAsync({ text: "Identify this, then using the web determine its price range in egypt, if you don't know for sure assume", imageUri: uri }),
         read: () => mutateAsync({ text: "read what's written here", imageUri: uri }),
       };
 
