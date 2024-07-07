@@ -191,6 +191,8 @@ const IdentifyApp: React.FC = () => {
   useEffect(() => {
     if (pendingCommand) {
       const captureAndProcess = async () => {
+        const isSpeaking = await Speech.isSpeakingAsync();
+        if(isSpeaking && imageUri) return;
         Speech.stop();
         const uri = await capturePhoto();
         await processCommand(pendingCommand, uri);
@@ -203,7 +205,7 @@ const IdentifyApp: React.FC = () => {
     startListening();
     return () => {
       stopListening();
-    };
+    };x
   }, [startListening, stopListening]);
 
   if (!cameraPermission || !cameraPermission.granted) {
@@ -280,7 +282,7 @@ const styles = StyleSheet.create({
   voiceCommandContainer: { marginTop: 20, alignItems: "center" },
   microphoneButton: { backgroundColor: "#007aff", borderRadius: 50, padding: 15 },
   goBackButton: { backgroundColor: "#007aff", borderRadius: 50, padding: 10, position: "absolute", bottom: 20, paddingHorizontal: 30, left: "17%", transform: [{ translateX: -50 }] },
-  permissionButton: { backgroundColor: "#007aff", borderRadius: 50, padding: 15, marginTop: 20 },
+  permissionButton: { backgroundColor: "#007aff", borderRadius: 50, padding: 15, marginTop: 20, margin: 40 },
   permissionText: { fontSize: 16, color: "#fff", textAlign: "center" },
   optionButton: { backgroundColor: "#007aff", borderRadius: 10, padding: 15, marginBottom: 10, width: "80%", alignItems: "center" },
   optionText: { fontSize: 18, color: "#fff" },
