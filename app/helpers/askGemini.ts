@@ -4,7 +4,7 @@ import * as ImageManipulator from "expo-image-manipulator";
 
 const askGemini = async (data: any) => {
   const { text, imageUri } = data;
-  const apiKey = "AIzaSyBYXid8tKhYNmK0cPP4V6i459HRiPjdMAA";
+  const apiKey = "AIzaSyDTiF7YjBUWM0l0nKpzicv9R6kReU3dn8Q";
 
   try {
     const imageData = await ImageManipulator.manipulateAsync(
@@ -16,7 +16,6 @@ const askGemini = async (data: any) => {
     const base64Image = imageData.base64;
 
     if (base64Image) {
-
       const response = await axios.post(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
         {
