@@ -19,7 +19,10 @@ import { useFetchContent } from "../helpers/askGemini";
 
 const { height } = Dimensions.get("window");
 
-const usePermissions = (cameraPermission: any, requestCameraPermission: any) => {
+// Custom Hook for Permissions
+const useAppPermissions = () => {
+  const [cameraPermission, requestCameraPermission] = useCameraPermissions();
+
   useEffect(() => {
     const requestPermissions = async () => {
       if (Platform.OS === "android") {
@@ -42,261 +45,247 @@ const usePermissions = (cameraPermission: any, requestCameraPermission: any) => 
 
     requestPermissions();
   }, [cameraPermission, requestCameraPermission]);
+
+  return { cameraPermission, requestCameraPermission };
 };
 
-const useVoiceCommands = (
-  onSpeechResults: any,
-  onSpeechError: any,
-  startVoiceRecognition: any
-) => {
+// Custom Hook for Voice Commands
+const useVoiceHandler = (executeCommand: (command: string) => void) => {
   useEffect(() => {
-    Voice.onSpeechResults = onSpeechResults;
-    Voice.onSpeechError = onSpeechError;
-    startVoiceRecognition();
+    Voice.onSpeechResults = (event: SpeechResultsEvent) => {
+      const spokenCommand = event.value?.[0].toLowerCase().trim() || "";
+      executeCommand(spokenCommand);
+    };
+
+    Voice.onSpeechError = (error) => {
+      console.log("Voice error:", error);
+    };
 
     return () => {
       Voice.destroy().then(Voice.removeAllListeners);
     };
-  }, []);
-};
+  }, [executeCommand]);
 
-const Identify: React.FC = () => {
-  const [facing, setFacing] = useState<"back" | "front">("front");
-  const [cameraPermission, requestCameraPermission] = useCameraPermissions();
-  const [loading, setLoading] = useState(false);
-  const [resultText, setResultText] = useState<string | null>(null);
-  const [isSpeaking, setIsSpeaking] = useState(false);
-  const [isListening, setIsListening] = useState(false);
-  const [retryCount, setRetryCount] = useState(0);
-  const [photoUri, setPhotoUri] = useState<string | null | undefined>(null);
-  const hasProcessedResultsRef = useRef(false);
-
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const cameraRef = useRef<CameraView>(null);
-  const { mutateAsync, isLoading } = useFetchContent();
-
-  usePermissions(cameraPermission, requestCameraPermission);
-
-  const isValidCommand = (command: string): boolean => {
-    return /identify|price|read|flip/i.test(command);
-  };
-
-  const handleVoiceCommand = useCallback(
-    (command: string) => {
-      if (isSpeaking) return;
-
-      const commandActions: { [key: string]: () => void } = {
-        identify: () => simulateIdentification("identify"),
-        price: () => simulateIdentification("price"),
-        read: () => simulateIdentification("read"),
-        flip: toggleCameraFacing,
-      };
-
-      const action = Object.keys(commandActions).find((key) =>
-        new RegExp(key, "i").test(command)
-      );
-
-      action ? commandActions[action]() : showError("Unknown command.");
-    },
-    [isSpeaking]
-  );
-
-  const startVoiceRecognition = async () => {
-    if (isListening) return;
-
-    setResultText(null);
-    hasProcessedResultsRef.current = false;
-    setRetryCount(0);
-
+  const startListening = async () => {
     try {
       await Voice.start("en-US");
-      setIsListening(true);
-      setResultText("Listening...");
-
-      timeoutRef.current = setTimeout(async () => {
-        if (isListening) {
-          await stopVoiceRecognition();
-          showError("No valid command detected.");
-        }
-      }, 6000);
-    } catch {
-      showError("An error occurred while starting voice recognition.");
+    } catch (error) {
+      console.log("Error starting voice recognition:", error);
     }
   };
 
-  const stopVoiceRecognition = async () => {
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+  const stopListening = async () => {
     try {
       await Voice.stop();
-      setIsListening(false);
-    } catch {
-      showError("An error occurred while stopping voice recognition.");
+    } catch (error) {
+      console.log("Error stopping voice recognition:", error);
     }
   };
 
-  const retryVoiceRecognition = async () => {
-    if (retryCount < 300) {
-      setRetryCount(retryCount + 1);
-      await startVoiceRecognition();
-    } else {
-      showError("Could not understand the command. Please try again.");
-    }
-  };
+  return { startListening, stopListening };
+};
 
-  const onSpeechResults = useCallback(
-    async (event: SpeechResultsEvent) => {
-      if (hasProcessedResultsRef.current) return;
+// Camera Component
+interface CameraModuleProps {
+  facing: "front" | "back";
+  switchCamera: () => void;
+  cameraRef: React.RefObject<any>;
+}
 
-      hasProcessedResultsRef.current = true;
-      let spokenText = event.value?.[0].toLowerCase().trim() || "";
-
-      if (spokenText === "id") spokenText = "identify";
-
-      if (isValidCommand(spokenText)) {
-        await stopVoiceRecognition();
-        handleVoiceCommand(spokenText);
-      } else {
-        await retryVoiceRecognition();
-      }
-
-      Voice.destroy().then(Voice.removeAllListeners);
-    },
-    [stopVoiceRecognition, handleVoiceCommand, retryVoiceRecognition]
+const CameraModule: React.FC<CameraModuleProps> = ({ facing, switchCamera, cameraRef }) => {
+  return (
+    <CameraView style={styles.camera} facing={facing} ref={cameraRef}>
+      <View style={styles.cameraControls}>
+        <TouchableOpacity style={styles.flipButton} onPress={switchCamera}>
+          <Text style={styles.buttonText}>Flip Camera</Text>
+        </TouchableOpacity>
+      </View>
+    </CameraView>
   );
+};
 
-  const onSpeechError = useCallback(
-    async () => {
-      await stopVoiceRecognition();
-      setIsListening(false);
+// Voice Command Component
+interface VoiceCommandModuleProps {
+  isListening: boolean;
+  startListening: () => void;
+  stopListening: () => void;
+}
 
-      Voice.destroy().then(Voice.removeAllListeners);
-      setTimeout(async () => {
-        Voice.onSpeechResults = onSpeechResults;
-        Voice.onSpeechError = onSpeechError;
-        startVoiceRecognition();
-      }, 1000);
-    },
-    [stopVoiceRecognition]
+const VoiceCommandModule: React.FC<VoiceCommandModuleProps> = ({ isListening, startListening, stopListening }) => {
+  return (
+    <View style={styles.voiceCommandContainer}>
+      <TouchableOpacity onPress={isListening ? stopListening : startListening} style={styles.microphoneButton}>
+        <Ionicons name={"mic-off"} size={32} color="white" />
+      </TouchableOpacity>
+    </View>
   );
+};
 
-  useVoiceCommands(onSpeechResults, onSpeechError, startVoiceRecognition);
+// Main Component
+const IdentifyApp: React.FC = () => {
+  const [facing, setFacing] = useState<"front" | "back">("back");
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [feedbackText, setFeedbackText] = useState("");
+  const [isListening, setIsListening] = useState(true);
+  const [imageUri, setImageUri] = useState<string | null>(null);
+  const [capturing, setCapturing] = useState(false);
+  const [pendingCommand, setPendingCommand] = useState<string | null>(null);
+  const { mutateAsync } = useFetchContent();
+  const cameraRef = useRef<any>();
+  const { cameraPermission, requestCameraPermission } = useAppPermissions();
 
-  const simulateIdentification = async (type: string) => {
-    const uri = await takePicture();
-    setLoading(true);
-    setResultText("Processing...");
-    setIsSpeaking(true);
-
-    try {
-      const tasks: { [key: string]: () => Promise<any> } = {
-        identify: () => mutateAsync({ text: "Identify this image", imageUri: uri }),
-        price: () => mutateAsync({ text: "Identify this, then using the web determine its price range in egypt, if you don't know for sure assume", imageUri: uri }),
-        read: () => mutateAsync({ text: "read what's written here", imageUri: uri }),
-      };
-
-      const result = await tasks[type]();
-      setResultText(result);
-      Speech.speak(result, { onStart, onDone });
-    } catch {
-      showError("An error occurred during the simulation.");
-    } finally {
-      setLoading(false);
-    }
+  const switchCamera = () => {
+    setFacing(facing === "back" ? "front" : "back");
   };
 
-  const onStart = () => {
-    console.log("Speech started");
-    setIsSpeaking(true);
-    setLoading(false);
-  };
-
-  const onDone = () => {
-    console.log("Speech done");
-    setIsSpeaking(false);
-    stopVoiceRecognition();
-    setIsListening(false);
-    setTimeout(() => {
-      startVoiceRecognition();
-    }, 1000);
-  };
-
-  const toggleCameraFacing = () => {
-    setFacing((current) => (current === "back" ? "front" : "back"));
-    setResultText("Camera flipped.");
-    startVoiceRecognition();
-  };
-
-  const showError = (message: string) => {
-    setResultText(message);
-    Speech.speak(message);
-  };
-
-  const takePicture = async () => {
+  const capturePhoto = async () => {
     if (cameraRef.current) {
-      const photo = await cameraRef.current.takePictureAsync();
-      setPhotoUri(photo?.uri);
-      return photo?.uri;
+      setCapturing(true);
+      const options = { quality: 0.8 }; // Adjust the quality as needed
+      const photo = await cameraRef.current.takePictureAsync(options);
+      setCapturing(false);
+      setImageUri(photo.uri);
+      return photo.uri;
     }
     return null;
   };
 
+  const executeCommand = useCallback(
+    async (command: string) => {
+      setPendingCommand(command);
+      setImageUri(null);
+    },
+    []
+  );
+
+  const { startListening, stopListening } = useVoiceHandler(executeCommand);
+
+  const processCommand = async (commandType: string, uri: string) => {
+    if (!uri) {
+      setFeedbackText("No image captured. Please capture an image first.");
+      return;
+    }
+
+    setIsProcessing(true);
+    setFeedbackText("Processing...");
+
+    try {
+      const tasks = {
+        identify: () => mutateAsync({ text: "Identify this image", imageUri: uri }),
+        price: () => mutateAsync({ text: "Identify this and find its price", imageUri: uri }),
+        read: () => mutateAsync({ text: "Read the text in this image", imageUri: uri }),
+      };
+
+      const result = await tasks[commandType]();
+      setFeedbackText(result);
+      Speech.speak(result);
+    } catch (error) {
+      setFeedbackText("Error processing the command.");
+      console.log("Processing error:", error);
+    } finally {
+      setIsProcessing(false);
+      setPendingCommand(null);
+    }
+  };
+
+  useEffect(() => {
+    if (pendingCommand) {
+      const captureAndProcess = async () => {
+        Speech.stop();
+        const uri = await capturePhoto();
+        await processCommand(pendingCommand, uri);
+      };
+      captureAndProcess();
+    }
+  }, [pendingCommand]);
+
+  useEffect(() => {
+    startListening();
+    return () => {
+      stopListening();
+    };
+  }, [startListening, stopListening]);
+
+  if (!cameraPermission || !cameraPermission.granted) {
+    return (
+      <View style={styles.container}>
+        <Text style={{ textAlign: 'center' }}>We need your permission to show the camera</Text>
+        <TouchableOpacity onPress={requestCameraPermission} style={styles.permissionButton}>
+          <Text style={styles.permissionText}>Grant Permission</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
-      {photoUri ? (
+      {capturing && (
+        <View style={styles.capturingOverlay}>
+          <ActivityIndicator size="large" color="#ffffff" />
+          <Text style={styles.capturingText}>Capturing...</Text>
+        </View>
+      )}
+      {imageUri ? (
         <View style={{ width: "100%", height: height / 2 }}>
-          <Image source={{ uri: photoUri }} style={{ width: "100%", height: "100%" }} />
+          <Image source={{ uri: imageUri }} style={{ width: "100%", height: "100%" }} />
           <TouchableOpacity
-            style={{ ...styles.flipButton, position: "absolute", bottom: 20, left: "50%", transform: [{ translateX: -50 }] }}
-            onPress={() => { setPhotoUri(null); Speech.stop(); }}
+            style={styles.goBackButton}
+            onPress={() => {
+              setImageUri(null);
+              Speech.stop();
+              setFeedbackText('');
+            }}
           >
             <Text style={styles.buttonText}>Back</Text>
           </TouchableOpacity>
         </View>
       ) : (
-        <CameraView style={styles.camera} type={facing} ref={cameraRef}>
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity style={styles.flipButton} onPress={toggleCameraFacing}>
-              <Text style={styles.buttonText}>Flip Camera</Text>
-            </TouchableOpacity>
-          </View>
-        </CameraView>
+        <CameraModule
+          facing={facing}
+          switchCamera={switchCamera}
+          cameraRef={cameraRef}
+        />
       )}
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        {(loading || isLoading) && <ActivityIndicator size="large" color="#0000ff" />}
-
-        <TouchableOpacity style={styles.optionButton} onPress={() => simulateIdentification("identify")}>
+        {isProcessing && <ActivityIndicator size="large" color="#0000ff" />}
+        <Text style={styles.feedbackText}>{feedbackText}</Text>
+        <TouchableOpacity style={styles.optionButton} onPress={() => executeCommand('identify')}>
           <Text style={styles.optionText}>Identify</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.optionButton} onPress={() => simulateIdentification("price")}>
+        <TouchableOpacity style={styles.optionButton} onPress={() => executeCommand('price')}>
           <Text style={styles.optionText}>Find Fair Price</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.optionButton} onPress={() => simulateIdentification("read")}>
+        <TouchableOpacity style={styles.optionButton} onPress={() => executeCommand('read')}>
           <Text style={styles.optionText}>Read</Text>
         </TouchableOpacity>
-        {resultText && <Text style={styles.resultText}>{resultText}</Text>}
-        <View style={styles.voiceCommandContainer}>
-          <TouchableOpacity onPress={isListening ? stopVoiceRecognition : startVoiceRecognition} style={styles.microphoneButton}>
-            <Ionicons name={isListening ? "mic-off" : "mic"} size={32} color="white" />
-          </TouchableOpacity>
-        </View>
+        <VoiceCommandModule
+          isListening={isListening}
+          startListening={startListening}
+          stopListening={stopListening}
+        />
       </ScrollView>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f8f9fa" },
-  camera: { height: height / 2, backgroundColor: "#000", justifyContent: "flex-end" },
-  buttonContainer: { flexDirection: "row", justifyContent: "center", padding: 10 },
-  flipButton: { backgroundColor: "#007aff", borderRadius: 50, padding: 15, alignItems: "center", justifyContent: "center" },
+  container: { flex: 1, justifyContent: 'center', backgroundColor: "#f8f9fa" },
+  camera: { height: height / 2, justifyContent: "flex-end" },
+  cameraControls: { flexDirection: "row", justifyContent: "space-between", padding: 10 },
+  flipButton: { backgroundColor: "#007aff", borderRadius: 50, padding: 10 },
+  captureButton: { backgroundColor: "#007aff", borderRadius: 50, padding: 15 },
   buttonText: { fontSize: 14, fontWeight: "bold", color: "#fff" },
-  scrollContainer: { flexGrow: 1, paddingVertical: 20, alignItems: "center", justifyContent: "center" },
-  optionButton: { backgroundColor: "#007aff", borderRadius: 10, padding: 15, marginBottom: 10, width: "80%", alignItems: "center" },
-  optionText: { fontSize: 18, color: "#fff" },
-  resultText: { marginTop: 20, fontSize: 16, color: "#333", textAlign: "center", paddingHorizontal: 20 },
+  scrollContainer: { flexGrow: 1, alignItems: "center", justifyContent: "center" },
+  feedbackText: { marginVertical: 20, fontSize: 16, color: "#333", textAlign: "center" },
   voiceCommandContainer: { marginTop: 20, alignItems: "center" },
   microphoneButton: { backgroundColor: "#007aff", borderRadius: 50, padding: 15 },
-  errorText: { color: "red", marginTop: 10, textAlign: "center" },
+  goBackButton: { backgroundColor: "#007aff", borderRadius: 50, padding: 10, position: "absolute", bottom: 20, paddingHorizontal: 30, left: "17%", transform: [{ translateX: -50 }] },
+  permissionButton: { backgroundColor: "#007aff", borderRadius: 50, padding: 15, marginTop: 20 },
+  permissionText: { fontSize: 16, color: "#fff", textAlign: "center" },
+  optionButton: { backgroundColor: "#007aff", borderRadius: 10, padding: 15, marginBottom: 10, width: "80%", alignItems: "center" },
+  optionText: { fontSize: 18, color: "#fff" },
+  capturingOverlay: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.7)", justifyContent: "center", alignItems: "center", zIndex: 10 },
+  capturingText: { color: "#ffffff", marginTop: 10, fontSize: 18 }
 });
 
-export default Identify;
+export default IdentifyApp;
