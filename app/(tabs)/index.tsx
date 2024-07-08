@@ -52,13 +52,19 @@ const useAppPermissions = () => {
 // Custom Hook for Voice Commands
 const useVoiceHandler = (executeCommand: (command: string) => void) => {
   useEffect(() => {
+    const handleRestart = async()=>{
+      await Voice.stop();
+      await Voice.start('en');
+    }
     Voice.onSpeechResults = (event: SpeechResultsEvent) => {
       const spokenCommand = event.value?.[0].toLowerCase().trim() || "";
       executeCommand(spokenCommand);
+      handleRestart();
     };
 
     Voice.onSpeechError = (error) => {
       console.log("Voice error:", error);
+      handleRestart();
     };
 
     return () => {
@@ -141,7 +147,7 @@ const IdentifyApp: React.FC = () => {
   const capturePhoto = async () => {
     if (cameraRef.current) {
       setCapturing(true);
-      const options = { quality: 0.8 }; // Adjust the quality as needed
+      const options = { quality: 0.8, skipProcessing: true }; // Adjust the quality as needed
       const photo = await cameraRef.current.takePictureAsync(options);
       setCapturing(false);
       setImageUri(photo.uri);
@@ -192,6 +198,12 @@ const IdentifyApp: React.FC = () => {
     if (pendingCommand) {
       const captureAndProcess = async () => {
         Speech.stop();
+        if(imageUri){
+          const uri = await capturePhoto();
+          setTimeout(async() => {
+            await processCommand(pendingCommand, uri);
+          }, 300);
+        }
         const uri = await capturePhoto();
         await processCommand(pendingCommand, uri);
       };
@@ -222,7 +234,7 @@ const IdentifyApp: React.FC = () => {
       {capturing && (
         <View style={styles.capturingOverlay}>
           <ActivityIndicator size="large" color="#ffffff" />
-          <Text style={styles.capturingText}>Capturing...</Text>
+          <Text style={styles.capturingText}>Please held the device steady..We are capturing photo</Text>
         </View>
       )}
       {imageUri ? (
@@ -234,6 +246,7 @@ const IdentifyApp: React.FC = () => {
               setImageUri(null);
               Speech.stop();
               setFeedbackText('');
+              
             }}
           >
             <Text style={styles.buttonText}>Back</Text>
@@ -285,7 +298,7 @@ const styles = StyleSheet.create({
   optionButton: { backgroundColor: "#007aff", borderRadius: 10, padding: 15, marginBottom: 10, width: "80%", alignItems: "center" },
   optionText: { fontSize: 18, color: "#fff" },
   capturingOverlay: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.7)", justifyContent: "center", alignItems: "center", zIndex: 10 },
-  capturingText: { color: "#ffffff", marginTop: 10, fontSize: 18 }
+  capturingText: { color: "#ffffff", marginTop: 10, fontSize: 18, textAlign: 'center' }
 });
 
 export default IdentifyApp;
