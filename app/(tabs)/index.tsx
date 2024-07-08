@@ -9,6 +9,7 @@ import {
   Dimensions,
   Platform,
   PermissionsAndroid,
+  BackHandler,
 } from "react-native";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import * as Speech from "expo-speech";
@@ -136,13 +137,33 @@ const IdentifyApp: React.FC = () => {
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [capturing, setCapturing] = useState(false);
   const [pendingCommand, setPendingCommand] = useState<string | null>(null);
-  const { mutateAsync } = useFetchContent();
+  const { mutateAsync, isLoading } = useFetchContent();
   const cameraRef = useRef<any>();
   const { cameraPermission, requestCameraPermission } = useAppPermissions();
 
   const switchCamera = () => {
     setFacing(facing === "back" ? "front" : "back");
   };
+
+  useEffect(() => {
+    const backAction = () => {
+      if(isLoading || capturing){
+        setFeedbackText('Please wait until loading ends');
+        return;
+      }
+      setImageUri(null);
+      Speech.stop();
+      setFeedbackText('');
+      return true;
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      backAction
+    );
+
+    return () => backHandler.remove();
+  }, []);
 
   const capturePhoto = async () => {
     if (cameraRef.current) {
@@ -244,6 +265,10 @@ const IdentifyApp: React.FC = () => {
           <TouchableOpacity
             style={styles.goBackButton}
             onPress={() => {
+              if(isLoading || capturing) {
+                setFeedbackText('Please wait until loading ends');
+                return;
+              }
               setImageUri(null);
               Speech.stop();
               setFeedbackText('');
