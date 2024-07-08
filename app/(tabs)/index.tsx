@@ -179,7 +179,7 @@ const IdentifyApp: React.FC = () => {
     try {
       const tasks = {
         identify: () => mutateAsync({ text: "Identify this image", imageUri: uri }),
-        price: () => mutateAsync({ text: "Identify this and find its price", imageUri: uri }),
+        price: () => mutateAsync({ text: "Please analyze this photo to identify the item. If identification is not possible, do an assumption. If identified, provide its fair market price range even if based on assumption in Egypt. identify then say the price range directly and don't include the word price or identify or read, just say first what's this ", imageUri: uri }),
         read: () => mutateAsync({ text: "Read the text in this image", imageUri: uri }),
       };
 
