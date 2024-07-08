@@ -215,7 +215,7 @@ const IdentifyApp: React.FC = () => {
     startListening();
     return () => {
       stopListening();
-    };x
+    };
   }, [startListening, stopListening]);
 
   if (!cameraPermission || !cameraPermission.granted) {
@@ -234,7 +234,7 @@ const IdentifyApp: React.FC = () => {
       {capturing && (
         <View style={styles.capturingOverlay}>
           <ActivityIndicator size="large" color="#ffffff" />
-          <Text style={styles.capturingText}>Please held the device steady..We are capturing photo</Text>
+          <Text style={styles.capturingText}>Please hold the device steady..We are capturing photo</Text>
         </View>
       )}
       {imageUri ? (
