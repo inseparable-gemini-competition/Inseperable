@@ -160,6 +160,7 @@ const IdentifyApp: React.FC = () => {
     async (command: string) => {
       setPendingCommand(command);
       setImageUri(null);
+      setFeedbackText('');
     },
     []
   );
@@ -195,7 +196,7 @@ const IdentifyApp: React.FC = () => {
   };
 
   useEffect(() => {
-    if (pendingCommand) {
+    if (pendingCommand && (pendingCommand.includes('price') || pendingCommand.includes('identify') || pendingCommand?.includes('read'))) {
       const captureAndProcess = async () => {
         Speech.stop();
         if(imageUri){
