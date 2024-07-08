@@ -191,8 +191,6 @@ const IdentifyApp: React.FC = () => {
   useEffect(() => {
     if (pendingCommand) {
       const captureAndProcess = async () => {
-        const isSpeaking = await Speech.isSpeakingAsync();
-        if(isSpeaking && imageUri) return;
         Speech.stop();
         const uri = await capturePhoto();
         await processCommand(pendingCommand, uri);
