@@ -73,7 +73,7 @@ const useIdentity = () => {
     try {
       const tasks = {
         identify: () =>
-          mutateAsync({ text: "Identify this image", imageUri: uri }),
+          mutateAsync({ text: "Identify this image, and if it's historical or landmark give information about it", imageUri: uri }),
         price: () =>
           mutateAsync({
             text: "Please analyze this photo to identify the item. If identification is not possible, do an assumption. If identified, provide its fair market price range even if based on assumption in Egypt. identify then say the price range directly and don't include the word price or identify or read, just say first what's this ",

@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity, Platform } from "react-native";
 import { CameraView } from "expo-camera";
-import { Slider } from "react-native-ui-lib";
 import styles from "./styles";
+import { PinchGestureHandler } from "react-native-gesture-handler";
+import useZoom from "@/hooks/useZoom";
 
 interface CameraModuleProps {
   facing: "front" | "back";
@@ -15,28 +16,22 @@ const CameraModule: React.FC<CameraModuleProps> = ({
   switchCamera,
   cameraRef,
 }) => {
-  const [zoom, setZoom] = useState(0);
-
+  const {zoom, handlePinchGesture} = useZoom();
   return (
-    <CameraView
-      style={styles.camera}
-      facing={facing}
-      ref={cameraRef}
-      zoom={zoom}
-    >
-      <View style={styles.cameraControls}>
-        <TouchableOpacity style={styles.flipButton} onPress={switchCamera}>
-          <Text style={styles.buttonText}>Flip Camera</Text>
-        </TouchableOpacity>
-      </View>
-      <Slider
-        style={{ width: 200, height: 40 }}
-        minimumValue={0}
-        maximumValue={1}
-        value={zoom}
-        onValueChange={(value) => setZoom(value)}
-      />
-    </CameraView>
+    <PinchGestureHandler onGestureEvent={handlePinchGesture}>
+      <CameraView
+        style={styles.camera}
+        facing={facing}
+        ref={cameraRef}
+        zoom={zoom}
+      >
+        <View style={styles.cameraControls}>
+          <TouchableOpacity style={styles.flipButton} onPress={switchCamera}>
+            <Text style={styles.buttonText}>Flip Camera</Text>
+          </TouchableOpacity>
+        </View>
+      </CameraView>
+    </PinchGestureHandler>
   );
 };
 
