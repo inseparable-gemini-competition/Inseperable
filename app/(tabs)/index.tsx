@@ -69,7 +69,7 @@ const IdentifyApp: React.FC = () => {
           </Text>
         </View>
       )}
-      <View style={{ width: "100%" }}>
+      <View style={{ width: "100%" }} {...panResponder.panHandlers}>
         {imageUri ? (
           <View style={{ height: height }}>
             <Image
