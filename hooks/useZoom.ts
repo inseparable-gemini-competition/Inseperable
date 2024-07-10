@@ -8,7 +8,7 @@ const useZoom = () => {
       const { scale, velocity: rawVelocity } = nativeEvent.nativeEvent;
       const velocity = rawVelocity / 20;
   
-      const adjustmentFactor = Platform.OS === "ios" ? 0.2 : 500;
+      const adjustmentFactor = Platform.OS === "ios" ? 0.2 : 700;
       let newZoom = zoom + scale * velocity * adjustmentFactor;
   
       // Ensure newZoom stays within bounds

@@ -10,7 +10,13 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     padding: 10,
   },
-  flipButton: { backgroundColor: "#007aff", borderRadius: 50, padding: 10 },
+  flipButton: {
+    backgroundColor: "#007aff",
+    borderRadius: 50,
+    padding: 10,
+    position: "absolute",
+    bottom: 35,
+  },
   captureButton: { backgroundColor: "#007aff", borderRadius: 50, padding: 15 },
   buttonText: { fontSize: 14, fontWeight: "bold", color: "#fff" },
   scrollContainer: {
@@ -35,7 +41,7 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     padding: 10,
     position: "absolute",
-    bottom: 20,
+    bottom: 35,
     paddingHorizontal: 30,
     left: "17%",
     transform: [{ translateX: -50 }],
