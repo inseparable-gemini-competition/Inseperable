@@ -1,20 +1,9 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import  { useState, useEffect, useRef, useCallback } from "react";
 import {
-  View,
-  Text,
-  TouchableOpacity,
-  ActivityIndicator,
-  ScrollView,
-  Dimensions,
   BackHandler,
 } from "react-native";
 import * as Speech from "expo-speech";
-import { Image } from "react-native-ui-lib";
-import CameraModule from "./CameraModule";
-import styles from "./styles";
-import VoiceCommandModule from "./VoiceCommandModule";
 import useVoiceHandler from "./useVoiceHandler";
-import useAppPermissions from "./useAppPermissions";
 import { useFetchContent } from "@/app/helpers/askGemini";
 
 const useIdentity = () => {

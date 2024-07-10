@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React from "react";
 import {
   View,
   Text,
@@ -6,21 +6,19 @@ import {
   ActivityIndicator,
   ScrollView,
   Dimensions,
-  BackHandler,
 } from "react-native";
 import * as Speech from "expo-speech";
 import { Image } from "react-native-ui-lib";
 import CameraModule from "../screens/Identify/CameraModule";
 import styles from "../screens/Identify/styles";
 import VoiceCommandModule from "../screens/Identify/VoiceCommandModule";
-import useAppPermissions from "../screens/Identify/useAppPermissions";
-import useIdentity from "../screens/Identify/useIdentity";
-
-const { cameraPermission, requestCameraPermission } = useAppPermissions();
+import useAppPermissions from "../../hooks/useAppPermissions";
+import useIdentity from "../../hooks/useIdentity";
 
 const { height } = Dimensions.get("window");
 
 const IdentifyApp: React.FC = () => {
+  const { cameraPermission, requestCameraPermission } = useAppPermissions();
   const {
     facing,
     switchCamera,
