@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   View,
   Text,
@@ -7,8 +7,7 @@ import {
   ScrollView,
   Dimensions,
   StyleSheet,
-  PanResponder,
-  Animated,
+  GestureResponderEvent,
 } from "react-native";
 import * as Speech from "expo-speech";
 import { Image } from "react-native-ui-lib";
@@ -43,33 +42,26 @@ const IdentifyApp: React.FC = () => {
   const minHeight = 100;
   const maxHeight = windowHeight;
   const [currentHeight, setCurrentHeight] = useState(initialHeight);
-  const heightAnim = useRef(new Animated.Value(initialHeight)).current;
 
-  const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: () => true,
-      onPanResponderMove: (e, gestureState) => {
-        let newHeight = currentHeight + gestureState.dy;
-        if (newHeight < minHeight) newHeight = minHeight;
-        if (newHeight > maxHeight) newHeight = maxHeight;
-        heightAnim.setValue(newHeight);
-      },
-      onPanResponderRelease: (e, gestureState) => {
-        let newHeight = currentHeight + gestureState.dy;
-        if (newHeight < minHeight) newHeight = minHeight;
-        if (newHeight > maxHeight) newHeight = maxHeight;
+  const touchStartY = useRef(0);
+  const startHeight = useRef(currentHeight);
 
-        Animated.timing(heightAnim, {
-          toValue: newHeight,
-          duration: 50,
-          useNativeDriver: false,
-        }).start(() => {
-          setCurrentHeight(newHeight);
-        });
-      },
-    })
-  ).current;
+  const handleTouchStart = (event: GestureResponderEvent) => {
+    if (event.nativeEvent.touches.length === 1) {
+      touchStartY.current = event.nativeEvent.pageY;
+      startHeight.current = currentHeight;
+    }
+  };
+
+  const handleTouchMove = (event: GestureResponderEvent) => {
+    if (event.nativeEvent.touches.length === 1) {
+      const touchY = event.nativeEvent.pageY;
+      const newHeight = startHeight.current + (touchY - touchStartY.current);
+      if (newHeight >= minHeight && newHeight <= maxHeight) {
+        setCurrentHeight(newHeight);
+      }
+    }
+  };
 
   if (!cameraPermission || !cameraPermission.granted) {
     return (
@@ -97,7 +89,11 @@ const IdentifyApp: React.FC = () => {
           </Text>
         </View>
       )}
-      <Animated.View style={{ width: "100%", height: heightAnim }}>
+      <View
+        style={{ width: "100%", height: currentHeight }}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+      >
         {imageUri ? (
           <View style={{ flex: 1 }}>
             <Image
@@ -127,10 +123,10 @@ const IdentifyApp: React.FC = () => {
             style={{ flex: 1 }}
           />
         )}
-        <View style={customStyles.handle} {...panResponder.panHandlers}>
+        <View style={customStyles.handle}>
           <Text style={customStyles.handleText}>Drag</Text>
         </View>
-      </Animated.View>
+      </View>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         {isProcessing && <ActivityIndicator size="large" color="#0000ff" />}
         <Text style={styles.feedbackText}>{feedbackText}</Text>
