@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef, useState } from "react";
 import {
   View,
   Text,
@@ -7,6 +7,8 @@ import {
   ScrollView,
   Dimensions,
   StyleSheet,
+  PanResponder,
+  Animated,
 } from "react-native";
 import * as Speech from "expo-speech";
 import { Image } from "react-native-ui-lib";
@@ -15,7 +17,6 @@ import styles from "../screens/Identify/styles";
 import VoiceCommandModule from "../screens/Identify/VoiceCommandModule";
 import useAppPermissions from "../../hooks/useAppPermissions";
 import useIdentity from "../../hooks/useIdentity";
-import useTouch from "../../hooks/useTouch"; // Import the custom hook
 
 const { height: windowHeight } = Dimensions.get("window");
 
@@ -41,7 +42,34 @@ const IdentifyApp: React.FC = () => {
   const initialHeight = windowHeight / 2;
   const minHeight = 100;
   const maxHeight = windowHeight;
-  const { height, panResponder } = useTouch(initialHeight, minHeight, maxHeight);
+  const [currentHeight, setCurrentHeight] = useState(initialHeight);
+  const heightAnim = useRef(new Animated.Value(initialHeight)).current;
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderMove: (e, gestureState) => {
+        let newHeight = currentHeight + gestureState.dy;
+        if (newHeight < minHeight) newHeight = minHeight;
+        if (newHeight > maxHeight) newHeight = maxHeight;
+        heightAnim.setValue(newHeight);
+      },
+      onPanResponderRelease: (e, gestureState) => {
+        let newHeight = currentHeight + gestureState.dy;
+        if (newHeight < minHeight) newHeight = minHeight;
+        if (newHeight > maxHeight) newHeight = maxHeight;
+
+        Animated.timing(heightAnim, {
+          toValue: newHeight,
+          duration: 50,
+          useNativeDriver: false,
+        }).start(() => {
+          setCurrentHeight(newHeight);
+        });
+      },
+    })
+  ).current;
 
   if (!cameraPermission || !cameraPermission.granted) {
     return (
@@ -69,16 +97,13 @@ const IdentifyApp: React.FC = () => {
           </Text>
         </View>
       )}
-      <View style={{ width: "100%" }} {...panResponder.panHandlers}>
+      <Animated.View style={{ width: "100%", height: heightAnim }}>
         {imageUri ? (
-          <View style={{ height: height }}>
+          <View style={{ flex: 1 }}>
             <Image
               source={{ uri: imageUri }}
               style={{ width: "100%", height: "100%" }}
             />
-            <View style={customStyles.handle} {...panResponder.panHandlers}>
-              <Text style={customStyles.handleText}>Drag</Text>
-            </View>
             <TouchableOpacity
               style={styles.goBackButton}
               onPress={() => {
@@ -99,13 +124,13 @@ const IdentifyApp: React.FC = () => {
             facing={facing}
             switchCamera={switchCamera}
             cameraRef={cameraRef}
-            style={{ height: height }} // Pass dynamic height to CameraModule
+            style={{ flex: 1 }}
           />
         )}
         <View style={customStyles.handle} {...panResponder.panHandlers}>
           <Text style={customStyles.handleText}>Drag</Text>
         </View>
-      </View>
+      </Animated.View>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         {isProcessing && <ActivityIndicator size="large" color="#0000ff" />}
         <Text style={styles.feedbackText}>{feedbackText}</Text>
