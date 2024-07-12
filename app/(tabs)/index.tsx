@@ -8,9 +8,12 @@ import {
   Dimensions,
   StyleSheet,
   GestureResponderEvent,
+  Share,
 } from "react-native";
 import * as Speech from "expo-speech";
+import * as MediaLibrary from "expo-media-library";
 import { Image } from "react-native-ui-lib";
+import { MaterialIcons } from "@expo/vector-icons";
 import CameraModule from "../screens/Identify/CameraModule";
 import styles from "../screens/Identify/styles";
 import VoiceCommandModule from "../screens/Identify/VoiceCommandModule";
@@ -26,9 +29,6 @@ const IdentifyApp: React.FC = () => {
     switchCamera,
     isProcessing,
     feedbackText,
-    isListening,
-    startListening,
-    stopListening,
     imageUri,
     setImageUri,
     capturing,
@@ -63,6 +63,35 @@ const IdentifyApp: React.FC = () => {
     }
   };
 
+  const handleShareImage = async () => {
+    if (imageUri) {
+      try {
+        await Share.share({
+          url: imageUri,
+          message: "Check out this image I identified!",
+        });
+      } catch (error) {
+        setFeedbackText("Error sharing image");
+      }
+    }
+  };
+
+  const handleSaveToGallery = async () => {
+    if (imageUri) {
+      const { status } = await MediaLibrary.requestPermissionsAsync();
+      if (status === "granted") {
+        try {
+          await MediaLibrary.createAssetAsync(imageUri);
+          setFeedbackText("Image saved to gallery");
+        } catch (error) {
+          setFeedbackText("Error saving image");
+        }
+      } else {
+        setFeedbackText("Permission to access gallery is required");
+      }
+    }
+  };
+
   if (!cameraPermission || !cameraPermission.granted) {
     return (
       <View style={styles.container}>
@@ -85,7 +114,7 @@ const IdentifyApp: React.FC = () => {
         <View style={styles.capturingOverlay}>
           <ActivityIndicator size="large" color="#ffffff" />
           <Text style={styles.capturingText}>
-            Please hold the device steady..We are capturing photo
+            Please hold the device steady... We are capturing photo
           </Text>
         </View>
       )}
@@ -128,8 +157,24 @@ const IdentifyApp: React.FC = () => {
         </View>
       </View>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        {isProcessing && <ActivityIndicator size="large" color="#0000ff" />}
-        <Text style={styles.feedbackText}>{feedbackText}</Text>
+        {isProcessing && imageUri && <ActivityIndicator size="large" color="#007aff" />}
+        {imageUri && <View style={customStyles.actionButtonsContainer}>
+          <TouchableOpacity
+            style={customStyles.iconButton}
+            onPress={handleShareImage}
+          >
+            <MaterialIcons name="share" size={30} color="#007aff" />
+            <Text style={customStyles.iconButtonText}>Share</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={customStyles.iconButton}
+            onPress={handleSaveToGallery}
+          >
+            <MaterialIcons name="save-alt" size={30} color="#007aff" />
+            <Text style={customStyles.iconButtonText}>Save</Text>
+          </TouchableOpacity>
+        </View>}
+        {feedbackText && imageUri && <Text style={styles.feedbackText}>{feedbackText}</Text>}
         <TouchableOpacity
           style={styles.optionButton}
           onPress={() => executeCommand("identify")}
@@ -148,11 +193,6 @@ const IdentifyApp: React.FC = () => {
         >
           <Text style={styles.optionText}>Read</Text>
         </TouchableOpacity>
-        <VoiceCommandModule
-          isListening={isListening}
-          startListening={startListening}
-          stopListening={stopListening}
-        />
       </ScrollView>
     </View>
   );
@@ -161,18 +201,33 @@ const IdentifyApp: React.FC = () => {
 const customStyles = StyleSheet.create({
   handle: {
     height: 30,
-    backgroundColor: '#ccc',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#ccc",
+    justifyContent: "center",
+    alignItems: "center",
     borderTopLeftRadius: 10,
     borderTopRightRadius: 10,
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
-    width: '100%',
+    width: "100%",
   },
   handleText: {
-    color: '#000',
-    fontWeight: 'bold',
+    color: "#000",
+    fontWeight: "bold",
+  },
+  actionButtonsContainer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    paddingTop: 10,
+  },
+  iconButton: {
+    alignItems: "center",
+    paddingHorizontal: 20,
+    color: "#0000ff"
+  },
+  iconButtonText: {
+    fontSize: 12,
+    marginTop: 5,
+    fontWeight: '500',
   },
 });
 
