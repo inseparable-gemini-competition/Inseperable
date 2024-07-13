@@ -9,6 +9,8 @@ import {
   StyleSheet,
   GestureResponderEvent,
   Share,
+  TextInput,
+  Modal,
 } from "react-native";
 import * as Speech from "expo-speech";
 import * as MediaLibrary from "expo-media-library";
@@ -16,7 +18,6 @@ import { Image } from "react-native-ui-lib";
 import { MaterialIcons } from "@expo/vector-icons";
 import CameraModule from "../screens/Identify/CameraModule";
 import styles from "../screens/Identify/styles";
-import VoiceCommandModule from "../screens/Identify/VoiceCommandModule";
 import useAppPermissions from "../../hooks/useAppPermissions";
 import useIdentity from "../../hooks/useIdentity";
 
@@ -36,12 +37,19 @@ const IdentifyApp: React.FC = () => {
     isLoading,
     setFeedbackText,
     cameraRef,
+    setCurrentLanguage,
+    translations,
+    updateTranslations,
   } = useIdentity();
+
+  
 
   const initialHeight = windowHeight / 2;
   const minHeight = 100;
   const maxHeight = windowHeight;
   const [currentHeight, setCurrentHeight] = useState(initialHeight);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState("ar");
 
   const touchStartY = useRef(0);
   const startHeight = useRef(currentHeight);
@@ -68,10 +76,12 @@ const IdentifyApp: React.FC = () => {
       try {
         await Share.share({
           url: imageUri,
-          message: "Check out this image I identified!",
+          message: translations.shareMessage || "Check out this image I identified!",
         });
+        Speech.speak(translations.shareSuccess || "Image shared successfully.");
       } catch (error) {
-        setFeedbackText("Error sharing image");
+        setFeedbackText(translations.shareError || "Error sharing image");
+        Speech.speak(translations.shareError || "Error sharing image.");
       }
     }
   };
@@ -82,27 +92,55 @@ const IdentifyApp: React.FC = () => {
       if (status === "granted") {
         try {
           await MediaLibrary.createAssetAsync(imageUri);
-          setFeedbackText("Image saved to gallery");
+          setFeedbackText(translations.saveSuccess || "Image saved to gallery");
+          Speech.speak(translations.saveSuccess || "Image saved to gallery.");
         } catch (error) {
-          setFeedbackText("Error saving image");
+          setFeedbackText(translations.saveError || "Error saving image");
+          Speech.speak(translations.saveError || "Error saving image.");
         }
       } else {
-        setFeedbackText("Permission to access gallery is required");
+        setFeedbackText(translations.permissionRequired || "Permission to access gallery is required");
+        Speech.speak(translations.permissionRequired || "Permission to access gallery is required.");
       }
     }
+  };
+
+  const handleTranslateText = async (language: string) => {
+    try {
+      updateTranslations(language)
+    } catch (error) {
+      setFeedbackText(translations.translateError || "Error translating text");
+      Speech.speak(translations.translateError || "Error translating text.");
+    }
+  };
+
+  const openLanguageSelectionModal = () => {
+    setIsModalVisible(true);
+  };
+
+  const closeLanguageSelectionModal = () => {
+    setIsModalVisible(false);
+  };
+
+  const handleLanguageChange = (language: string) => {
+    setCurrentLanguage(language);
+    handleTranslateText(language);
+    closeLanguageSelectionModal();
   };
 
   if (!cameraPermission || !cameraPermission.granted) {
     return (
       <View style={styles.container}>
         <Text style={{ textAlign: "center" }}>
-          We need your permission to show the camera
+          {translations.permissionMessage || "We need your permission to show the camera"}
         </Text>
         <TouchableOpacity
           onPress={requestCameraPermission}
           style={styles.permissionButton}
         >
-          <Text style={styles.permissionText}>Grant Permission</Text>
+          <Text style={styles.permissionText}>
+            {translations.grantPermission || "Grant Permission"}
+          </Text>
         </TouchableOpacity>
       </View>
     );
@@ -114,7 +152,7 @@ const IdentifyApp: React.FC = () => {
         <View style={styles.capturingOverlay}>
           <ActivityIndicator size="large" color="#ffffff" />
           <Text style={styles.capturingText}>
-            Please hold the device steady... We are capturing photo
+            {translations.capturingMessage || "Please hold the device steady... We are capturing photo"}
           </Text>
         </View>
       )}
@@ -133,7 +171,7 @@ const IdentifyApp: React.FC = () => {
               style={styles.goBackButton}
               onPress={() => {
                 if (isLoading || capturing) {
-                  setFeedbackText("Please wait until loading ends");
+                  setFeedbackText(translations.waitMessage || "Please wait until loading ends");
                   return;
                 }
                 setImageUri(null);
@@ -141,7 +179,7 @@ const IdentifyApp: React.FC = () => {
                 setFeedbackText("");
               }}
             >
-              <Text style={styles.buttonText}>Back</Text>
+              <Text style={styles.buttonText}>{translations.back || "Back"}</Text>
             </TouchableOpacity>
           </View>
         ) : (
@@ -153,46 +191,79 @@ const IdentifyApp: React.FC = () => {
           />
         )}
         <View style={customStyles.handle}>
-          <Text style={customStyles.handleText}>Drag</Text>
+          <Text style={customStyles.handleText}>{translations.drag || "Drag"}</Text>
         </View>
       </View>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        {isProcessing && imageUri && <ActivityIndicator size="large" color="#007aff" />}
-        {imageUri && <View style={customStyles.actionButtonsContainer}>
-          <TouchableOpacity
-            style={customStyles.iconButton}
-            onPress={handleShareImage}
-          >
-            <MaterialIcons name="share" size={30} color="#007aff" />
-            <Text style={customStyles.iconButtonText}>Share</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={customStyles.iconButton}
-            onPress={handleSaveToGallery}
-          >
-            <MaterialIcons name="save-alt" size={30} color="#007aff" />
-            <Text style={customStyles.iconButtonText}>Save</Text>
-          </TouchableOpacity>
-        </View>}
+        {isProcessing && <ActivityIndicator size="large" color="#007aff" />}
+        {imageUri && (
+          <View style={customStyles.actionButtonsContainer}>
+            <TouchableOpacity
+              style={customStyles.iconButton}
+              onPress={handleShareImage}
+            >
+              <MaterialIcons name="share" size={30} color="#007aff" />
+              <Text style={customStyles.iconButtonText}>{translations.share || "Share"}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={customStyles.iconButton}
+              onPress={handleSaveToGallery}
+            >
+              <MaterialIcons name="save-alt" size={30} color="#007aff" />
+              <Text style={customStyles.iconButtonText}>{translations.save || "Save"}</Text>
+            </TouchableOpacity>
+          </View>
+        )}
         {feedbackText && imageUri && <Text style={styles.feedbackText}>{feedbackText}</Text>}
         <TouchableOpacity
           style={styles.optionButton}
           onPress={() => executeCommand("identify")}
         >
-          <Text style={styles.optionText}>Identify</Text>
+          <Text style={styles.optionText}>{translations.identify || "Identify"}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.optionButton}
           onPress={() => executeCommand("price")}
         >
-          <Text style={styles.optionText}>Find Fair Price</Text>
+          <Text style={styles.optionText}>{translations.price || "Find Fair Price"}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.optionButton}
           onPress={() => executeCommand("read")}
         >
-          <Text style={styles.optionText}>Read</Text>
+          <Text style={styles.optionText}>{translations.read || "Read"}</Text>
         </TouchableOpacity>
+        <TouchableOpacity
+          style={customStyles.iconButton}
+          onPress={openLanguageSelectionModal}
+        >
+          <MaterialIcons name="translate" size={30} color="#007aff" />
+          <Text style={customStyles.iconButtonText}>{translations.translate || "Translate"}</Text>
+        </TouchableOpacity>
+        <Modal
+          visible={isModalVisible}
+          animationType="slide"
+          transparent={true}
+          onRequestClose={closeLanguageSelectionModal}
+        >
+          <View style={customStyles.modalContainer}>
+            <View style={customStyles.modalContent}>
+              <Text style={customStyles.modalTitle}>{translations.selectLanguage || "Select Language"}</Text>
+              <TextInput
+                style={customStyles.languageInput}
+                placeholder={translations.enterLanguage || "Enter language"}
+                value={selectedLanguage}
+                onChangeText={setSelectedLanguage}
+              />
+              <TouchableOpacity
+                style={customStyles.confirmButton}
+                onPress={() => handleLanguageChange(selectedLanguage)}
+              >
+                <Text style={customStyles.confirmButtonText}>{translations.confirm || "Confirm"}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
       </ScrollView>
     </View>
   );
@@ -222,12 +293,46 @@ const customStyles = StyleSheet.create({
   iconButton: {
     alignItems: "center",
     paddingHorizontal: 20,
-    color: "#0000ff"
   },
   iconButtonText: {
     fontSize: 12,
     marginTop: 5,
     fontWeight: '500',
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  modalContent: {
+    width: "80%",
+    padding: 20,
+    backgroundColor: "white",
+    borderRadius: 10,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 10,
+  },
+  languageInput: {
+    height: 40,
+    borderColor: 'gray',
+    borderWidth: 1,
+    marginVertical: 10,
+    paddingHorizontal: 10,
+    borderRadius: 5,
+  },
+  confirmButton: {
+    backgroundColor: "#007aff",
+    padding: 10,
+    borderRadius: 5,
+    alignItems: "center",
+  },
+  confirmButtonText: {
+    color: "white",
+    fontWeight: "bold",
   },
 });
 
