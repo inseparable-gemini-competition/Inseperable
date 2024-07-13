@@ -9,7 +9,6 @@ const askGemini = async (data: any) => {
   try {
     let contents = [{ parts: [{ text: target_language? `translate this object values to ${target_language} without any extra words return an object with same keys but translated values: ${JSON.stringify(text)}`: text }] }];
 
-    console.log(contents)
     if (imageUri) {
       const imageData = await ImageManipulator.manipulateAsync(
         `${imageUri}`,
