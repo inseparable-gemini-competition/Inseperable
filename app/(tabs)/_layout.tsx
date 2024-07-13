@@ -65,13 +65,14 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
-          name="Donate"
+          name="Messaging"
           options={{
-            title: "Donate",
+            title: "Messaging",
             tabBarIcon: ({ color, focused }) => (
               <TabBarIcon
-                name={focused ? "heart" : "heart-outline"}
-                color={color}
+              name={focused ? "chatbubble" : "chatbubble-outline"}
+              color={color}
+              size={25}
               />
             ),
           }}
