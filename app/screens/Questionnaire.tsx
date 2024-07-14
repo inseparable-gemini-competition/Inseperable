@@ -1,7 +1,9 @@
 import { useState } from "react";
-import { View } from "react-native-ui-lib";
+import { View, Text, Button } from "react-native-ui-lib";
 import { colors } from "../theme";
 import Question from "@/components/Question/Question";
+import { useFetchContent } from "@/app/helpers/askGemini";
+import { ActivityIndicator } from "react-native";
 
 type Props = {
   onFinish: () => void;
@@ -10,7 +12,10 @@ type Props = {
 const Questionnaire = ({ onFinish }: Props) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<string[]>([]);
-  const defaultQuestions = [ 
+  const { mutateAsync, isLoading } = useFetchContent();
+  const [recommendedCountry, setRecommendedCountry] = useState("");
+
+  const defaultQuestions = [
     {
       id: 1,
       question: "Where are you based?",
@@ -26,10 +31,6 @@ const Questionnaire = ({ onFinish }: Props) => {
       ],
     },
   ];
-  const [questions, setQuestions] = useState(defaultQuestions);
-
-  const [question, setQuestion] = useState(questions[0]);
-
 
   const questionsOptionA = [
     {
@@ -115,8 +116,8 @@ const Questionnaire = ({ onFinish }: Props) => {
       options: [
         { id: 1, option: "Yes" },
         { id: 2, option: "No" },
-      ] 
-    },    
+      ],
+    },
   ];
 
   const questionsOptionB = [
@@ -203,14 +204,17 @@ const Questionnaire = ({ onFinish }: Props) => {
     },
     {
       id: 12,
-      question: "Would you like to visit a place with a rich cultural heritage?",
+      question:
+        "Would you like to visit a place with a rich cultural heritage?",
       options: [
         { id: 1, option: "Yes" },
         { id: 2, option: "No" },
       ],
-    }
+    },
   ];
 
+  const [questions, setQuestions] = useState(defaultQuestions);
+  const [question, setQuestion] = useState(questions[0]);
 
   const handleAnswer = (answer: string) => {
     const updatedAnswers = [...answers];
@@ -218,28 +222,36 @@ const Questionnaire = ({ onFinish }: Props) => {
     setAnswers(updatedAnswers);
   };
 
-  const handleNext = (option: string) => { 
-    if(option.length === 0) return;
+  const handleNext = async (option: string) => {
+    if (option.length === 0) return;
     handleAnswer(option);
+
     let updatedQuestions = [...questions];
-    if(currentQuestionIndex == 1){
-       updatedQuestions = [...defaultQuestions];
-      if(option == "Yes"){
+    if (currentQuestionIndex === 1) {
+      if (option === "Yes") {
         updatedQuestions = [...defaultQuestions, ...questionsOptionA];
-       setQuestions(updatedQuestions);
       } else {
         updatedQuestions = [...defaultQuestions, ...questionsOptionB];
-       setQuestions(updatedQuestions);
       }
-      setQuestion(updatedQuestions[currentQuestionIndex + 1])
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
-      return 
+      setQuestions(updatedQuestions);
     }
+
     if (currentQuestionIndex < updatedQuestions.length - 1) {
       setQuestion(updatedQuestions[currentQuestionIndex + 1]);
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else {
-      onFinish();
+      const response = await mutateAsync({
+        text:
+          `given these answers` +
+          JSON.stringify(answers) +
+          "to these questions" +
+          JSON.stringify(questions) +
+          `if the user is not travelling determine what is the best destination for him? respond in base country language what the recommended country is , don't recommend base country.
+          if the user is travelling determine the best plan for him in the country that he is in. respond in base country language what the recommended plan is.
+          reply in a normal string. talk to the user directly.`,
+      });
+      setRecommendedCountry(response);
+      // onFinish();
     }
   };
 
@@ -250,6 +262,21 @@ const Questionnaire = ({ onFinish }: Props) => {
     }
   };
 
+  if (isLoading) {
+    // Show loading spinner
+    return (
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: colors.background,
+        }}
+      >
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
   return (
     <View
       style={{
@@ -260,18 +287,33 @@ const Questionnaire = ({ onFinish }: Props) => {
       }}
     >
       <View>
-        <Question
-          key={question.id}
-          question={question}
-          onAnswer={handleAnswer}
-          onNext={handleNext}
-          onPrevious={handlePrevious}
-          showPrevious={currentQuestionIndex > 0}
-          showNext={
-            question.isOpenEnded || false
-          }
-          currentAnswer={answers[currentQuestionIndex] || ""}
-        />
+        {!recommendedCountry ? (
+          <Question
+            key={question.id}
+            question={question}
+            onAnswer={handleAnswer}
+            onNext={handleNext}
+            onPrevious={handlePrevious}
+            showPrevious={currentQuestionIndex > 0}
+            showNext={question.isOpenEnded || false}
+            currentAnswer={answers[currentQuestionIndex] || ""}
+          />
+        ) : (
+          <>
+            <Text
+              style={{
+                fontSize: 20,
+                fontWeight: "bold",
+                color: colors.black,
+                textAlign: "center",
+                padding: 10,
+              }}
+            >
+              {recommendedCountry}
+            </Text>
+            <Button label="Finish" onPress={onFinish}/>
+          </>
+        )}
       </View>
     </View>
   );
