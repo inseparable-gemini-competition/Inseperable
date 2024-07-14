@@ -10,6 +10,7 @@ const colors = {
   dark: "#343a40",
   white: "#fff",
   black: "#000",
+  placeholder: "#6c757d",
 };
 
 export { colors };

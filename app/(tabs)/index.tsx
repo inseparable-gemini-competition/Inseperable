@@ -269,7 +269,7 @@ const IdentifyApp: React.FC = () => {
   );
 };
 
-const customStyles = StyleSheet.create({
+const customStyles = StyleSheet.create({  
   handle: {
     height: 30,
     backgroundColor: "#ccc",
