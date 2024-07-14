@@ -51,21 +51,9 @@ const TabsScreen = () => {
         }}
       />
       <Tabs.Screen
-        name="Translation"
-        options={{
-          title: "Communicate",
-          tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon
-              name={focused ? "language" : "language-outline"}
-              color={color}
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
         name="HandmadeItems"
         options={{
-          title: "Buy",
+          title: "Local Shopping",
           tabBarIcon: ({ color, focused }) => (
             <TabBarIcon
               name={focused ? "basket" : "basket-outline"}
