@@ -14,7 +14,7 @@ type Props = {
     isOpenEnded?: boolean;
   };
   onAnswer: (answer: string) => void;
-  onNext: () => void;
+  onNext: (option: string) => void;
   onPrevious: () => void;
   showPrevious: boolean;
   showNext: boolean;
@@ -31,8 +31,7 @@ const Question = ({
   currentAnswer,
 }: Props) => {
   const handleOptionSelect = (option: string) => {
-    onAnswer(option);
-    onNext();
+    onNext(option);
   };
 
   return (
