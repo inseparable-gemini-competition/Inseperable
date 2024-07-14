@@ -246,10 +246,19 @@ const Questionnaire = ({ onFinish }: Props) => {
           JSON.stringify(answers) +
           "to these questions" +
           JSON.stringify(questions) +
-          `if i am not travelling determine what is the best destination for me? respond in base country language what the recommended country is , don't recommend base country.
-          if i am travelling determine the best plan for him in the country that i am in. if you are suggesting country just say the country name and a brief description of the plan. if you are suggesting a plan say the plan name and a brief description of the plan.
-          please reply in my native language. don't write more than 5 lines and don't do weird formatting
-          `,
+         `1. Check if I am currently traveling.
+         2. If I am not traveling:
+            a. Determine the best destination for me outside my base country.
+            b. Respond in my base country language with the recommended country and a brief description.
+         3. If I am traveling:
+            a. Determine the best plan for me in the country I am currently in.
+            b. Respond in my base country language with the plan name and a brief description.
+         4. Ensure responses are concise (no more than 5 lines).
+         5. Do not use unusual formatting.
+         6. Do not recommend my base country.
+         7- reply in my base country language.
+         
+         `
       });
       setRecommendedCountry(response);
     }
