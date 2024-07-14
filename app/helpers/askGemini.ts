@@ -2,62 +2,77 @@ import axios from "axios";
 import { useMutation } from "react-query";
 import * as ImageManipulator from "expo-image-manipulator";
 
-const askGemini = async (data: any) => {
-  const { text, imageUri, target_language } = data; // Changed to target_language
-  const apiKey = "AIzaSyDTiF7YjBUWM0l0nKpzicv9R6kReU3dn8Q";
+// Constants
+const API_KEY = "AIzaSyDTiF7YjBUWM0l0nKpzicv9R6kReU3dn8Q";
+const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${API_KEY}`;
+const IMAGE_RESIZE_WIDTH = 512;
+
+// Helper function to prepare text content
+const prepareTextContent = (text: any, target_language: string) => {
+  return target_language
+    ? `translate this object values to ${target_language} without any extra words return an object with same keys but translated values: ${JSON.stringify(
+        text
+      )}`
+    : text;
+};
+
+// Helper function to manipulate image
+const manipulateImage = async (imageUri: string) => {
+  const imageData = await ImageManipulator.manipulateAsync(
+    imageUri,
+    [{ resize: { width: IMAGE_RESIZE_WIDTH } }],
+    { base64: true }
+  );
+
+  if (!imageData.base64) {
+    throw new Error("Failed to convert image to Base64.");
+  }
+
+  return imageData.base64;
+};
+
+// Main function to ask Gemini
+const askGemini = async (data: { text: any; imageUri?: string; target_language?: string }) => {
+  const { text, imageUri, target_language } = data;
+
+  let contents = [
+    {
+      parts: [
+        {
+          text: prepareTextContent(text, target_language || ""),
+        },
+      ],
+    },
+  ];
+
+  if (imageUri) {
+    const base64Image = await manipulateImage(imageUri);
+    contents[0].parts.push({
+      inline_data: {
+        mime_type: "image/png",
+        data: base64Image,
+      },
+    });
+  }
 
   try {
-    let contents = [
-      {
-        parts: [
-          {
-            text: target_language
-              ? `translate this object values to ${target_language} without any extra words return an object with same keys but translated values: ${JSON.stringify(
-                  text
-                )}`
-              : text,
-          },
-        ],
-      },
-    ];
-
-    if (imageUri) {
-      const imageData = await ImageManipulator.manipulateAsync(
-        `${imageUri}`,
-        [{ resize: { width: 512 } }],
-        { base64: true }
-      );
-
-      const base64Image = imageData.base64;
-
-      if (base64Image) {
-        contents[0].parts.push({
-          inline_data: {
-            mime_type: "image/png",
-            data: base64Image,
-          },
-        });
-      } else {
-        throw new Error("Failed to convert image to Base64.");
-      }
-    }
-
     const response = await axios.post(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${apiKey}`,
-      { contents }, // Included target_language in the request body
+      API_URL,
+      { contents },
       {
         headers: {
           "Content-Type": "application/json",
-        },
+        }
       }
     );
     return response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
   } catch (error) {
     console.error("Error processing request:", JSON.stringify(error));
-    throw error; // Rethrow the error to be handled by react-query
+    throw error;
   }
 };
 
+// Custom hook to use the askGemini function
 export const useFetchContent = () => {
   return useMutation(askGemini);
 };
