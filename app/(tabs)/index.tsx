@@ -1,5 +1,14 @@
 import React, { useState, useRef } from "react";
-import { View, Text, TouchableOpacity, ActivityIndicator, ScrollView, Dimensions, GestureResponderEvent, Share } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ActivityIndicator,
+  ScrollView,
+  Dimensions,
+  GestureResponderEvent,
+  Share,
+} from "react-native";
 import * as Speech from "expo-speech";
 import * as MediaLibrary from "expo-media-library";
 import ImageActions from "@/app/components/ImageActions";
@@ -62,7 +71,8 @@ const IdentifyApp: React.FC = () => {
       try {
         await Share.share({
           url: imageUri,
-          message: translations.shareMessage || "Check out this image I identified!",
+          message:
+            translations.shareMessage || "Check out this image I identified!",
         });
         Speech.speak(translations.shareSuccess || "Image shared successfully.");
       } catch (error) {
@@ -85,15 +95,21 @@ const IdentifyApp: React.FC = () => {
           Speech.speak(translations.saveError || "Error saving image.");
         }
       } else {
-        setFeedbackText(translations.permissionRequired || "Permission to access gallery is required");
-        Speech.speak(translations.permissionRequired || "Permission to access gallery is required.");
+        setFeedbackText(
+          translations.permissionRequired ||
+            "Permission to access gallery is required"
+        );
+        Speech.speak(
+          translations.permissionRequired ||
+            "Permission to access gallery is required."
+        );
       }
     }
   };
 
   const handleTranslateText = async (language: string) => {
     try {
-      updateTranslations(language)
+      updateTranslations(language);
     } catch (error) {
       setFeedbackText(translations.translateError || "Error translating text");
       Speech.speak(translations.translateError || "Error translating text.");
@@ -116,7 +132,10 @@ const IdentifyApp: React.FC = () => {
 
   if (!cameraPermission || !cameraPermission.granted) {
     return (
-      <PermissionView requestCameraPermission={requestCameraPermission} translations={translations} />
+      <PermissionView
+        requestCameraPermission={requestCameraPermission}
+        translations={translations}
+      />
     );
   }
 
@@ -126,7 +145,8 @@ const IdentifyApp: React.FC = () => {
         <View style={styles.capturingOverlay}>
           <ActivityIndicator size="large" color="#ffffff" />
           <Text style={styles.capturingText}>
-            {translations.capturingMessage || "Please hold the device steady... We are capturing photo"}
+            {translations.capturingMessage ||
+              "Please hold the device steady... We are capturing photo"}
           </Text>
         </View>
       )}
@@ -153,15 +173,21 @@ const IdentifyApp: React.FC = () => {
       </View>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         {isProcessing && <ActivityIndicator size="large" color="#007aff" />}
-        {imageUri && (
-          <ImageActions handleShareImage={handleShareImage} handleSaveToGallery={handleSaveToGallery} translations={translations} />
-        )}
-        {feedbackText && imageUri && <Text style={styles.feedbackText}>{feedbackText}</Text>}
-        <ActionButtons 
-          translations={translations} 
-          executeCommand={executeCommand} 
-          openLanguageSelectionModal={openLanguageSelectionModal} 
+        <ActionButtons
+          translations={translations}
+          executeCommand={executeCommand}
+          openLanguageSelectionModal={openLanguageSelectionModal}
         />
+        {feedbackText && imageUri && (
+          <Text style={styles.feedbackText}>{feedbackText}</Text>
+        )}
+        {imageUri && (
+          <ImageActions
+            handleShareImage={handleShareImage}
+            handleSaveToGallery={handleSaveToGallery}
+            translations={translations}
+          />
+        )}
         <LanguageModal
           isModalVisible={isModalVisible}
           closeLanguageSelectionModal={closeLanguageSelectionModal}

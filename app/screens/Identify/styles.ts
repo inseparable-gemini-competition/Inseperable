@@ -21,8 +21,8 @@ const styles = StyleSheet.create({
   buttonText: { fontSize: 14, fontWeight: "bold", color: "#fff" },
   scrollContainer: {
     flexGrow: 1,
+    paddingTop: 10,
     alignItems: "center",
-    justifyContent: "center",
   },
   feedbackText: {
     marginVertical: 20,
