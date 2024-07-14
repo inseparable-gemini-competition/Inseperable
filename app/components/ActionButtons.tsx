@@ -36,7 +36,7 @@ const ActionButtons: React.FC<{
         onPress={openLanguageSelectionModal}
       >
         <MaterialIcons name="translate" size={30} color={colors.primary} />
-        <Text style={styles.iconButtonText}>{translations.translate || "Translate"}</Text>
+        <Text style={styles.iconButtonText}>{translations.translate || "Translate Screen"}</Text>
       </TouchableOpacity>
     </View>
   );
