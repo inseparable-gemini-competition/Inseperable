@@ -1,3 +1,4 @@
+import { colors } from "@/app/theme";
 import { StyleSheet, Dimensions } from "react-native";
 
 const { height } = Dimensions.get("window");
@@ -11,13 +12,13 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   flipButton: {
-    backgroundColor: "#007aff",
+    backgroundColor: colors.primary,
     borderRadius: 50,
     padding: 10,
     position: "absolute",
     bottom: 35,
   },
-  captureButton: { backgroundColor: "#007aff", borderRadius: 50, padding: 15 },
+  captureButton: { backgroundColor: colors.primary, borderRadius: 50, padding: 15 },
   buttonText: { fontSize: 14, fontWeight: "bold", color: "#fff" },
   scrollContainer: {
     flexGrow: 1,
@@ -32,12 +33,12 @@ const styles = StyleSheet.create({
   },
   voiceCommandContainer: { marginTop: 20, alignItems: "center" },
   microphoneButton: {
-    backgroundColor: "#007aff",
+    backgroundColor: colors.primary,
     borderRadius: 50,
     padding: 15,
   },
   goBackButton: {
-    backgroundColor: "#007aff",
+    backgroundColor: colors.primary,
     borderRadius: 50,
     padding: 10,
     position: "absolute",
@@ -47,7 +48,7 @@ const styles = StyleSheet.create({
     transform: [{ translateX: -50 }],
   },
   permissionButton: {
-    backgroundColor: "#007aff",
+    backgroundColor: colors.primary,
     borderRadius: 50,
     padding: 15,
     marginTop: 20,
@@ -55,7 +56,7 @@ const styles = StyleSheet.create({
   },
   permissionText: { fontSize: 16, color: "#fff", textAlign: "center" },
   optionButton: {
-    backgroundColor: "#007aff",
+    backgroundColor: colors.primary,
     borderRadius: 10,
     padding: 15,
     marginBottom: 10,
@@ -135,7 +136,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   confirmButton: {
-    backgroundColor: "#007aff",
+    backgroundColor:colors.primary,
     padding: 10,
     borderRadius: 5,
     alignItems: "center",

@@ -19,6 +19,7 @@ import useIdentity from "../../hooks/useIdentity";
 import CameraView from "@/app/components/CameraView";
 import styles from "@/app/screens/Identify/styles";
 import ActionButtons from "@/app/components/ActionButtons";
+import { colors } from "@/app/theme";
 const { height: windowHeight } = Dimensions.get("window");
 
 const IdentifyApp: React.FC = () => {
@@ -172,7 +173,7 @@ const IdentifyApp: React.FC = () => {
         </View>
       </View>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        {isProcessing && <ActivityIndicator size="large" color="#007aff" />}
+        {isProcessing && <ActivityIndicator size="large" color={colors.primary} />}
         <ActionButtons
           translations={translations}
           executeCommand={executeCommand}
