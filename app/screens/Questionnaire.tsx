@@ -221,8 +221,9 @@ const Questionnaire = ({ onFinish }: Props) => {
   const handleNext = (option: string) => { 
     if(option.length === 0) return;
     handleAnswer(option);
-    let updatedQuestions = [...defaultQuestions];
+    let updatedQuestions = [...questions];
     if(currentQuestionIndex == 1){
+       updatedQuestions = [...defaultQuestions];
       if(option == "Yes"){
         updatedQuestions = [...defaultQuestions, ...questionsOptionA];
        setQuestions(updatedQuestions);
