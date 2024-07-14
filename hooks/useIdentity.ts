@@ -14,7 +14,7 @@ const useIdentity = () => {
   const [pendingCommand, setPendingCommand] = useState<string | null>(null);
   const { mutateAsync, isLoading } = useFetchContent();
   const cameraRef = useRef<any>();
-  
+
   // New states for translations and language
   const [currentLanguage, setCurrentLanguage] = useState("ar");
   const [translations, setTranslations] = useState<{ [key: string]: any }>({});
@@ -26,7 +26,9 @@ const useIdentity = () => {
   useEffect(() => {
     const backAction = () => {
       if (isLoading || capturing) {
-        setFeedbackText(translations.waitMessage || "Please wait until loading ends");
+        setFeedbackText(
+          translations.waitMessage || "Please wait until loading ends"
+        );
         return;
       }
       setImageUri(null);
@@ -55,9 +57,16 @@ const useIdentity = () => {
     return null;
   };
 
-  const fetchTranslations = async (text: { [key: string]: any }, targetLanguage: string) => {
+  const fetchTranslations = async (
+    text: { [key: string]: any },
+    targetLanguage: string
+  ) => {
     try {
-      const translatedText = await mutateAsync({  text, target_language: targetLanguage });
+      const translatedText = await mutateAsync({
+        text: `translate this object values to ${targetLanguage} without any extra words return an object with same keys but translated values: ${JSON.stringify(
+          text
+        )}`,
+      });
       return translatedText;
     } catch (error) {
       console.error("Translation failed:", error);
@@ -67,13 +76,16 @@ const useIdentity = () => {
 
   function convertStringToObject(inputString: string) {
     // Remove the ```json part and the surrounding triple backticks
-    const jsonString = inputString.replace(/```json/g, '').replace(/```/g, '').trim();
-  
+    const jsonString = inputString
+      .replace(/```json/g, "")
+      .replace(/```/g, "")
+      .trim();
+
     try {
       const jsonObject = JSON.parse(jsonString);
       return jsonObject;
     } catch (error) {
-      console.error('Invalid JSON string provided:', error);
+      console.error("Invalid JSON string provided:", error);
       return null;
     }
   }
@@ -92,7 +104,8 @@ const useIdentity = () => {
       saveSuccess: "Image saved to gallery",
       saveError: "Error saving image",
       permissionRequired: "Permission to access gallery is required",
-      capturingMessage: "Please hold the device steady... We are capturing photo",
+      capturingMessage:
+        "Please hold the device steady... We are capturing photo",
       waitMessage: "Please wait until loading ends",
       back: "Back",
       drag: "Drag",
@@ -107,37 +120,49 @@ const useIdentity = () => {
     let translatedTexts = {};
     setIsProcessing(true);
     translatedTexts = await fetchTranslations(textToTranslate, language);
-    
+
     setTranslations(convertStringToObject(translatedTexts as any));
     setIsProcessing(false);
   };
 
+  const executeCommand = useCallback(
+    async (command: string, extraParam?: string) => {
+      setPendingCommand(command);
+      setImageUri(null);
+      setFeedbackText("");
 
-  const executeCommand = useCallback(async (command: string, extraParam?: string) => {
-    setPendingCommand(command);
-    setImageUri(null);
-    setFeedbackText("");
-
-    if (command === "translate" && extraParam) {
-      try {
-        setIsProcessing(true);
-        const result = await mutateAsync({ text: feedbackText, language: extraParam });
-        setFeedbackText(result);
-        Speech.speak(result);
-      } catch (error) {
-        setFeedbackText(translations.translateError || "Error translating text.");
-        Speech.speak(translations.translateError || "Error translating text.");
-      } finally {
-        setIsProcessing(false);
+      if (command === "translate" && extraParam) {
+        try {
+          setIsProcessing(true);
+          const result = await mutateAsync({
+            text: feedbackText,
+            language: extraParam,
+          });
+          setFeedbackText(result);
+          Speech.speak(result);
+        } catch (error) {
+          setFeedbackText(
+            translations.translateError || "Error translating text."
+          );
+          Speech.speak(
+            translations.translateError || "Error translating text."
+          );
+        } finally {
+          setIsProcessing(false);
+        }
       }
-    }
-  }, [feedbackText, imageUri, translations]);
+    },
+    [feedbackText, imageUri, translations]
+  );
 
   const { startListening, stopListening } = useVoiceHandler(executeCommand);
 
   const processCommand = async (commandType: string, uri: string) => {
     if (!uri) {
-      setFeedbackText(translations.noImage || "No image captured. Please capture an image first.");
+      setFeedbackText(
+        translations.noImage ||
+          "No image captured. Please capture an image first."
+      );
       return;
     }
 
@@ -147,21 +172,33 @@ const useIdentity = () => {
     try {
       const tasks = {
         identify: () =>
-          mutateAsync({ text: translations.identifyTask || "Identify the image, give a concise and professional description within three lines. If it's a historical landmark, provide brief information about it.", imageUri: uri }),
+          mutateAsync({
+            text:
+              translations.identifyTask ||
+              "Identify the image, give a concise and professional description within three lines. If it's a historical landmark, provide brief information about it.",
+            imageUri: uri,
+          }),
         price: () =>
           mutateAsync({
-            text: translations.priceTask || "Analyze the photo to identify the item. If uncertain, provide a reasonable assumption based on visual cues. Determine the fair market price range for the item (or assumed equivalent) in Egypt as of July 2024, considering its condition if possible. Respond with the item name (or assumption) followed by the estimated price range in Egyptian Pounds (EGP), omitting any introductory phrases.",
+            text:
+              translations.priceTask ||
+              "Analyze the photo to identify the item. If uncertain, provide a reasonable assumption based on visual cues. Determine the fair market price range for the item (or assumed equivalent) in Egypt as of July 2024, considering its condition if possible. Respond with the item name (or assumption) followed by the estimated price range in Egyptian Pounds (EGP), omitting any introductory phrases.",
             imageUri: uri,
           }),
         read: () =>
-          mutateAsync({ text: translations.readTask || "Read the text in this image", imageUri: uri }),
+          mutateAsync({
+            text: translations.readTask || "Read the text in this image",
+            imageUri: uri,
+          }),
       } as any;
 
       const result = await tasks[commandType]();
       setFeedbackText(result);
       Speech.speak(result);
     } catch (error) {
-      setFeedbackText(translations.processingError || "Error processing the command.");
+      setFeedbackText(
+        translations.processingError || "Error processing the command."
+      );
       console.log("Processing error:", error);
     } finally {
       setIsProcessing(false);

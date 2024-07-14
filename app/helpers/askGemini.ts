@@ -7,15 +7,6 @@ const API_KEY = "AIzaSyDTiF7YjBUWM0l0nKpzicv9R6kReU3dn8Q";
 const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${API_KEY}`;
 const IMAGE_RESIZE_WIDTH = 512;
 
-// Helper function to prepare text content
-const prepareTextContent = (text: any, target_language: string) => {
-  return target_language
-    ? `translate this object values to ${target_language} without any extra words return an object with same keys but translated values: ${JSON.stringify(
-        text
-      )}`
-    : text;
-};
-
 // Helper function to manipulate image
 const manipulateImage = async (imageUri: string) => {
   const imageData = await ImageManipulator.manipulateAsync(
@@ -32,14 +23,14 @@ const manipulateImage = async (imageUri: string) => {
 };
 
 // Main function to ask Gemini
-const askGemini = async (data: { text: any; imageUri?: string; target_language?: string }) => {
-  const { text, imageUri, target_language } = data;
+const askGemini = async (data: { text: any; imageUri?: string; }) => {
+  const { text, imageUri } = data;
 
   let contents = [
     {
       parts: [
         {
-          text: prepareTextContent(text, target_language || ""),
+          text,
         },
       ],
     },
