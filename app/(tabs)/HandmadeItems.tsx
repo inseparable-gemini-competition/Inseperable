@@ -1,45 +1,61 @@
+// src/components/HandMade.tsx
 import React from 'react';
-import { StyleSheet, Alert, FlatList } from 'react-native';
+import { StyleSheet, Alert, FlatList, ListRenderItem } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { View, Text, Card, Button, LoaderScreen } from 'react-native-ui-lib';
-import { useInfiniteQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, InfiniteQueryObserverResult, InfiniteData } from '@tanstack/react-query';
+import { collection, query, orderBy, limit, startAfter, getDocs, QueryDocumentSnapshot, DocumentData } from 'firebase/firestore';
+import { useNavigation, NavigationProp } from '@react-navigation/native';
+import { db } from '@/app/helpers/firebaseConfig';
 
 interface HandmadeItem {
   id: string;
   name: string;
   price: string;
-  image: string;
+  imageUrl: string;
   carbonPrint: string;
+  ownerId: string; // Added ownerId field
 }
 
 interface FetchResponse {
   items: HandmadeItem[];
-  hasMore: boolean;
+  lastVisible: QueryDocumentSnapshot<DocumentData> | null;
 }
 
-const mockData: { [key: number]: HandmadeItem[] } = {
-  1: [
-    { id: '1', name: 'Handmade Vase', price: '$25', image: 'https://market99.com/cdn/shop/products/blue-ceramic-curvy-vase-engraved-floral-pattern-flower-holder-vases-1-29122137587882.jpg?v=1697016195', carbonPrint: '2 kg CO2' },
-    { id: '2', name: 'Woven Basket', price: '$30', image: 'https://m.media-amazon.com/images/I/71n+LLRWA5L.jpg', carbonPrint: '3 kg CO2' },
-  ],
-  2: [
-    { id: '3', name: 'Knitted Scarf', price: '$15', image: 'https://www.wowthankyou.co.uk/wp-content/uploads/2021/01/Reasons-to-buy-handmade.jpg', carbonPrint: '1 kg CO2' },
-    { id: '4', name: 'Handmade Jewelry', price: '$45', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQysEwhvM0UTlM4kZpeD3Y1P2rUM5ijljSYhA&s', carbonPrint: '1.5 kg CO2' },
-  ],
-};
+const fetchHandmadeItems = async ({ pageParam = undefined }): Promise<FetchResponse> => {
+  console.log('Fetching items with pageParam:', pageParam);
+  const itemsQuery = query(
+    collection(db, 'products'),
+    orderBy('createdAt'),
+    limit(10),
+    ...(pageParam ? [startAfter(pageParam)] : [])
+  );
 
-const fetchHandmadeItems = async ({ pageParam = 1 }): Promise<FetchResponse> => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        items: mockData[pageParam],
-        hasMore: pageParam < 2,
-      });
-    }, 1000);
+  const querySnapshot = await getDocs(itemsQuery);
+  const items: HandmadeItem[] = [];
+  let lastVisible: QueryDocumentSnapshot<DocumentData> | null = null;
+
+  querySnapshot.forEach((doc) => {
+    if (doc.exists() && doc.data().createdAt) {
+      items.push({ id: doc.id, ...doc.data() } as HandmadeItem);
+    } else {
+      console.error('Document missing createdAt:', doc.id);
+    }
   });
+
+  if (!querySnapshot.empty) {
+    lastVisible = querySnapshot.docs[querySnapshot.docs.length - 1];
+  }
+
+  console.log('Fetched items:', items);
+  return {
+    items,
+    lastVisible,
+  };
 };
 
-const HandMade = () => {
+const HandMade: React.FC = () => {
+  const navigation = useNavigation<NavigationProp<any>>();
   const {
     data,
     error,
@@ -50,13 +66,39 @@ const HandMade = () => {
   } = useInfiniteQuery<FetchResponse>({
     queryKey: ['handmadeItems'],
     queryFn: fetchHandmadeItems,
-    getNextPageParam: (lastPage, pages) => (lastPage.hasMore ? pages.length + 1 : undefined),
+    getNextPageParam: (lastPage) => lastPage.lastVisible,
     staleTime: 1000, // This keeps the data fresh for 1 second
   });
 
   const purchaseItem = (item: HandmadeItem) => {
-    Alert.alert('Purchase Item', `You have purchased: ${item.name} for ${item.price}`);
+    Alert.alert(
+      'Purchase Item',
+      `You have purchased: ${item.name} for ${item.price}`,
+      [
+        { text: 'OK', onPress: () => navigation.navigate('Chat', { recipientId: item.ownerId }) }
+      ]
+    );
   };
+
+  const renderItem: ListRenderItem<HandmadeItem> = ({ item }) => (
+    <View style={styles.itemContainer}>
+      <Card style={styles.card}>
+        <Card.Section
+          imageSource={{ uri: item.imageUrl }}
+          imageStyle={styles.itemImage}
+        />
+        <Card.Section
+          content={[
+            { text: item.name, text70: true, grey10: true },
+            { text: item.price, text80: true, grey20: true },
+            { text: `Carbon Footprint: ${item.carbonPrint}`, text90: true, grey30: true },
+          ]}
+          contentStyle={styles.itemDetails}
+        />
+      </Card>
+      <Button label="Buy" onPress={() => purchaseItem(item)} style={styles.buyButton} />
+    </View>
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -65,27 +107,9 @@ const HandMade = () => {
       {error && <Text style={styles.errorText}>Something went wrong while fetching handmade items.</Text>}
       {data && (
         <FlatList
-          data={data.pages.flatMap((page: any) => page.items)}
+          data={data.pages.flatMap((page) => page.items)}
           keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <View style={styles.itemContainer}>
-              <Card style={styles.card}>
-                <Card.Section
-                  imageSource={{ uri: item.image }}
-                  imageStyle={styles.itemImage}
-                />
-                <Card.Section
-                  content={[
-                    { text: item.name, text70: true, grey10: true },
-                    { text: item.price, text80: true, grey20: true },
-                    { text: `Carbon Footprint: ${item.carbonPrint}`, text90: true, grey30: true },
-                  ]}
-                  contentStyle={styles.itemDetails}
-                />
-              </Card>
-              <Button label="Buy" onPress={() => purchaseItem(item)} style={styles.buyButton} />
-            </View>
-          )}
+          renderItem={renderItem}
           onEndReached={() => {
             if (hasNextPage && !isFetching) {
               fetchNextPage();

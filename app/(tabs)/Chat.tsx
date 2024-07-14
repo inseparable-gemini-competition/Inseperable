@@ -1,7 +1,7 @@
+// src/components/ChatScreen.tsx
 import React, { useState, useEffect } from 'react';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
-import { GiftedChat } from 'react-native-gifted-chat';
-import { db, auth } from '../helpers/firebaseConfig';
+import { GiftedChat, IMessage } from 'react-native-gifted-chat';
 import {
   collection,
   addDoc,
@@ -11,27 +11,47 @@ import {
   getDocs,
   limit,
   startAfter,
+  QueryDocumentSnapshot,
+  DocumentData,
+  FirestoreError
 } from 'firebase/firestore';
-import { signInAnonymously, onAuthStateChanged } from 'firebase/auth';
+import { signInAnonymously, onAuthStateChanged, User } from 'firebase/auth';
+import { db, auth } from '@/app/helpers/firebaseConfig';
+import { useRoute, RouteProp } from '@react-navigation/native';
 
-const STATIC_USER_ID = 'StaticUser123'; // Static user ID for the other user
-const STATIC_USER_NAME = 'Static User';
-
-const getChatRoomId = (userId1, userId2) => {
-  return [userId1, userId2].sort().join('_');
+type RootStackParamList = {
+  ChatScreen: { recipientId: string };
 };
 
-const ChatScreen = () => {
-  const [messages, setMessages] = useState([]);
-  const [userId, setUserId] = useState(null);
+type ChatScreenRouteProp = RouteProp<RootStackParamList, 'ChatScreen'>;
+
+interface ChatMessage {
+  _id: string;
+  text: string;
+  createdAt: Date;
+  user: {
+    _id: string;
+    name: string;
+  };
+}
+
+const ChatScreen: React.FC = () => {
+  const route = useRoute<ChatScreenRouteProp>();
+  const { recipientId } = route.params || { recipientId: 'default' };
+  const [messages, setMessages] = useState<IMessage[]>([]);
+  const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [lastVisible, setLastVisible] = useState(null);
+  const [lastVisible, setLastVisible] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
   const PAGE_SIZE = 10; // Number of messages to load per page
+
+  const getChatRoomId = (userId1: string, userId2: string) => {
+    return [userId1, userId2].sort().join('_');
+  };
 
   useEffect(() => {
     const authenticateUser = async () => {
-      onAuthStateChanged(auth, async (user) => {
+      onAuthStateChanged(auth, async (user: User | null) => {
         if (user) {
           console.log('User already signed in:', user.uid);
           setUserId(user.uid);
@@ -51,7 +71,8 @@ const ChatScreen = () => {
     authenticateUser();
 
     const fetchInitialMessages = async () => {
-      const chatRoomId = getChatRoomId(userId, STATIC_USER_ID);
+      if (!userId) return;
+      const chatRoomId = getChatRoomId(userId, recipientId);
       const q = query(
         collection(db, 'chatRooms', chatRoomId, 'messages'),
         orderBy('createdAt', 'desc'),
@@ -61,7 +82,7 @@ const ChatScreen = () => {
       const snapshot = await getDocs(q);
       const messagesData = snapshot.docs.map((doc) => {
         const firebaseData = doc.data();
-        const data = {
+        const data: IMessage = {
           _id: doc.id,
           text: firebaseData.text,
           createdAt: firebaseData.createdAt.toDate(),
@@ -81,7 +102,7 @@ const ChatScreen = () => {
       const unsubscribe = onSnapshot(q, (snapshot) => {
         const realTimeMessages = snapshot.docs.map((doc) => {
           const firebaseData = doc.data();
-          const data = {
+          const data: IMessage = {
             _id: doc.id,
             text: firebaseData.text,
             createdAt: firebaseData.createdAt.toDate(),
@@ -104,11 +125,11 @@ const ChatScreen = () => {
   }, [userId]);
 
   const fetchMoreMessages = async () => {
-    if (loadingMore || !lastVisible) return;
+    if (loadingMore || !lastVisible || !userId) return;
 
     setLoadingMore(true);
 
-    const chatRoomId = getChatRoomId(userId, STATIC_USER_ID);
+    const chatRoomId = getChatRoomId(userId, recipientId);
     const q = query(
       collection(db, 'chatRooms', chatRoomId, 'messages'),
       orderBy('createdAt', 'desc'),
@@ -119,7 +140,7 @@ const ChatScreen = () => {
     const snapshot = await getDocs(q);
     const messagesData = snapshot.docs.map((doc) => {
       const firebaseData = doc.data();
-      const data = {
+      const data: IMessage = {
         _id: doc.id,
         text: firebaseData.text,
         createdAt: firebaseData.createdAt.toDate(),
@@ -136,16 +157,16 @@ const ChatScreen = () => {
     setLoadingMore(false);
   };
 
-  const handleSend = async (newMessages = []) => {
+  const handleSend = async (newMessages: IMessage[] = []) => {
     const newMessage = newMessages[0];
-    if (newMessage) {
+    if (newMessage && userId) {
       try {
-        const chatRoomId = getChatRoomId(userId, STATIC_USER_ID);
+        const chatRoomId = getChatRoomId(userId, recipientId);
         await addDoc(collection(db, 'chatRooms', chatRoomId, 'messages'), {
           text: newMessage.text,
           createdAt: new Date(),
           userId: userId,
-          userName: `User-${userId?.substring(0, 6)}`, // Generates a fake username for display
+          userName: `User-${userId.substring(0, 6)}`, // Generates a fake username for display
         });
       } catch (error) {
         console.error('Error sending message:', error);
@@ -166,7 +187,7 @@ const ChatScreen = () => {
       messages={messages}
       onSend={handleSend}
       user={{
-        _id: userId,
+        _id: userId || '',
       }}
       loadEarlier={!loadingMore && !!lastVisible}
       onLoadEarlier={fetchMoreMessages}

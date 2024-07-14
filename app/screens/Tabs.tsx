@@ -4,8 +4,6 @@ import React from "react";
 import { TabBarIcon } from "@/components/navigation/TabBarIcon";
 import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme";
-import { QueryClient, QueryClientProvider } from "react-query";
-import Questionnaire from "../screens/Questionnaire";
 
 const TabsScreen = () => {
   const colorScheme = useColorScheme();
@@ -28,6 +26,15 @@ const TabsScreen = () => {
               color={color}
             />
           ),
+        }}
+      />
+
+      <Tabs.Screen
+        name="Chat"
+        options={{
+          title: "Chat",
+          href: null,
+          headerShown: true,
         }}
       />
 
@@ -63,19 +70,6 @@ const TabsScreen = () => {
             <TabBarIcon
               name={focused ? "basket" : "basket-outline"}
               color={color}
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="Messaging"
-        options={{
-          title: "Messaging",
-          tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon
-              name={focused ? "chatbubble" : "chatbubble-outline"}
-              color={color}
-              size={25}
             />
           ),
         }}

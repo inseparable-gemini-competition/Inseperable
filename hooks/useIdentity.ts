@@ -85,7 +85,7 @@ const useIdentity = () => {
       identify: "Identify",
       price: "Find Fair Price",
       read: "Read",
-      translate: "Translate",
+      translate: "Translate Screen",
       shareMessage: "Check out this image I identified!",
       shareSuccess: "Image shared successfully.",
       shareError: "Error sharing image",
