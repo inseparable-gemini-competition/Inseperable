@@ -80,6 +80,70 @@ const styles = StyleSheet.create({
     fontSize: 18,
     textAlign: "center",
   },
+  handle: {
+    height: 30,
+    backgroundColor: "#ccc",
+    justifyContent: "center",
+    alignItems: "center",
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
+    position: "absolute",
+    bottom: 0,
+    width: "100%",
+  },
+  handleText: {
+    color: "#000",
+    fontWeight: "bold",
+  },
+  actionButtonsContainer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    paddingTop: 10,
+  },
+  iconButton: {
+    alignItems: "center",
+    paddingHorizontal: 20,
+  },
+  iconButtonText: {
+    fontSize: 12,
+    marginTop: 5,
+    fontWeight: '500',
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  modalContent: {
+    width: "80%",
+    padding: 20,
+    backgroundColor: "white",
+    borderRadius: 10,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 10,
+  },
+  languageInput: {
+    height: 40,
+    borderColor: 'gray',
+    borderWidth: 1,
+    marginVertical: 10,
+    paddingHorizontal: 10,
+    borderRadius: 5,
+  },
+  confirmButton: {
+    backgroundColor: "#007aff",
+    padding: 10,
+    borderRadius: 5,
+    alignItems: "center",
+  },
+  confirmButtonText: {
+    color: "white",
+    fontWeight: "bold",
+  },
 });
 
 export default styles;
