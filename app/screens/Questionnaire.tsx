@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { View, Text, Button } from "react-native-ui-lib";
+import { View, Text, Button, ScrollBar } from "react-native-ui-lib";
 import { colors } from "../theme";
 import Question from "@/components/Question/Question";
 import { useFetchContent } from "@/app/helpers/askGemini";
-import { ActivityIndicator } from "react-native";
+import { ActivityIndicator, ScrollView } from "react-native";
 
 type Props = {
   onFinish: () => void;
@@ -246,12 +246,12 @@ const Questionnaire = ({ onFinish }: Props) => {
           JSON.stringify(answers) +
           "to these questions" +
           JSON.stringify(questions) +
-          `if the user is not travelling determine what is the best destination for him? respond in base country language what the recommended country is , don't recommend base country.
-          if the user is travelling determine the best plan for him in the country that he is in. respond in base country language what the recommended plan is.
-          reply in a normal string. talk to the user directly.`,
+          `if i am not travelling determine what is the best destination for me? respond in base country language what the recommended country is , don't recommend base country.
+          if i am travelling determine the best plan for him in the country that i am in. if you are suggesting country just say the country name and a brief description of the plan. if you are suggesting a plan say the plan name and a brief description of the plan.
+          please reply in my native language. don't write more than 5 lines and don't do weird formatting
+          `,
       });
       setRecommendedCountry(response);
-      // onFinish();
     }
   };
 
@@ -278,12 +278,13 @@ const Questionnaire = ({ onFinish }: Props) => {
     );
   }
   return (
-    <View
-      style={{
-        flex: 1,
+    <ScrollView
+      contentContainerStyle={{
         justifyContent: "center",
+        flexGrow: 1,
         alignItems: "center",
         backgroundColor: colors.background,
+        paddingVertical: 20,
       }}
     >
       <View>
@@ -315,7 +316,7 @@ const Questionnaire = ({ onFinish }: Props) => {
           </>
         )}
       </View>
-    </View>
+    </ScrollView>
   );
 };
 
