@@ -10,7 +10,7 @@ type Props = {
 const Questionnaire = ({ onFinish }: Props) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<string[]>([]);
-  const [questions, setQuestions] = useState([
+  const defaultQuestions = [ 
     {
       id: 1,
       question: "Where are you based?",
@@ -25,9 +25,8 @@ const Questionnaire = ({ onFinish }: Props) => {
         { id: 2, option: "No" },
       ],
     },
-    //suggest questions below
-      
-  ]);
+  ];
+  const [questions, setQuestions] = useState(defaultQuestions);
 
   const [question, setQuestion] = useState(questions[0]);
 
@@ -220,17 +219,15 @@ const Questionnaire = ({ onFinish }: Props) => {
   };
 
   const handleNext = (option: string) => { 
-    console.log('option ', option)
     if(option.length === 0) return;
     handleAnswer(option);
-    let updatedQuestions = [...questions];
+    let updatedQuestions = [...defaultQuestions];
     if(currentQuestionIndex == 1){
       if(option == "Yes"){
-        updatedQuestions = [...updatedQuestions, ...questionsOptionA];
+        updatedQuestions = [...defaultQuestions, ...questionsOptionA];
        setQuestions(updatedQuestions);
       } else {
-        updatedQuestions = [...updatedQuestions, ...questionsOptionB];
-
+        updatedQuestions = [...defaultQuestions, ...questionsOptionB];
        setQuestions(updatedQuestions);
       }
       setQuestion(updatedQuestions[currentQuestionIndex + 1])
