@@ -73,9 +73,9 @@ const HandMade: React.FC = () => {
   const purchaseItem = (item: HandmadeItem) => {
     Alert.alert(
       'Purchase Item',
-      `You have purchased: ${item.name} for ${item.price}`,
+      `You want to ask about: ${item.name} with price ${item.price}`,
       [
-        { text: 'OK', onPress: () => navigation.navigate('Chat', { recipientId: item.ownerId }) }
+        { text: 'Contact seller', onPress: () => navigation.navigate('Chat', { recipientId: item.ownerId }) }
       ]
     );
   };
@@ -96,7 +96,7 @@ const HandMade: React.FC = () => {
           contentStyle={styles.itemDetails}
         />
       </Card>
-      <Button label="Buy" onPress={() => purchaseItem(item)} style={styles.buyButton} />
+      <Button label="Contact Seller" onPress={() => purchaseItem(item)} style={styles.buyButton} />
     </View>
   );
 
