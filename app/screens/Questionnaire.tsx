@@ -220,7 +220,8 @@ const Questionnaire = ({ onFinish }: Props) => {
   };
 
   const handleNext = (option: string) => { 
-    if(!option)
+    console.log('option ', option)
+    if(option.length === 0) return;
     handleAnswer(option);
     let updatedQuestions = [...questions];
     if(currentQuestionIndex == 1){

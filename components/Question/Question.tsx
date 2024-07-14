@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, Text, TextField, Button } from "react-native-ui-lib";
 import Option from "./Option/Option";
 import { colors } from "@/app/theme";
@@ -23,7 +23,6 @@ type Props = {
 
 const Question = ({
   question,
-  onAnswer,
   onNext,
   onPrevious,
   showPrevious,
@@ -33,6 +32,7 @@ const Question = ({
   const handleOptionSelect = (option: string) => {
     onNext(option);
   };
+  const [currentText, setCurrentText] = useState('');
 
   return (
     <View key={question.id}>
@@ -65,13 +65,13 @@ const Question = ({
           <TextField
             placeholder={"Enter your answer here..."}
             floatingPlaceholder
-            onChangeText={onAnswer}
+            onChangeText={setCurrentText}
             enableErrors
             validate={["required", (value: string) => value.length > 4]}
             validationMessage={["Field is required"]}
             showCharCounter
             maxLength={30}
-            value={currentAnswer}
+            value={currentText}
             style={{
               borderWidth: 1,
               borderColor: colors.primary,
@@ -109,7 +109,10 @@ const Question = ({
         }}
       >
         {showPrevious && <Button label="Previous" onPress={onPrevious} />}
-        {showNext && <Button label="Next" onPress={onNext} />}
+        {showNext && <Button label="Next" onPress={()=>{
+            onNext(currentText);
+            setCurrentText('');
+        }} />}
       </View>
     </View>
   );
