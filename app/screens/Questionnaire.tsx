@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { View, Text, Button, ScrollBar } from "react-native-ui-lib";
+import { View, Text, Button } from "react-native-ui-lib";
 import { colors } from "../theme";
 import Question from "@/components/Question/Question";
-import { useFetchContent } from "@/app/helpers/askGemini";
 import { ActivityIndicator, ScrollView } from "react-native";
+import { useJsonControlledGeneration } from "@/hooks/useJsonControlledGeneration";
+import { generateSchema } from "@/hooks/utils/generateSchema";
 
 type Props = {
   onFinish: () => void;
@@ -12,8 +13,12 @@ type Props = {
 const Questionnaire = ({ onFinish }: Props) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<string[]>([]);
-  const { mutateAsync, isLoading } = useFetchContent();
-  const [recommendedCountry, setRecommendedCountry] = useState("");
+  const schema = generateSchema("recommendation for country or plan", {
+    country: ["string", "recommended country"],
+    plan: ["string", "recommended plan"],
+    description: ["string", "brief description"],
+  });
+  const { generate, isLoading, result } = useJsonControlledGeneration(schema);
 
   const defaultQuestions = [
     {
@@ -240,27 +245,22 @@ const Questionnaire = ({ onFinish }: Props) => {
       setQuestion(updatedQuestions[currentQuestionIndex + 1]);
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else {
-      const response = await mutateAsync({
-        text:
-          `given these answers` +
-          JSON.stringify(answers) +
-          "to these questions" +
-          JSON.stringify(questions) +
-         `1. Check if I am currently traveling.
-         2. If I am not traveling:
-            a. Determine the best destination for me outside my base country.
-            b. Respond in my base country language with the recommended country and a brief description.
-         3. If I am traveling:
-            a. Determine the best plan for me in the country I am currently in.
-            b. Respond in my base country language with the plan name and a brief description.
-         4. Ensure responses are concise (no more than 5 lines).
-         5. Do not use unusual formatting.
-         6. Do not recommend my base country.
-         7- reply in my base country language.
-         
-         `
-      });
-      setRecommendedCountry(response);
+      const prompt =
+        `Based on the following answers: ` +
+        JSON.stringify(answers) +
+        ` to these questions: ` +
+        JSON.stringify(questions) +
+        `, please do the following:
+      1. Determine if I am currently traveling.
+      2. If I am not traveling:
+        a. Recommend the best country for me to visit outside of my base country.
+        b. Provide the recommendation in the language of my base country, including the country's name and a brief description.
+      3. If I am currently traveling:
+        a. Suggest the best plan for me in the country I am currently in.
+        b. Provide the suggestion in the language of my base country, including the plan name and a brief description.
+      4. Ensure that the response for the plan and description always has logical values, even if no country recommendation is made.
+      `;
+      generate(prompt);
     }
   };
 
@@ -297,7 +297,7 @@ const Questionnaire = ({ onFinish }: Props) => {
       }}
     >
       <View>
-        {!recommendedCountry ? (
+        {!result?.country && !result?.plan ? (
           <Question
             key={question.id}
             question={question}
@@ -310,18 +310,30 @@ const Questionnaire = ({ onFinish }: Props) => {
           />
         ) : (
           <>
-            <Text
+            {result?.country !=="null" && <Text
               style={{
-                fontSize: 20,
+                fontSize: 70,
                 fontWeight: "bold",
                 color: colors.black,
                 textAlign: "center",
                 padding: 10,
               }}
             >
-              {recommendedCountry}
+              {result?.country}
+            </Text>}
+            <Text
+              style={{
+                fontSize: 15,
+                color: colors.black,
+                textAlign: "center",
+                padding: 10,
+                paddingHorizontal: 30,
+              }}
+            >
+              {result?.description !=="null" ? result?.description: ""}
+              {"\n \n"} {result?.plan}
             </Text>
-            <Button label="Finish" onPress={onFinish}/>
+            <Button style={{width: 300, alignSelf: 'center'}} label="Finish" onPress={onFinish} />
           </>
         )}
       </View>

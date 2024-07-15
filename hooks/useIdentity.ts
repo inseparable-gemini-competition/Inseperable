@@ -3,8 +3,7 @@ import { BackHandler } from "react-native";
 import * as Speech from "expo-speech";
 import useVoiceHandler from "./useVoiceHandler";
 import { useFetchContent } from "@/app/helpers/askGemini";
-import { useTranslations } from "@/src/hooks/useTranslations";
-
+import { useTranslations } from "@/hooks/useTranslations";
 
 const useIdentity = () => {
   const [facing, setFacing] = useState<"front" | "back">("back");
