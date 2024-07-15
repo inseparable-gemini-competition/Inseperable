@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { fetchTranslations } from './utils/fetchTranslations';
 import { convertStringToObject } from './utils/convertStringToObject';
-import { useFetchContent } from '@/app/helpers/askGemini';
+import { useGenerateTextMutation } from '@/hooks/useGenerateText';
 
 export const useTranslations = ({setIsProcessing}: 
     {setIsProcessing: (value: boolean) => void}
 ) => {
   const [translations, setTranslations] = useState<{ [key: string]: any }>({});
-  const { mutateAsync } = useFetchContent();
+  const { mutateAsync } = useGenerateTextMutation();
 
 
   const updateTranslations = async (language: string) => {

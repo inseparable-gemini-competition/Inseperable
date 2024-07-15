@@ -2,8 +2,8 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { BackHandler } from "react-native";
 import * as Speech from "expo-speech";
 import useVoiceHandler from "./useVoiceHandler";
-import { useFetchContent } from "@/app/helpers/askGemini";
 import { useTranslations } from "@/hooks/useTranslations";
+import { useGenerateTextMutation } from "@/hooks/useGenerateText";
 
 const useIdentity = () => {
   const [facing, setFacing] = useState<"front" | "back">("back");
@@ -13,10 +13,12 @@ const useIdentity = () => {
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [capturing, setCapturing] = useState(false);
   const [pendingCommand, setPendingCommand] = useState<string | null>(null);
-  const { mutateAsync, isLoading } = useFetchContent();
+  const { mutateAsync, isLoading } = useGenerateTextMutation();
   const cameraRef = useRef<any>();
 
-  const { translations, updateTranslations } = useTranslations({setIsProcessing});
+  const { translations, updateTranslations } = useTranslations({
+    setIsProcessing,
+  });
   const [currentLanguage, setCurrentLanguage] = useState("ar");
 
   const switchCamera = () => {
@@ -26,7 +28,9 @@ const useIdentity = () => {
   useEffect(() => {
     const backAction = () => {
       if (isLoading || capturing) {
-        setFeedbackText(translations.waitMessage || "Please wait until loading ends");
+        setFeedbackText(
+          translations.waitMessage || "Please wait until loading ends"
+        );
         return true;
       }
       setImageUri(null);
@@ -66,13 +70,17 @@ const useIdentity = () => {
           setIsProcessing(true);
           const result = await mutateAsync({
             text: feedbackText,
-            language: extraParam,
+            // language: extraParam,
           });
           setFeedbackText(result);
           Speech.speak(result);
         } catch (error) {
-          setFeedbackText(translations.translateError || "Error translating text.");
-          Speech.speak(translations.translateError || "Error translating text.");
+          setFeedbackText(
+            translations.translateError || "Error translating text."
+          );
+          Speech.speak(
+            translations.translateError || "Error translating text."
+          );
         } finally {
           setIsProcessing(false);
         }
@@ -85,7 +93,10 @@ const useIdentity = () => {
 
   const processCommand = async (commandType: string, uri: string) => {
     if (!uri) {
-      setFeedbackText(translations.noImage || "No image captured. Please capture an image first.");
+      setFeedbackText(
+        translations.noImage ||
+          "No image captured. Please capture an image first."
+      );
       return;
     }
 
@@ -96,12 +107,16 @@ const useIdentity = () => {
       const tasks = {
         identify: () =>
           mutateAsync({
-            text: translations.identifyTask || "Identify the image, give a concise and professional description within three lines. If it's a historical landmark, provide brief information about it.",
+            text:
+              translations.identifyTask ||
+              "Identify the image, give a concise and professional description within three lines. If it's a historical landmark, provide brief information about it.",
             imageUri: uri,
           }),
         price: () =>
           mutateAsync({
-            text: translations.priceTask || "Analyze the photo to identify the item. If uncertain, provide a reasonable assumption based on visual cues. Determine the fair market price range for the item (or assumed equivalent) in Egypt as of July 2024, considering its condition if possible. Respond with the item name (or assumption) followed by the estimated price range in Egyptian Pounds (EGP), omitting any introductory phrases.",
+            text:
+              translations.priceTask ||
+              "Analyze the photo to identify the item. If uncertain, provide a reasonable assumption based on visual cues. Determine the fair market price range for the item (or assumed equivalent) in Egypt as of July 2024, considering its condition if possible. Respond with the item name (or assumption) followed by the estimated price range in Egyptian Pounds (EGP), omitting any introductory phrases.",
             imageUri: uri,
           }),
         read: () =>
@@ -115,7 +130,9 @@ const useIdentity = () => {
       setFeedbackText(result);
       Speech.speak(result);
     } catch (error) {
-      setFeedbackText(translations.processingError || "Error processing the command.");
+      setFeedbackText(
+        translations.processingError || "Error processing the command."
+      );
       console.log("Processing error:", error);
     } finally {
       setIsProcessing(false);
@@ -124,7 +141,12 @@ const useIdentity = () => {
   };
 
   useEffect(() => {
-    if (pendingCommand && (pendingCommand.includes("price") || pendingCommand.includes("identify") || pendingCommand.includes("read"))) {
+    if (
+      pendingCommand &&
+      (pendingCommand.includes("price") ||
+        pendingCommand.includes("identify") ||
+        pendingCommand.includes("read"))
+    ) {
       const captureAndProcess = async () => {
         Speech.stop();
         if (imageUri) {
