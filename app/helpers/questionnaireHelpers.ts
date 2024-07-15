@@ -195,12 +195,15 @@ export const questionsOptionB = [
   },
 ];
 
-export const generatePrompt = (answers: string[], questions: {
-  id: number;
-  question: string;
-  options: any[];
-  isOpenEnded?: boolean;
-}[]) =>
+export const generatePrompt = (
+  answers: string[],
+  questions: {
+    id: number;
+    question: string;
+    options: any[];
+    isOpenEnded?: boolean;
+  }[]
+) =>
   `Based on the following answers: ` +
   JSON.stringify(answers) +
   ` to these questions: ` +
@@ -209,7 +212,7 @@ export const generatePrompt = (answers: string[], questions: {
 1. Determine if I am currently traveling.
 2. If I am not traveling:
   a. Recommend the best country for me to visit outside of my base country.
-  b. Provide the recommendation in the language of my base country, including the country's name and a brief description.
+  b. Provide the recommendation in the language of my base country, including the country's name and a brief description and an emoji that represents the country's flag.
 3. If I am currently traveling:
   a. Suggest the best plan for me in the country I am currently in.
   b. Provide the suggestion in the language of my base country, including the plan name and a brief description.

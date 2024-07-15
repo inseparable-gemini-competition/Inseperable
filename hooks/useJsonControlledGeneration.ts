@@ -21,8 +21,9 @@ interface Schema {
 }
 
 export const useJsonControlledGeneration = (schema: Schema) => {
-  const genAI = new GoogleGenerativeAI("AIzaSyDTiF7YjBUWM0l0nKpzicv9R6kReU3dn8Q");
-  if(__DEV__) console.log('schema ',  JSON.stringify(schema));
+  const genAI = new GoogleGenerativeAI(
+    "AIzaSyDTiF7YjBUWM0l0nKpzicv9R6kReU3dn8Q"
+  );
 
   const fetchJsonControlledGeneration = async (prompt: string) => {
     const model = genAI.getGenerativeModel({
@@ -33,10 +34,12 @@ export const useJsonControlledGeneration = (schema: Schema) => {
       },
     });
 
-    const result = await model.generateContent(prompt) as any;
-    const jsonResult = JSON.parse(result?.response.candidates[0].content.parts[0].text)?.[0];
-    if(__DEV__) console.log('jsonResult ', jsonResult);
-    return  jsonResult;
+    const result = (await model.generateContent(prompt)) as any;
+    const jsonResult = JSON.parse(
+      result?.response.candidates[0].content.parts[0].text
+    )?.[0];
+    if (__DEV__) console.log("jsonResult ", jsonResult);
+    return jsonResult;
   };
 
   const { mutate, data, isLoading, isError } = useMutation(

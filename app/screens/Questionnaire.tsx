@@ -1,14 +1,20 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { View, Text, Button } from "react-native-ui-lib";
 import { colors } from "../theme";
 import Question from "@/components/Question/Question";
 import { ActivityIndicator, ScrollView } from "react-native";
 import { useJsonControlledGeneration } from "@/hooks/useJsonControlledGeneration";
 import { generateSchema } from "@/hooks/utils/generateSchema";
-import { defaultQuestions, generatePrompt, questionsOptionA, questionsOptionB } from "@/app/helpers/questionnaireHelpers";
+import {
+  defaultQuestions,
+  generatePrompt,
+  questionsOptionA,
+  questionsOptionB,
+} from "@/app/helpers/questionnaireHelpers";
+import { userDataType } from "../store";
 
 type Props = {
-  onFinish: () => void;
+  onFinish: (userData: { userData: userDataType }) => void;
 };
 
 const Questionnaire = ({ onFinish }: Props) => {
@@ -16,12 +22,11 @@ const Questionnaire = ({ onFinish }: Props) => {
   const [answers, setAnswers] = useState<string[]>([]);
   const schema = generateSchema("recommendation for country or plan", {
     country: ["string", "recommended country"],
+    flag: ["string", "flag"],
     plan: ["string", "recommended plan"],
     description: ["string", "brief description"],
   });
   const { generate, isLoading, result } = useJsonControlledGeneration(schema);
-
-
 
   const [questions, setQuestions] = useState(defaultQuestions);
   const [question, setQuestion] = useState(questions[0]);
@@ -101,17 +106,19 @@ const Questionnaire = ({ onFinish }: Props) => {
           />
         ) : (
           <>
-            {result?.country !=="null" && <Text
-              style={{
-                fontSize: 70,
-                fontWeight: "bold",
-                color: colors.black,
-                textAlign: "center",
-                padding: 10,
-              }}
-            >
-              {result?.country}
-            </Text>}
+            {result?.country !== "null" && (
+              <Text
+                style={{
+                  fontSize: 70,
+                  fontWeight: "bold",
+                  color: colors.black,
+                  textAlign: "center",
+                  padding: 10,
+                }}
+              >
+                {result?.country} {result?.flag}
+              </Text>
+            )}
             <Text
               style={{
                 fontSize: 15,
@@ -121,10 +128,18 @@ const Questionnaire = ({ onFinish }: Props) => {
                 paddingHorizontal: 30,
               }}
             >
-              {result?.description !=="null" ? result?.description: ""}
+              {result?.description !== "null" ? result?.description : ""}
               {"\n \n"} {result?.plan}
             </Text>
-            <Button style={{width: 300, alignSelf: 'center'}} label="Finish" onPress={onFinish} />
+            <Button
+              style={{ width: 300, alignSelf: "center" }}
+              label="Finish"
+              onPress={() =>
+                onFinish({
+                  userData: result,
+                })
+              }
+            />
           </>
         )}
       </View>
