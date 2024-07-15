@@ -35,7 +35,7 @@ export const useJsonControlledGeneration = (schema: Schema) => {
 
     const result = await model.generateContent(prompt) as any;
     const jsonResult = JSON.parse(result?.response.candidates[0].content.parts[0].text)?.[0];
-    if(__DEV__) console.log('jsonResult ', jsonResult?.[0]);
+    if(__DEV__) console.log('jsonResult ', jsonResult);
     return  jsonResult;
   };
 
