@@ -332,7 +332,7 @@ const Main = () => {
                     <TouchableOpacity
                       style={[styles.card]}
                       onPress={() => {
-                        handleShowCamera();
+                        handleShowCamera({ autoCapture: false });
                         const command =
                           item.title === "Identify"
                             ? "identify"
