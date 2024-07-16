@@ -248,7 +248,7 @@ const Main = () => {
                       style={styles.cancelButton}
                       onPress={handleCancelCountdown}
                     >
-                      <Text style={styles.cancelText}>Cancel</Text>
+                      <Text style={styles.cancelText}>Cancel auto capture</Text>
                     </TouchableOpacity>
                   </View>
                 )}
@@ -422,7 +422,7 @@ const styles = StyleSheet.create({
   countdownContainer: {
     position: "absolute",
     top: "40%",
-    left: "50%",
+    left: "40%",
     transform: [{ translateX: -50 }, { translateY: -50 }],
     alignItems: "center",
     zIndex: 1,
@@ -455,11 +455,12 @@ const styles = StyleSheet.create({
   cancelButton: {
     marginTop: 20,
     padding: 10,
-    backgroundColor: "rgba(255, 0, 0, 0.7)",
-    borderRadius: 10,
+    backgroundColor: "#ffb33e",
+    borderRadius: 15,
   },
   cancelText: {
     color: "white",
+    fontFamily: "marcellus",
     fontSize: 18,
   },
   captureButton: {

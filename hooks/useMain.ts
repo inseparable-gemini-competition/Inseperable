@@ -73,7 +73,7 @@ export const useMain = ({ currentPrompt }: any) => {
 
   const startCountdown = () => {
     handleCancelCountdown(); // Ensure any previous countdown is cleared
-    setCountdown(6);
+    setCountdown(10);
     countdownRef.current = setInterval(() => {
       setCountdown((prev) => {
         if (prev === 1) {
