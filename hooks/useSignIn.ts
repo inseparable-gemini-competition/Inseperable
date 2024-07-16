@@ -21,6 +21,7 @@ export const useSignIn = (): {
         } else {
           try {
             const userCredential = await signInAnonymously(auth);
+            
             setUserId(userCredential.user.uid);
           } catch (error) {
             console.error("Error signing in anonymously:", error);
