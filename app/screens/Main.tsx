@@ -102,13 +102,13 @@ const Main = () => {
       setListening(false);
       clearVoiceCountdown();
       Voice.stop();
-      handleCommand(command); // Call the handler for the command
+      handleCommand(command, true); // Call the handler for the command
     } else {
       console.log("Invalid or repeated command ignored:", command);
     }
   };
 
-  const handleCommand = async (command: string) => {
+  const handleCommand = async (command: string, autoCapture?: boolean) => {
     let prompt = "";
     switch (command) {
       case "read":
@@ -129,7 +129,7 @@ const Main = () => {
     if (prompt) {
       setCurrentPrompt(prompt);
       onVoiceRecognitionClosed();
-      handleShowCamera({autoCapture: true});
+      handleShowCamera({ autoCapture });
     }
   };
 
@@ -204,12 +204,12 @@ const Main = () => {
     Speech.stop();
   };
 
-  const onVoiceRecognitionClosed = ()=>{
+  const onVoiceRecognitionClosed = () => {
     setListening(false);
     clearVoiceCountdown();
     setVoiceCountdown(null);
     Voice.stop();
-  }
+  };
 
   return (
     <TouchableWithoutFeedback onPress={handleThreeClicks}>
@@ -278,6 +278,7 @@ const Main = () => {
                 <Dialog
                   visible={!!feedbackText}
                   bottom
+                  ignoreBackgroundPress
                   onDismiss={() => setCapturedImage(null)}
                   panDirection={PanningProvider.Directions.DOWN}
                 >
@@ -332,7 +333,7 @@ const Main = () => {
                     <TouchableOpacity
                       style={[styles.card]}
                       onPress={() => {
-                        handleShowCamera({ autoCapture: false });
+                        handleShowCamera();
                         const command =
                           item.title === "Identify"
                             ? "identify"

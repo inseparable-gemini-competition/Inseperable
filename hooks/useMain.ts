@@ -44,6 +44,7 @@ export const useMain = ({ currentPrompt }: any) => {
   });
 
   const handleAutoCapture = (autoCapture?: boolean) => {
+    console.log("autoCapture", autoCapture);
     if (autoCapture) {
       setTimeout(() => {
         handleCapture();
@@ -51,7 +52,7 @@ export const useMain = ({ currentPrompt }: any) => {
     }
   };
 
-  const handleShowCamera = ({ autoCapture }: { autoCapture?: boolean }) => {
+  const handleShowCamera = ({ autoCapture }: { autoCapture?: boolean } = {}) => {
     opacity.value = withTiming(
       0,
       {
