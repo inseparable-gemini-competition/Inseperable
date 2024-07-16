@@ -9,13 +9,15 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
   Modal,
+  ActivityIndicator,
 } from "react-native";
-import { CameraView } from "expo-camera"; // Make sure to import the correct Camera module
+import { CameraView } from "expo-camera"; // Ensure correct import
 import { Ionicons } from "@expo/vector-icons";
 import Animated, { Easing, withTiming } from "react-native-reanimated";
 import Voice from "@react-native-voice/voice";
 import * as Speech from "expo-speech";
 import { useMain } from "@/hooks/useMain";
+import { Dialog, PanningProvider } from "react-native-ui-lib";
 
 const categories = [
   {
@@ -36,6 +38,15 @@ const categories = [
 ];
 
 const Main = () => {
+  const [clickCount, setClickCount] = useState<number>(0);
+  const [listening, setListening] = useState<boolean>(false);
+  const [voiceCountdown, setVoiceCountdown] = useState<number | null>(null);
+  const [lastCommand, setLastCommand] = useState<string>("");
+  const clickTimeout = useRef<NodeJS.Timeout | null>(null);
+  const voiceCountdownRef = useRef<NodeJS.Timeout | null>(null);
+  const [command, setCommand] = useState<string>("");
+  const [currentPrompt, setCurrentPrompt] = useState("");
+
   const {
     showCamera,
     setShowCamera,
@@ -50,15 +61,9 @@ const Main = () => {
     cameraAnimatedStyle,
     handleShowCamera,
     handleCancelCountdown,
-  } = useMain();
-
-  const [clickCount, setClickCount] = useState<number>(0);
-  const [listening, setListening] = useState<boolean>(false);
-  const [voiceCountdown, setVoiceCountdown] = useState<number | null>(null);
-  const [lastCommand, setLastCommand] = useState<string>("");
-  const clickTimeout = useRef<NodeJS.Timeout | null>(null);
-  const voiceCountdownRef = useRef<NodeJS.Timeout | null>(null);
-  const [command, setCommand] = useState<string>("");
+    isLoadingFromGemini,
+    feedbackText,
+  } = useMain({ currentPrompt });
 
   useEffect(() => {
     Voice.onSpeechResults = onSpeechResults;
@@ -87,8 +92,6 @@ const Main = () => {
 
   const onSpeechResults = (result: any) => {
     console.log("onSpeechResults:", result);
-
-    // فصل الأوامر المتكررة واختيار آخر أمر صحيح
     const commands = result.value[0].toLowerCase().split(" ");
     const validCommands = ["read", "identify", "price", "cancel"];
     const command = commands[commands.length - 1];
@@ -99,21 +102,48 @@ const Main = () => {
       setListening(false);
       clearVoiceCountdown();
       Voice.stop();
+      handleCommand(command); // Call the handler for the command
     } else {
       console.log("Invalid or repeated command ignored:", command);
     }
   };
 
-  const handleThreeClicks = () => {
-    console.log("Screen clicked");
-    if (clickTimeout.current) clearTimeout(clickTimeout.current);
-    setClickCount((prev) => prev + 1);
-    clickTimeout.current = setTimeout(() => setClickCount(0), 1000);
+  const handleCommand = async (command: string) => {
+    let prompt = "";
+    switch (command) {
+      case "read":
+        prompt = "Read the text in this image.";
+        break;
+      case "identify":
+        prompt =
+          "Identify the image, give a concise and professional description within three lines. If it's a historical landmark, provide brief information about it.";
+        break;
+      case "price":
+        prompt =
+          "Analyze the photo to identify the item. If uncertain, provide a reasonable assumption based on visual cues. Determine the fair market price range for the item (or assumed equivalent) in Egypt as of July 2024, considering its condition if possible. Respond with the item name (or assumption) followed by the estimated price range in Egyptian Pounds (EGP), omitting any introductory phrases";
+        break;
+      default:
+        prompt = "";
+    }
 
-    if (clickCount === 2) {
-      console.log("Three clicks detected");
-      setClickCount(0);
-      activateVoiceCommand();
+    if (prompt) {
+      setCurrentPrompt(prompt);
+      onVoiceRecognitionClosed();
+      handleShowCamera({autoCapture: true});
+    }
+  };
+
+  const handleThreeClicks = () => {
+    if (!showCamera || !capturedImage) {
+      console.log("Screen clicked");
+      if (clickTimeout.current) clearTimeout(clickTimeout.current);
+      setClickCount((prev) => prev + 1);
+      clickTimeout.current = setTimeout(() => setClickCount(0), 1000);
+      if (clickCount === 2) {
+        console.log("Three clicks detected");
+        setClickCount(0);
+        activateVoiceCommand();
+      }
     }
   };
 
@@ -140,7 +170,6 @@ const Main = () => {
 
   const startVoiceCountdown = () => {
     console.log("Starting voice countdown");
-    // Ensure any previous countdowns are cleared before starting a new one
     clearVoiceCountdown();
     setVoiceCountdown(10);
     voiceCountdownRef.current = setInterval(() => {
@@ -156,7 +185,7 @@ const Main = () => {
             .catch((err) => {
               console.log("Voice recognition stop error:", err);
             });
-          return 0; // Ensure the countdown stops at 0
+          return 0;
         }
         return prev ? prev - 1 : null;
       });
@@ -169,6 +198,18 @@ const Main = () => {
       voiceCountdownRef.current = null;
     }
   };
+
+  const dismissFeedback = () => {
+    setCapturedImage(null);
+    Speech.stop();
+  };
+
+  const onVoiceRecognitionClosed = ()=>{
+    setListening(false);
+    clearVoiceCountdown();
+    setVoiceCountdown(null);
+    Voice.stop();
+  }
 
   return (
     <TouchableWithoutFeedback onPress={handleThreeClicks}>
@@ -187,7 +228,7 @@ const Main = () => {
                   setCapturedImage(null);
                   cameraOpacity.value = 0;
                   opacity.value = withTiming(1, {
-                    duration: 1000,
+                    duration: 700,
                     easing: Easing.inOut(Easing.ease),
                   });
                 }}
@@ -223,6 +264,25 @@ const Main = () => {
             ) : capturedImage ? (
               <View style={{ flex: 1 }}>
                 <Image source={{ uri: capturedImage }} style={{ flex: 1 }} />
+                {isLoadingFromGemini && (
+                  <TouchableOpacity
+                    style={styles.bottomOverlay}
+                    onPress={dismissFeedback}
+                  >
+                    <View style={styles.loadingContainer}>
+                      <ActivityIndicator size="large" color="#ffffff" />
+                      <Text style={styles.loadingText}>Analyzing...</Text>
+                    </View>
+                  </TouchableOpacity>
+                )}
+                <Dialog
+                  visible={!!feedbackText}
+                  bottom
+                  onDismiss={() => setCapturedImage(null)}
+                  panDirection={PanningProvider.Directions.DOWN}
+                >
+                  <Text style={styles.feedbackText}>{feedbackText}</Text>
+                </Dialog>
               </View>
             ) : (
               <Animated.View style={[styles.content, animatedStyle]}>
@@ -233,17 +293,11 @@ const Main = () => {
                     pharaohs, and a country of rich history and culture.
                   </Text>
                 </View>
-
                 <Modal
                   animationType="slide"
                   transparent={true}
                   visible={!!voiceCountdown}
-                  onRequestClose={() => {
-                    setListening(false);
-                    clearVoiceCountdown();
-                    setVoiceCountdown(null);
-                    Voice.stop();
-                  }}
+                  onRequestClose={onVoiceRecognitionClosed}
                 >
                   <View style={modalStyles.modalContainer}>
                     <View style={modalStyles.modalContent}>
@@ -277,7 +331,16 @@ const Main = () => {
                   renderItem={({ item }) => (
                     <TouchableOpacity
                       style={[styles.card]}
-                      onPress={handleShowCamera}
+                      onPress={() => {
+                        handleShowCamera();
+                        const command =
+                          item.title === "Identify"
+                            ? "identify"
+                            : item.title === "Fair Price"
+                            ? "price"
+                            : "read";
+                        handleCommand(command);
+                      }}
                     >
                       <Image source={item.imageUrl} style={styles.cardImage} />
                       <Text style={styles.cardText}>{item.title}</Text>
@@ -339,6 +402,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 16,
     marginBottom: 16,
+    elevation: 5,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.8,
+    shadowRadius: 2,
   },
   cardImage: {
     width: "100%",
@@ -410,6 +478,32 @@ const styles = StyleSheet.create({
     elevation: 8,
     borderWidth: 2,
     borderColor: "#000",
+  },
+  bottomOverlay: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.6)",
+    padding: 20,
+    alignItems: "center",
+  },
+  loadingContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  loadingText: {
+    color: "#ffffff",
+    fontSize: 24,
+    marginLeft: 10,
+    fontFamily: "marcellus",
+  },
+  feedbackText: {
+    color: "#ffffff",
+    fontSize: 18,
+    textAlign: "center",
+    paddingHorizontal: 20,
+    fontFamily: "marcellus",
   },
 });
 

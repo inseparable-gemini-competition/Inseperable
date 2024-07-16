@@ -41,10 +41,7 @@ const generateText = async ({
   );
 
   const model = genAI.getGenerativeModel({
-    model:
-      modelType ?? imageUri
-        ? "gemini-1.0-pro-vision-001"
-        : "gemini-1.5-pro-latest",
+    model: modelType ?? "gemini-1.5-pro-latest",
   });
 
   let result: any;
@@ -64,6 +61,8 @@ const generateText = async ({
 };
 
 // React hook to use the generateText function with useMutation
-export const useGenerateTextMutation = () => {
-  return useMutation(generateText);
+export const useGenerateTextMutation = ({ onSuccess }: any) => {
+  return useMutation(generateText, {
+    onSuccess,
+  });
 };

@@ -27,7 +27,6 @@ const CameraView: React.FC<CameraViewProps> = ({
   cameraRef,
   facing,
   switchCamera,
-  feedbackText,
   setFeedbackText,
   translations
 }) => {

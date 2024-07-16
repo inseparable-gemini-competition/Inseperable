@@ -9,18 +9,27 @@ import {
 } from "react-native-reanimated";
 import * as Speech from "expo-speech";
 import Voice from "@react-native-voice/voice";
+import { useGenerateTextMutation } from "@/hooks/useGenerateText";
 
-export const useMain = () => {
+export const useMain = ({ currentPrompt }: any) => {
   const [showCamera, setShowCamera] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [countdown, setCountdown] = useState<number | null>(null);
   const [clickCount, setClickCount] = useState(0);
   const [listening, setListening] = useState(false);
-  const [recognizedCommand, setRecognizedCommand] = useState<string | null>(null);
   const countdownRef = useRef<NodeJS.Timeout | null>(null);
   const cameraRef = useRef<CameraView | null>(null);
   const opacity = useSharedValue(1);
   const cameraOpacity = useSharedValue(0);
+  const {
+    mutateAsync,
+    isLoading: isLoadingFromGemini,
+    data: feedbackText,
+  } = useGenerateTextMutation({
+    onSuccess: () => {
+      Speech.speak(feedbackText || "", { language: "en-US" });
+    },
+  });
 
   const animatedStyle = useAnimatedStyle(() => {
     return {
@@ -34,35 +43,27 @@ export const useMain = () => {
     };
   });
 
-  useEffect(() => {
-    Voice.onSpeechResults = onSpeechResults;
-
-    return () => {
-      Voice.destroy().then(Voice.removeAllListeners);
-    };
-  }, []);
-
-  const onSpeechResults = (event: any) => {
-    const command = event.value[0].toLowerCase();
-    if (["read", "identify", "fair price"].includes(command)) {
-      setRecognizedCommand(command);
-      handleCancelCountdown();
-      console.log("Valid command:", command);
+  const handleAutoCapture = (autoCapture?: boolean) => {
+    if (autoCapture) {
+      setTimeout(() => {
+        handleCapture();
+      }, 100);
     }
   };
 
-  const handleShowCamera = () => {
+  const handleShowCamera = ({ autoCapture }: { autoCapture?: boolean }) => {
     opacity.value = withTiming(
       0,
       {
-        duration: 1000,
+        duration: 500,
         easing: Easing.inOut(Easing.ease),
       },
       () => {
         runOnJS(setShowCamera)(true);
         runOnJS(startCountdown)();
+        runOnJS(handleAutoCapture)(autoCapture);
         cameraOpacity.value = withTiming(1, {
-          duration: 1000,
+          duration: 700,
           easing: Easing.inOut(Easing.ease),
         });
       }
@@ -79,7 +80,7 @@ export const useMain = () => {
           countdownRef.current = null;
           handleCapture();
         }
-        return (prev! - 1) > 0 ? (prev! - 1) : 0;
+        return prev! - 1 > 0 ? prev! - 1 : 0;
       });
     }, 1000);
   };
@@ -98,9 +99,10 @@ export const useMain = () => {
       handleCancelCountdown(); // Ensure the countdown is reset
       cameraOpacity.value = 0;
       opacity.value = withTiming(1, {
-        duration: 1000,
+        duration: 700,
         easing: Easing.inOut(Easing.ease),
       });
+      await mutateAsync({ imageUri: photo.uri, text: currentPrompt });
     }
   };
 
@@ -127,7 +129,7 @@ export const useMain = () => {
           countdownRef.current = null;
           stopListening();
         }
-        return (prev! - 1) > 0 ? (prev! - 1) : 0;
+        return prev! - 1 > 0 ? prev! - 1 : 0;
       });
     }, 1000);
   };
@@ -152,12 +154,13 @@ export const useMain = () => {
     handleCancelCountdown,
     handleManualCapture,
     handleVoiceCommandStart,
-    recognizedCommand,
     setShowCamera,
     setCapturedImage,
     clickCount,
     setClickCount,
     listening,
     setListening,
+    isLoadingFromGemini,
+    feedbackText,
   };
 };

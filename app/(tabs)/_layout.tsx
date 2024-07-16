@@ -5,7 +5,8 @@ import Questionnaire from "../screens/Questionnaire";
 import Tabs from "../screens/Tabs";
 import { useAsyncStorage } from "@react-native-async-storage/async-storage";
 import useStore, { userDataType } from "../store";
-import 'react-native-polyfill-globals/auto';
+import "react-native-polyfill-globals/auto";
+import Main from "@/app/screens/Main";
 
 export default function TabLayout() {
   const { userData, setUserData } = useStore();
@@ -31,7 +32,8 @@ export default function TabLayout() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {userData?.country ? <Tabs /> : <Questionnaire onFinish={onFinish} />}
+      {/* {userData?.country ? <Tabs /> : <Questionnaire onFinish={onFinish} />} */}
+      <Main />
     </QueryClientProvider>
   );
 }
