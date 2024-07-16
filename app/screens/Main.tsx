@@ -278,7 +278,6 @@ const Main = () => {
                 <Dialog
                   visible={!!feedbackText}
                   bottom
-                  ignoreBackgroundPress
                   onDismiss={() => setCapturedImage(null)}
                   panDirection={PanningProvider.Directions.DOWN}
                 >
