@@ -7,6 +7,7 @@ const IMAGE_RESIZE_WIDTH = 512;
 interface GenerateTextData {
   text: string;
   imageUri?: string;
+  modelType?: string;
 }
 
 // Helper function to manipulate image
@@ -30,10 +31,21 @@ const manipulateImage = async (imageUri: string): Promise<string> => {
 };
 
 // Function to generate text using Google Generative AI
-const generateText = async ({ text, imageUri }: GenerateTextData): Promise<string> => {
-  const genAI = new GoogleGenerativeAI("AIzaSyDTiF7YjBUWM0l0nKpzicv9R6kReU3dn8Q");
+const generateText = async ({
+  text,
+  imageUri,
+  modelType,
+}: GenerateTextData): Promise<string> => {
+  const genAI = new GoogleGenerativeAI(
+    "AIzaSyDTiF7YjBUWM0l0nKpzicv9R6kReU3dn8Q"
+  );
 
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro-latest" });
+  const model = genAI.getGenerativeModel({
+    model:
+      modelType ?? imageUri
+        ? "gemini-1.0-pro-vision-001"
+        : "gemini-1.5-pro-latest",
+  });
 
   let result: any;
   if (imageUri) {

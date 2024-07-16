@@ -208,13 +208,22 @@ export const generatePrompt = (
   JSON.stringify(answers) +
   ` to these questions: ` +
   JSON.stringify(questions) +
-  `, please do the following:
-1. Determine if I am currently traveling.
-2. If I am not traveling:
-  a. Recommend the best country for me to visit outside of my base country.
-  b. Provide the recommendation in the language of my base country, including the country's name and a brief description and an emoji that represents the country's flag.
-3. If I am currently traveling:
-  a. Suggest the best plan for me in the country I am currently in.
-  b. Provide the suggestion in the language of my base country, including the plan name and a brief description.
-4. Ensure that the response for the plan and description always has logical values, even if no country recommendation is made.
+  `recommend a country for me and suggest a detailed plan, get the country's flag as text and a brief description of the country.
+  you shouldn't suggest my base country as the recommended country. the description and plan should be in my base country language (see first question)
+  if i am already travelling (see second question) just recommend a plan for me based on my answers in my base country language (see first question)
 `;
+
+export function convertJSONToObject(rawString: string) {
+  try {
+    // Remove the ```json and ``` markers
+    const jsonString = rawString.replace(/```json\s*|```/g, "").trim();
+
+    // Parse the JSON string into a JavaScript object
+    const jsonObject = JSON.parse(jsonString);
+    return jsonObject;
+  } catch (error) {
+    // Handle any errors that occur during parsing
+    console.error("Error parsing JSON string:", error);
+    return null;
+  }
+}

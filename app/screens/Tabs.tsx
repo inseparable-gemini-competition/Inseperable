@@ -14,7 +14,7 @@ const TabsScreen = () => {
     wasAlreadyShown: false,
   });
 
-  const { userData, setUserData } = useStore();
+  const { userData } = useStore();
 
   const colorScheme = useColorScheme();
 

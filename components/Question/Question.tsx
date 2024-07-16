@@ -32,28 +32,31 @@ const Question = ({
   const handleOptionSelect = (option: string) => {
     onNext(option);
   };
-  const [currentText, setCurrentText] = useState('');
+  const [currentText, setCurrentText] = useState("");
 
   return (
-    <View key={question.id}>
+    <View key={question?.id}>
       <Text
         style={{
           fontSize: 35,
-          margin: 20,
+          margin: 15,
           color: colors.black,
+          fontFamily: "marcellus",
         }}
       >
-        {question.question}
+        {question?.question}
       </Text>
       <View
         style={{
           flexDirection: "row",
           flexWrap: "wrap",
-          justifyContent: question.options.length ? "space-between" : "center",
+          justifyContent: question?.options?.length
+            ? "space-between"
+            : "center",
           alignItems: "center",
         }}
       >
-        {question.options.map((option) => (
+        {question?.options?.map((option) => (
           <Option
             key={option.id}
             option={option.option}
@@ -61,7 +64,7 @@ const Question = ({
             isSelected={currentAnswer === option.option}
           />
         ))}
-        {question.isOpenEnded && (
+        {question?.isOpenEnded && !question?.options?.length && (
           <TextField
             placeholder={"Enter your answer here..."}
             floatingPlaceholder
@@ -76,6 +79,7 @@ const Question = ({
               borderWidth: 1,
               borderColor: colors.primary,
               borderRadius: 10,
+              fontFamily: "marcellus",
               padding: 15,
               marginTop: 20,
               backgroundColor: colors.background,
@@ -95,7 +99,7 @@ const Question = ({
             text80
             floatingPlaceholderStyle={{
               fontSize: 16,
-              fontWeight: "bold",
+              fontFamily: "marcellus",
             }}
           />
         )}
@@ -108,11 +112,23 @@ const Question = ({
           marginHorizontal: 20,
         }}
       >
-        {showPrevious && <Button label="Previous" onPress={onPrevious} />}
-        {showNext && <Button label="Next" onPress={()=>{
-            onNext(currentText);
-            setCurrentText('');
-        }} />}
+        {showPrevious && (
+          <Button
+            label="Previous"
+            backgroundColor={colors.primary}
+            onPress={onPrevious}
+          />
+        )}
+        {showNext && (
+          <Button
+            label="Next"
+            backgroundColor={colors.primary}
+            onPress={() => {
+              onNext(currentText);
+              setCurrentText("");
+            }}
+          />
+        )}
       </View>
     </View>
   );

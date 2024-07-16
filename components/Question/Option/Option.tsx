@@ -37,8 +37,11 @@ const Option = ({ option, onChoose, isSelected }: Props) => {
   return (
     <Animated.View style={animatedStyle}>
       <View style={[styles.optionWrapper, isSelected && styles.selectedOption]}>
-        <TouchableOpacity style={styles.option} onPress={() => onChoose(option)}>
-          <Text>{option}</Text>
+        <TouchableOpacity
+          style={styles.option}
+          onPress={() => onChoose(option)}
+        >
+          <Text style={styles.text}>{option}</Text>
         </TouchableOpacity>
       </View>
     </Animated.View>
@@ -51,6 +54,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderRadius: 60,
     margin: 30,
+  },
+  text: {
+    fontFamily: "marcellus",
+    textAlign: "center",
   },
   option: {
     backgroundColor: "white",
@@ -72,7 +79,7 @@ const styles = StyleSheet.create({
     borderColor: colors.primary,
     borderWidth: 2,
     borderRadius: 60,
-    padding: 0, 
+    padding: 0,
   },
 });
 

@@ -23,7 +23,6 @@ interface FetchResponse {
 }
 
 const fetchHandmadeItems = async ({ pageParam = undefined }): Promise<FetchResponse> => {
-  console.log('Fetching items with pageParam:', pageParam);
   const itemsQuery = query(
     collection(db, 'products'),
     orderBy('createdAt'),
@@ -47,7 +46,6 @@ const fetchHandmadeItems = async ({ pageParam = undefined }): Promise<FetchRespo
     lastVisible = querySnapshot.docs[querySnapshot.docs.length - 1];
   }
 
-  console.log('Fetched items:', items);
   return {
     items,
     lastVisible,

@@ -1,6 +1,6 @@
 const colors = {
-  primary: "#6cc1d8",
-  background: "#d2f4f9",
+  primary: "#3c3e3b",
+  background: "#f5e8db",
   secondary: "#6c757d",
   success: "#28a745",
   danger: "#dc3545",
@@ -11,6 +11,7 @@ const colors = {
   white: "#fff",
   black: "#000",
   placeholder: "#6c757d",
+
 };
 
 export { colors };
