@@ -605,16 +605,19 @@ const modalStyles = StyleSheet.create({
     fontSize: 30,
     color: "black",
     marginBottom: 10,
+    fontFamily: "marcellus",
   },
   modalRecognizing: {
     fontSize: 18,
     color: "grey",
     marginBottom: 10,
+    fontFamily: "marcellus",
   },
   modalCommandText: {
     fontSize: 24,
     color: "black",
     marginBottom: 20,
+    fontFamily: "marcellus",
   },
   modalCancelButton: {
     backgroundColor: "red",
@@ -625,16 +628,18 @@ const modalStyles = StyleSheet.create({
   modalCancelText: {
     color: "white",
     fontSize: 18,
+    fontFamily: "marcellus",
   },
   modalTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
+    fontSize: 34,
     marginBottom: 10,
+    fontFamily: "marcellus",
   },
   modalText: {
     fontSize: 18,
     marginBottom: 20,
     textAlign: "center",
+    fontFamily: "marcellus",
   },
   modalButton: {
     backgroundColor: "#4CAF50",
@@ -646,6 +651,7 @@ const modalStyles = StyleSheet.create({
   modalButtonText: {
     color: "white",
     fontSize: 18,
+    fontFamily: "marcellus",
   },
   modalCloseButton: {
     backgroundColor: "#f44336",
@@ -656,6 +662,7 @@ const modalStyles = StyleSheet.create({
   modalCloseButtonText: {
     color: "white",
     fontSize: 18,
+    fontFamily: "marcellus",
   },
 });
 
