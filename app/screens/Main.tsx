@@ -634,6 +634,7 @@ const modalStyles = StyleSheet.create({
   modalText: {
     fontSize: 18,
     marginBottom: 20,
+    textAlign: "center",
   },
   modalButton: {
     backgroundColor: "#4CAF50",
