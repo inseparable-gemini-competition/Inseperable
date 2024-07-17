@@ -8,6 +8,8 @@ type userDataType = {
   flag: string;
   plan: string;
   description: string;
+  baseLanguage: string;
+  mostFamousLandmark: string;
 };
 
 // Define the store state and actions
@@ -26,7 +28,7 @@ type MyPersist = (
 const useStore = create<StoreState>(
   (persist as MyPersist)(
     (set) => ({
-      userData: { country: "", flag: "", plan: "", description: "" },
+      userData: { country: "", flag: "", plan: "", description: "", mostFamousLandmark: "", baseLanguage: "" },
       setUserData: (data: userDataType) => set({ userData: data }),
     }),
     {

@@ -1,11 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 
 import { QueryClient, QueryClientProvider } from "react-query";
 import Questionnaire from "../screens/Questionnaire";
-import Tabs from "../screens/Tabs";
-import { useAsyncStorage } from "@react-native-async-storage/async-storage";
 import useStore, { userDataType } from "../store";
 import "react-native-polyfill-globals/auto";
+import useGoogleImageSearch from "@/hooks/useGoogleImageSearch";
 import Main from "@/app/screens/Main";
 
 export default function TabLayout() {
@@ -13,27 +12,29 @@ export default function TabLayout() {
 
   const queryClient = new QueryClient();
 
-  const { setItem } = useAsyncStorage("userData");
+  const { fetchPhotos, setLoading, loading } = useGoogleImageSearch();
 
-  const onFinish = ({ userData }: { userData: userDataType }) => {
+  const onFinish = async ({
+    userData,
+    setLocalLoading,
+  }: {
+    userData: userDataType;
+    setLocalLoading: (loading: boolean) => void;
+  }) => {
     if (userData?.country) {
-      const data = {
-        country: userData?.country,
-        flag: userData?.flag,
-        plan: userData?.plan,
-        description: userData?.description,
-      };
-      setItem(JSON.stringify(data));
-      setUserData(data);
+      setLocalLoading(loading);
+      const landmarkUri = await fetchPhotos(userData.mostFamousLandmark);
+      setUserData({
+        ...userData,
+        mostFamousLandmark: landmarkUri || "",
+      });
+      setLoading(false);
     }
   };
 
-  useEffect(() => {}, []);
-
   return (
     <QueryClientProvider client={queryClient}>
-      {/* {userData?.country ? <Tabs /> : <Questionnaire onFinish={onFinish} />} */}
-      <Main />
+      {userData?.country ? <Main /> : <Questionnaire onFinish={onFinish} />}
     </QueryClientProvider>
   );
 }

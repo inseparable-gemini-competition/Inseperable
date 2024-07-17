@@ -8,8 +8,8 @@ interface SchemaProperty {
   nullable: boolean;
   items?: {
     type: FunctionDeclarationSchemaType;
-    properties: Record<string, SchemaProperty>;
-    required: string[];
+    properties?: Record<string, SchemaProperty>;
+    required?: string[];
   };
 }
 
@@ -25,7 +25,10 @@ interface Schema {
 
 export const generateSchema = (
   description: string,
-  properties: Record<string, BasicSchemaPropertyType | [BasicSchemaPropertyType, string?, boolean?]>
+  properties: Record<
+    string,
+    BasicSchemaPropertyType | [BasicSchemaPropertyType, string?, boolean?, BasicSchemaPropertyType?] | [BasicSchemaPropertyType, string?, boolean?, Record<string, BasicSchemaPropertyType | [BasicSchemaPropertyType, string?, boolean?]>?]
+  >
 ): Schema => {
   const typeMap: Record<BasicSchemaPropertyType, FunctionDeclarationSchemaType> = {
     string: FunctionDeclarationSchemaType.STRING,
@@ -41,28 +44,49 @@ export const generateSchema = (
   for (const key in properties) {
     const prop = properties[key];
     if (typeof prop === 'string') {
-      if (prop === 'array') {
-        throw new Error(`Array type for ${key} must specify items, type, and properties.`);
-      }
       schemaProperties[key] = {
         type: typeMap[prop],
         nullable: false,
       };
     } else {
       if (prop[0] === 'array') {
-        // Define properties for items if array type is encountered
-        const itemProperties: Record<string, SchemaProperty> = {
-          // Example of defining item properties, adjust as needed
-          exampleItem: { type: FunctionDeclarationSchemaType.STRING, nullable: false },
+        const itemType = prop[3] ? typeMap[prop[3] as BasicSchemaPropertyType] : FunctionDeclarationSchemaType.STRING;
+        schemaProperties[key] = {
+          type: typeMap[prop[0]],
+          description: prop[1],
+          nullable: prop[2] ?? false,
+          items: {
+            type: itemType,
+          },
         };
+      } else if (prop[0] === 'object') {
+        const objectProperties: Record<string, SchemaProperty> = {};
+        const nestedProperties = prop[3];
+        if (nestedProperties && typeof nestedProperties === 'object') {
+          for (const nestedKey in nestedProperties) {
+            const nestedProp = nestedProperties[nestedKey];
+            if (typeof nestedProp === 'string') {
+              objectProperties[nestedKey] = {
+                type: typeMap[nestedProp],
+                nullable: false,
+              };
+            } else {
+              objectProperties[nestedKey] = {
+                type: typeMap[nestedProp[0]],
+                description: nestedProp[1],
+                nullable: nestedProp[2] ?? false,
+              };
+            }
+          }
+        }
         schemaProperties[key] = {
           type: typeMap[prop[0]],
           description: prop[1],
           nullable: prop[2] ?? false,
           items: {
             type: FunctionDeclarationSchemaType.OBJECT,
-            properties: itemProperties,
-            required: Object.keys(itemProperties),
+            properties: objectProperties,
+            required: Object.keys(objectProperties),
           },
         };
       } else {
@@ -86,3 +110,4 @@ export const generateSchema = (
     },
   };
 };
+

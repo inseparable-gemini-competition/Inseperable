@@ -18,6 +18,7 @@ import Voice from "@react-native-voice/voice";
 import * as Speech from "expo-speech";
 import { useMain } from "@/hooks/useMain";
 import { Dialog, PanningProvider } from "react-native-ui-lib";
+ import useStore from "../store"
 
 const categories = [
   {
@@ -46,6 +47,7 @@ const Main = () => {
   const voiceCountdownRef = useRef<NodeJS.Timeout | null>(null);
   const [command, setCommand] = useState<string>("");
   const [currentPrompt, setCurrentPrompt] = useState("");
+  const { userData } = useStore();
 
   const {
     showCamera,
@@ -216,7 +218,7 @@ const Main = () => {
       <View style={{ flex: 1 }}>
         <ImageBackground
           source={{
-            uri: "https://images.pexels.com/photos/33571/tutankhamun-death-mask-pharaonic-egypt.jpg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+            uri: userData?.mostFamousLandmark,
           }}
           style={styles.background}
         >
@@ -287,10 +289,9 @@ const Main = () => {
             ) : (
               <Animated.View style={[styles.content, animatedStyle]}>
                 <View>
-                  <Text style={styles.title}>Egypt</Text>
+                  <Text style={styles.title}>{userData.country}</Text>
                   <Text style={styles.subtitle}>
-                    Egypt is the cradle of civilization, the land of the
-                    pharaohs, and a country of rich history and culture.
+                    {userData.description}
                   </Text>
                 </View>
                 <Modal
@@ -367,7 +368,7 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    backgroundColor: "rgba(255, 255, 255, 0.9)",
+    backgroundColor: "rgba(255, 255, 255, 0.75)",
   },
   header: {
     flexDirection: "row",

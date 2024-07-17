@@ -14,7 +14,10 @@ import { userDataType } from "../store";
 import { useGenerateContent } from "@/hooks/useGeminiStream";
 
 type Props = {
-  onFinish: (userData: { userData: userDataType }) => void;
+  onFinish: (userData: {
+    userData: userDataType;
+    setLocalLoading: (loading: boolean) => void;
+  }) => void;
 };
 
 const Questionnaire = ({ onFinish }: Props) => {
@@ -23,22 +26,30 @@ const Questionnaire = ({ onFinish }: Props) => {
   const schema = generateSchema("recommendation for country or plan", {
     country: ["string", "recommended country"],
     flag: ["string", "flag"],
-    plan: ["string", "recommended plan"],
-    description: ["string", "brief description"],
+    plan: ["array", "An array of strings for the plan", false, "string"],
+    description: ["string", "recommended country description", false, "string"],
+    baseLanguage: ["string", "base country language code"],
+    mostFamousLandmark: [
+      "string",
+      "most famous landmark for the recommended country",
+    ],
   });
   const { generate, isLoading, result } = useJsonControlledGeneration(schema);
+  const [localLoading, setLocalLoading] = useState(false);
 
   const [questions, setQuestions] = useState(defaultQuestions);
   const { sendMessage: sendAnswer, isLoading: isLoadingNextQuestion } =
     useGenerateContent(
-      `write a question for me based on my answers, it's curcial that you don't stop asking questions until i tell you, the ultimate goal is to recommend a country to visit, or if I am not travelling to recommend a plan the question should be in form of json in this structure   id: number;
+      `write a question for me based on my answers and don't ask me about my base country again, it's curcial that you don't stop asking questions until i tell you, the ultimate goal is to recommend a country to visit other than my base country, the question should be in form of json in this structure   {id: number;
     question: string;
     options: {
       id: number;
       option: string;
     }[];
     isOpenEnded?: boolean;
-    please stick to this schema and only send it in this form
+  };
+    please stick to this schema and only send it in this form.
+    the questions should be based on the answers to the previous questions, and should be diverse, creative and changing. dont't use cliche questions and use simple english
     `,
       (question: any) => {
         const updatedQuestions = [...questions, convertJSONToObject(question)];
@@ -62,10 +73,8 @@ const Questionnaire = ({ onFinish }: Props) => {
   const handleNext = async (option: string) => {
     if (option.length === 0) return;
     handleAnswer(option);
-    if (currentQuestionIndex === 0) {
-      setCurrentQuestionIndex((i) => i + 1);
-      setQuestion(questions[currentQuestionIndex + 1]);
-    } else if (currentQuestionIndex < 7) {
+
+    if (currentQuestionIndex < 7) {
       sendAnswer(option);
     } else {
       setCurrentQuestionIndex((i) => i + 1);
@@ -92,7 +101,9 @@ const Questionnaire = ({ onFinish }: Props) => {
         }}
       >
         <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={{ fontFamily: "marcellus" }}>Fetching next question..</Text>
+        <Text style={{ fontFamily: "marcellus" }}>
+          Fetching next question..
+        </Text>
       </View>
     );
   } else if (isLoading) {
@@ -158,8 +169,9 @@ const Questionnaire = ({ onFinish }: Props) => {
               }}
             >
               {result?.description !== "null" ? result?.description : ""}
-              {"\n \n"} {result?.plan}
+              {"\n \n"} {result?.plan?.day1}
             </Text>
+
             <Button
               style={{ width: 300, alignSelf: "center" }}
               label="Finish"
@@ -167,9 +179,17 @@ const Questionnaire = ({ onFinish }: Props) => {
               onPress={() =>
                 onFinish({
                   userData: result,
+                  setLocalLoading,
                 })
               }
             />
+            {localLoading && (
+              <ActivityIndicator
+                size="large"
+                color={colors.primary}
+                style={{ marginBottom: 20 }}
+              />
+            )}
           </>
         )}
       </View>
