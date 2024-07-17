@@ -496,7 +496,7 @@ const styles = StyleSheet.create({
   cardText: {
     marginTop: 8,
     fontSize: 18,
-    fontFamily: "Roboto-Bold",
+    fontFamily: "marcellus",
   },
   countdownContainer: {
     position: "absolute",
