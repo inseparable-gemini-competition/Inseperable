@@ -44,7 +44,6 @@ export const useMain = ({ currentPrompt }: any) => {
   });
 
   const handleAutoCapture = (autoCapture?: boolean) => {
-    console.log("autoCapture", autoCapture);
     if (autoCapture) {
       setTimeout(() => {
         handleCapture();
@@ -163,5 +162,6 @@ export const useMain = ({ currentPrompt }: any) => {
     setListening,
     isLoadingFromGemini,
     feedbackText,
+    mutateAsync,
   };
 };

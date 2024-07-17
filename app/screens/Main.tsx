@@ -10,6 +10,7 @@ import {
   TouchableWithoutFeedback,
   Modal,
   ActivityIndicator,
+  Linking,
 } from "react-native";
 import { CameraView } from "expo-camera"; // Ensure correct import
 import { Ionicons } from "@expo/vector-icons";
@@ -18,7 +19,9 @@ import Voice from "@react-native-voice/voice";
 import * as Speech from "expo-speech";
 import { useMain } from "@/hooks/useMain";
 import { Dialog, PanningProvider } from "react-native-ui-lib";
- import useStore from "../store"
+import useStore from "../store";
+import { generateSchema } from "@/hooks/utils/generateSchema";
+import { useJsonControlledGeneration } from "@/hooks/useJsonControlledGeneration";
 
 const categories = [
   {
@@ -36,6 +39,11 @@ const categories = [
     title: "Read",
     imageUrl: require("../../assets/images/menu.png"),
   },
+  {
+    id: "4",
+    title: "Donate",
+    imageUrl: require("../../assets/images/help.png"),
+  },
 ];
 
 const Main = () => {
@@ -47,7 +55,13 @@ const Main = () => {
   const voiceCountdownRef = useRef<NodeJS.Timeout | null>(null);
   const [command, setCommand] = useState<string>("");
   const [currentPrompt, setCurrentPrompt] = useState("");
+  const [donationModalVisible, setDonationModalVisible] = useState(false);
   const { userData } = useStore();
+  const openBrowser = (url: string) => {
+    Linking.openURL(url).catch((err) =>
+      console.error("Couldn't load page", err)
+    );
+  };
 
   const {
     showCamera,
@@ -66,6 +80,13 @@ const Main = () => {
     isLoadingFromGemini,
     feedbackText,
   } = useMain({ currentPrompt });
+
+  const schema = generateSchema("recommendation donation entity name", {
+    name: ["string", "donation entity name"],
+    websiteLink: ["string", "donation entity website link"],
+    description: ["string", "donation entity 6 lines description"],
+  });
+  const { generate, isLoading, result } = useJsonControlledGeneration(schema);
 
   useEffect(() => {
     Voice.onSpeechResults = onSpeechResults;
@@ -95,7 +116,7 @@ const Main = () => {
   const onSpeechResults = (result: any) => {
     console.log("onSpeechResults:", result);
     const commands = result.value[0].toLowerCase().split(" ");
-    const validCommands = ["read", "identify", "price", "cancel"];
+    const validCommands = ["read", "identify", "price", "donate", "cancel"];
     const command = commands[commands.length - 1];
 
     if (validCommands.includes(command) && command !== lastCommand) {
@@ -124,14 +145,29 @@ const Main = () => {
         prompt =
           "Analyze the photo to identify the item. If uncertain, provide a reasonable assumption based on visual cues. Determine the fair market price range for the item (or assumed equivalent) in Egypt as of July 2024, considering its condition if possible. Respond with the item name (or assumption) followed by the estimated price range in Egyptian Pounds (EGP), omitting any introductory phrases";
         break;
+      case "donate":
+        prompt =
+          "tell me about donation entities or organizations you have to give url, name and description (6 exact lines) for the organization that could benefit from my donation in" +
+          userData?.country;
+        await handleDonate(prompt); // Handle the donation command directly
+        return;
       default:
         prompt = "";
     }
 
-    if (prompt) {
+    if (prompt && prompt !== "donate") {
       setCurrentPrompt(prompt);
       onVoiceRecognitionClosed();
       handleShowCamera({ autoCapture });
+    }
+  };
+
+  const handleDonate = async (prompt: string) => {
+    try {
+      generate(prompt);
+      setDonationModalVisible(true);
+    } catch (error) {
+      console.log("Error fetching donation information:", error);
     }
   };
 
@@ -290,9 +326,7 @@ const Main = () => {
               <Animated.View style={[styles.content, animatedStyle]}>
                 <View>
                   <Text style={styles.title}>{userData.country}</Text>
-                  <Text style={styles.subtitle}>
-                    {userData.description}
-                  </Text>
+                  <Text style={styles.subtitle}>{userData.description}</Text>
                 </View>
                 <Modal
                   animationType="slide"
@@ -333,13 +367,15 @@ const Main = () => {
                     <TouchableOpacity
                       style={[styles.card]}
                       onPress={() => {
-                        handleShowCamera();
+                        if (item.title !== "Donate") handleShowCamera();
                         const command =
                           item.title === "Identify"
                             ? "identify"
                             : item.title === "Fair Price"
                             ? "price"
-                            : "read";
+                            : item.title === "Read"
+                            ? "read"
+                            : "donate";
                         handleCommand(command);
                       }}
                     >
@@ -356,6 +392,49 @@ const Main = () => {
             )}
           </View>
         </ImageBackground>
+        <Modal
+          visible={donationModalVisible}
+          transparent={true}
+          animationType="slide"
+          onRequestClose={() => setDonationModalVisible(false)}
+        >
+          <View style={modalStyles.modalContainer}>
+            <View style={modalStyles.modalContent}>
+              {isLoading ? (
+                <View style={[styles.loadingContainer, { height: 100 }]}>
+                  <ActivityIndicator />
+                </View>
+              ) : (
+                <>
+                  <Text style={modalStyles.modalTitle}>Donation Info</Text>
+                  <Text style={modalStyles.modalText}>{result?.name}</Text>
+                  <Text style={modalStyles.modalText}>
+                    {result?.description}
+                  </Text>
+                  <TouchableOpacity
+                    style={modalStyles.modalButton}
+                    onPress={() => {
+                      const url =
+                        `https://translate.google.com/translate?sl=auto&tl=${userData?.baseLanguage}&u=` +
+                        encodeURIComponent(result?.websiteLink);
+                      openBrowser(url);
+                    }}
+                  >
+                    <Text style={modalStyles.modalButtonText}>
+                      View in Google Translate
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={modalStyles.modalCloseButton}
+                    onPress={() => setDonationModalVisible(false)}
+                  >
+                    <Text style={modalStyles.modalCloseButtonText}>Close</Text>
+                  </TouchableOpacity>
+                </>
+              )}
+            </View>
+          </View>
+        </Modal>
       </View>
     </TouchableWithoutFeedback>
   );
@@ -544,6 +623,36 @@ const modalStyles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   modalCancelText: {
+    color: "white",
+    fontSize: 18,
+  },
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: "bold",
+    marginBottom: 10,
+  },
+  modalText: {
+    fontSize: 18,
+    marginBottom: 20,
+  },
+  modalButton: {
+    backgroundColor: "#4CAF50",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    marginBottom: 10,
+  },
+  modalButtonText: {
+    color: "white",
+    fontSize: 18,
+  },
+  modalCloseButton: {
+    backgroundColor: "#f44336",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+  },
+  modalCloseButtonText: {
     color: "white",
     fontSize: 18,
   },
