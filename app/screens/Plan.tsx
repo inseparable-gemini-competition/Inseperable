@@ -86,7 +86,7 @@ const openGoogleMaps = (latitude: number, longitude: number) => {
   Linking.openURL(url).catch((err) => console.error("An error occurred", err));
 };
 
-const App: React.FC = () => {
+const Plan: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>(
     categories[0].name
   );
@@ -109,12 +109,10 @@ const App: React.FC = () => {
       }
 
       try {
-        console.log("Fetching data for userId:", id);
         const userDoc = await getDoc(doc(db, "users", id));
 
         if (userDoc.exists()) {
           const userData = userDoc.data();
-          console.log("User data fetched:", userData);
 
           const travelPlan = userData?.travelPlan || {};
           const data = travelPlan[selectedCategory] || [];
@@ -293,4 +291,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default App;
+export default Plan;

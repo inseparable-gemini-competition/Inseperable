@@ -9,6 +9,7 @@ import {
   convertJSONToObject,
   defaultQuestions,
   generatePrompt,
+  nextQuestionPrompt,
 } from "@/app/helpers/questionnaireHelpers";
 import { userDataType } from "../store";
 import { useGenerateContent } from "@/hooks/useGeminiStream";
@@ -38,28 +39,15 @@ const Questionnaire = ({ onFinish }: Props) => {
 
   const [questions, setQuestions] = useState(defaultQuestions);
   const { sendMessage: sendAnswer, isLoading: isLoadingNextQuestion } =
-    useGenerateContent(
-      `write a question for me based on my answers and don't ask me about my base country again, it's curcial that you don't stop asking questions until i tell you, the ultimate goal is to recommend a country to visit other than my base country, the question should be in form of json in this structure   {id: number;
-    question: string;
-    options: {
-      id: number;
-      option: string;
-    }[];
-    isOpenEnded?: boolean;
-  };
-    please stick to this schema and only send it in this form.
-    the questions should be based on the answers to the previous questions, and should be diverse, creative and changing. dont't use cliche questions and use simple english
-    `,
-      (question: any) => {
-        const updatedQuestions = [...questions, convertJSONToObject(question)];
-        setQuestions((questions) => [
-          ...questions,
-          convertJSONToObject(question),
-        ]);
-        setCurrentQuestionIndex(currentQuestionIndex + 1);
-        setQuestion(updatedQuestions[currentQuestionIndex + 1]);
-      }
-    );
+    useGenerateContent(nextQuestionPrompt, (question: any) => {
+      const updatedQuestions = [...questions, convertJSONToObject(question)];
+      setQuestions((questions) => [
+        ...questions,
+        convertJSONToObject(question),
+      ]);
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+      setQuestion(updatedQuestions[currentQuestionIndex + 1]);
+    });
 
   const [question, setQuestion] = useState(questions[0]);
 
