@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, memo } from "react";
 import {
   StyleSheet,
   View,
@@ -60,7 +60,7 @@ const categories: Category[] = [
   {
     id: "6",
     title: "Shop",
-    imageUrl: require("../../assets/images/shop.png"), // Add appropriate image for Shop
+    imageUrl: require("../../assets/images/shop.png"),
   },
 ];
 
@@ -286,6 +286,51 @@ const Main = () => {
     );
   }
 
+  const renderCategoryItem = ({ item }: { item: Category }) => (
+    <TouchableOpacity
+      style={styles.card}
+      onPress={() => {
+        if (item.title !== "Donate" && item.title !== "Shop")
+          handleShowCamera();
+        const command =
+          item.title === "Identify"
+            ? "identify"
+            : item.title === "Fair Price"
+            ? "price"
+            : item.title === "Read"
+            ? "read"
+            : item.title === "Donate"
+            ? "donate"
+            : item.title === "Shop"
+            ? "shop"
+            : "plan";
+        handleCommand(command);
+      }}
+    >
+      <Image source={item.imageUrl} style={styles.cardImage} />
+      <Text style={styles.cardText}>{item.title}</Text>
+    </TouchableOpacity>
+  );
+
+  const MemoizedCategoryItem = memo(renderCategoryItem);
+
+  const renderHeader = () => (
+    <View style={styles.headerContainer}>
+      <Text style={styles.subtitle}>
+        {showFullDescription
+          ? userData.description
+          : userData.description.slice(0, 160) + "..."}
+      </Text>
+      <TouchableOpacity
+        onPress={() => setShowFullDescription(!showFullDescription)}
+      >
+        <Text style={styles.seeMoreText}>
+          {showFullDescription ? "See Less" : "See More"}
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
+
   return (
     <TouchableWithoutFeedback onLongPress={handleLongPress}>
       <View style={{ flex: 1 }}>
@@ -295,6 +340,9 @@ const Main = () => {
           }}
           style={styles.background}
         >
+          {! (showCamera || capturedImage) && <View style={styles.fixedHeader}>
+            <Text style={styles.title}>{userData.country}</Text>
+          </View>}
           <View style={styles.container}>
             {(showCamera || capturedImage) && (
               <View style={styles.header}>
@@ -360,92 +408,51 @@ const Main = () => {
               </View>
             ) : (
               <Animated.View style={[styles.content, animatedStyle]}>
-                <View>
-                  <Text style={styles.title}>{userData.country}</Text>
-                  <Text style={styles.subtitle}>
-                    {showFullDescription
-                      ? userData.description
-                      : userData.description.split("\n").slice(0, 3).join("\n")}
-                  </Text>
-                  <TouchableOpacity
-                    onPress={() => setShowFullDescription(!showFullDescription)}
-                  >
-                    <Text style={styles.seeMoreText}>
-                      {showFullDescription ? "See Less" : "See More"}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-                <Modal
-                  animationType="slide"
-                  transparent={true}
-                  visible={!!voiceCountdown}
-                  onRequestClose={onVoiceRecognitionClosed}
-                >
-                  <View style={modalStyles.modalContainer}>
-                    <View style={modalStyles.modalContent}>
-                      <Text style={modalStyles.modalCountdownText}>
-                        {voiceCountdown} seconds
-                      </Text>
-                      <Text style={modalStyles.modalRecognizing}>
-                        Recognizing your command..
-                      </Text>
-                      <Text style={modalStyles.modalCommandText}>
-                        {command}
-                      </Text>
-
-                      <TouchableOpacity
-                        style={modalStyles.modalCancelButton}
-                        onPress={() => {
-                          setListening(false);
-                          clearVoiceCountdown();
-                          setVoiceCountdown(null);
-                          Voice.stop();
-                        }}
-                      >
-                        <Text style={modalStyles.modalCancelText}>Cancel</Text>
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                </Modal>
-
                 <FlatList
                   data={categories}
                   showsVerticalScrollIndicator={false}
-                  renderItem={({ item }) => (
-                    <TouchableOpacity
-                      style={styles.card}
-                      onPress={() => {
-                        if (item.title !== "Donate" && item.title !== "Shop")
-                          handleShowCamera();
-                        const command =
-                          item.title === "Identify"
-                            ? "identify"
-                            : item.title === "Fair Price"
-                            ? "price"
-                            : item.title === "Read"
-                            ? "read"
-                            : item.title === "Donate"
-                            ? "donate"
-                            : item.title === "Shop"
-                            ? "shop"
-                            : "plan";
-                        handleCommand(command);
-                      }}
-                    >
-                      <Image source={item.imageUrl} style={styles.cardImage} />
-                      <Text style={styles.cardText}>{item.title}</Text>
-                    </TouchableOpacity>
-                  )}
+                  ListHeaderComponent={renderHeader}
+                  renderItem={({ item }) => <MemoizedCategoryItem item={item} />}
                   keyExtractor={(item) => item.id}
                   numColumns={2}
                   columnWrapperStyle={styles.cardContainer}
-                  contentContainerStyle={{ paddingBottom: 16 }}
+                  contentContainerStyle={styles.flatListContentContainer}
                   style={{ flex: 1 }} // Ensure FlatList takes full space
                 />
               </Animated.View>
             )}
           </View>
         </ImageBackground>
+        <Modal
+          visible={listening && voiceCountdown !== null}
+          transparent={true}
+          animationType="slide"
+          onRequestClose={onVoiceRecognitionClosed}
+        >
+          <View style={modalStyles.modalContainer}>
+            <View style={modalStyles.modalContent}>
+              <Text style={modalStyles.modalCountdownText}>
+                {voiceCountdown} seconds
+              </Text>
+              <Text style={modalStyles.modalRecognizing}>
+                Recognizing your command...
+              </Text>
+              <Text style={modalStyles.modalCommandText}>{command}</Text>
+
+              <TouchableOpacity
+                style={modalStyles.modalCancelButton}
+                onPress={() => {
+                  setListening(false);
+                  clearVoiceCountdown();
+                  setVoiceCountdown(null);
+                  Voice.stop();
+                }}
+              >
+                <Text style={modalStyles.modalCancelText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
         <Modal
           visible={donationModalVisible}
           transparent={true}
@@ -503,6 +510,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     padding: 16,
+    marginTop: 20,
   },
   icon: {
     fontSize: 24,
@@ -512,6 +520,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 16,
     marginTop: 20,
+  },
+  fixedHeader: {
+    paddingHorizontal: 16,
+    paddingTop: 20,
+    backgroundColor: "rgba(255, 255, 255, 0.75)", // Added to match the container background
+    zIndex: 1, // Ensure it stays on top
+  },
+  headerContainer: {
+    paddingHorizontal: 16,
+    backgroundColor: "rgba(255, 255, 255, 0.75)", // Match container background
   },
   title: {
     fontSize: 48,
@@ -531,6 +549,7 @@ const styles = StyleSheet.create({
   cardContainer: {
     justifyContent: "space-between",
     marginTop: 16,
+    paddingHorizontal: 16, // Increase touchable area
   },
   card: {
     backgroundColor: "#FFFFFF",
@@ -653,6 +672,10 @@ const styles = StyleSheet.create({
     fontSize: 18,
     textAlign: "center",
     marginBottom: 16,
+  },
+  flatListContentContainer: {
+    paddingBottom: 16,
+    paddingHorizontal: 8, // Increase touchable area
   },
 });
 
