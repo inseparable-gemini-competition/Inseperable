@@ -1,23 +1,28 @@
 import React, { useState, useEffect } from "react";
-import { View, ActivityIndicator, StyleSheet, Text } from "react-native";
+import { View, StyleSheet, SafeAreaView, TouchableOpacity } from "react-native";
 import { GiftedChat, IMessage, MessageText } from "react-native-gifted-chat";
-import { 
-  collection, 
-  addDoc, 
-  query, 
-  orderBy, 
-  onSnapshot, 
-  getDocs, 
-  limit, 
-  startAfter, 
-  QueryDocumentSnapshot, 
-  DocumentData 
+import {
+  collection,
+  addDoc,
+  query,
+  orderBy,
+  onSnapshot,
+  getDocs,
+  limit,
+  startAfter,
+  QueryDocumentSnapshot,
+  DocumentData,
 } from "firebase/firestore";
 import { db } from "@/app/helpers/firebaseConfig";
-import { useRoute, RouteProp } from "@react-navigation/native";
+import { useRoute, RouteProp, useNavigation } from "@react-navigation/native";
 import { useSignIn } from "@/hooks/useSignIn";
-import {  View as UILibView, Text as UILibText, LoaderScreen } from 'react-native-ui-lib';
+import {
+  View as UILibView,
+  Text as UILibText,
+  LoaderScreen,
+} from "react-native-ui-lib";
 import { colors } from "@/app/theme";
+import { Ionicons } from "@expo/vector-icons"; // Import Ionicons
 
 type RootStackParamList = {
   ChatScreen: { recipientId: string };
@@ -31,7 +36,9 @@ interface ChatMessage extends IMessage {
 
 const ChatScreen: React.FC = () => {
   const route = useRoute<ChatScreenRouteProp>();
-  const { recipientId } = route.params || { recipientId: "2iecagcxcgYrnOj8AaiZEYZfvrf2" };
+  const { recipientId } = route.params || {
+    recipientId: "2iecagcxcgYrnOj8AaiZEYZfvrf2",
+  };
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loadingMore, setLoadingMore] = useState(false);
   const [lastVisible, setLastVisible] =
@@ -41,9 +48,11 @@ const ChatScreen: React.FC = () => {
   const getChatRoomId = (userId1: string, userId2: string) => {
     return [userId1, userId2].sort().join("_");
   };
-  const { userId, loading, setLoading } = useSignIn();
+  const { userId, loading, setLoading, authenticateUser } = useSignIn();
+  const navigation = useNavigation();
 
   useEffect(() => {
+    authenticateUser();
     const fetchInitialMessages = async () => {
       if (!userId) return;
       const chatRoomId = getChatRoomId(userId, recipientId);
@@ -143,7 +152,7 @@ const ChatScreen: React.FC = () => {
         const chatRoomId = getChatRoomId(userId, recipientId);
         await addDoc(collection(db, "chatRooms", chatRoomId, "messages"), {
           text: newMessage.text,
-          translatedText: '', // Initialize translated text
+          translatedText: "", // Initialize translated text
           createdAt: new Date(),
           userId: userId,
           userName: `User-${userId.substring(0, 6)}`, // Generates a fake username for display
@@ -157,25 +166,35 @@ const ChatScreen: React.FC = () => {
   if (loading) {
     return (
       <UILibView flex center>
-        <LoaderScreen message="Loading chat..." color={Colors.blue30} />
+        <LoaderScreen message="Loading chat..." color={colors.info} />
       </UILibView>
     );
   }
 
   return (
-    <UILibView flex>
-      <GiftedChat
-        messages={messages}
-        renderMessageText={(props) => <CustomMessageText {...props} />}
-        onSend={handleSend}
-        user={{
-          _id: userId || "",
-        }}
-        loadEarlier={!loadingMore && !!lastVisible}
-        onLoadEarlier={fetchMoreMessages}
-        isLoadingEarlier={loadingMore}
-      />
-    </UILibView>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backButton}
+        >
+          <Ionicons name="arrow-back" size={24} color={colors.primary} />
+        </TouchableOpacity>
+      </View>
+      <UILibView flex>
+        <GiftedChat
+          messages={messages}
+          renderMessageText={(props) => <CustomMessageText {...props} />}
+          onSend={handleSend}
+          user={{
+            _id: userId || "",
+          }}
+          loadEarlier={!loadingMore && !!lastVisible}
+          onLoadEarlier={fetchMoreMessages}
+          isLoadingEarlier={loadingMore}
+        />
+      </UILibView>
+    </SafeAreaView>
   );
 };
 
@@ -185,16 +204,35 @@ const CustomMessageText = (props: { currentMessage: ChatMessage }) => {
   return (
     <UILibView>
       <MessageText {...props} />
-      {currentMessage.translatedText && (
+      {currentMessage.translatedText ? (
         <UILibText style={styles.translatedText}>
           {currentMessage.translatedText}
         </UILibText>
+      ) : (
+        <UILibText style={styles.translatedText}>Translating...</UILibText>
       )}
     </UILibView>
   );
 };
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  header: {
+    paddingVertical: 30,
+  },
+  backButton: {
+    padding: 10,
+  },
+  headerTitle: {
+    flex: 1,
+    textAlign: "center",
+    color: colors.white,
+    fontSize: 18,
+    fontFamily: "marcellus",
+  },
   translatedText: {
     fontSize: 12,
     marginTop: 5,

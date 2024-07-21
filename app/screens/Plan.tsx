@@ -1,4 +1,3 @@
-// App.js
 import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
@@ -10,6 +9,8 @@ import {
   Dimensions,
   Linking,
   ActivityIndicator,
+  Animated,
+  Platform,
 } from "react-native";
 import Swiper from "react-native-deck-swiper";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -18,17 +19,16 @@ import { getDoc, doc } from "firebase/firestore";
 import { db } from "../helpers/firebaseConfig"; // Ensure the correct path
 import { colors } from "@/app/theme"; // Ensure the correct path
 import { useSignIn } from "@/hooks/useSignIn";
+import { useNavigation } from "expo-router";
 
 const { width, height } = Dimensions.get("window");
 
-// Define the types for the props
 interface MenuButtonProps {
   iconName: string;
   selected?: boolean;
   onPress: () => void;
 }
 
-// Categories and their corresponding icons
 const categories = [
   { name: "Adventure", icon: "hiking" },
   { name: "Romance", icon: "favorite" },
@@ -39,7 +39,6 @@ const categories = [
   { name: "Shopping", icon: "shopping-cart" },
 ];
 
-// MenuButton component
 const MenuButton: React.FC<MenuButtonProps> = ({
   iconName,
   selected,
@@ -55,26 +54,30 @@ const MenuButton: React.FC<MenuButtonProps> = ({
   );
 };
 
-// Sample card component for each category
 const CategoryCard: React.FC<{
   category: string;
   item: any;
   setCurrentItem: any;
 }> = ({ item, setCurrentItem }) => {
-  setCurrentItem?.(item);
+  useEffect(() => {
+    setCurrentItem(item);
+  }, [item, setCurrentItem]);
+
   return (
-    <ImageBackground
-      source={{
-        uri: item?.photoUrl,
-      }} // Placeholder image
-      style={styles.card}
-    >
-      <View style={styles.infoContainer}>
-        <Text style={styles.currentLocation}>{item?.time}</Text>
-        <Text style={styles.museumName}>{item?.name}</Text>
-        <Text style={styles.currentLocation}>{item?.description}</Text>
-      </View>
-    </ImageBackground>
+    <View style={styles.cardContainer}>
+      <ImageBackground
+        source={{
+          uri: item?.photoUrl || "default-placeholder-image-url", // Fallback to a placeholder if the URL is not available
+        }}
+        style={styles.card}
+      >
+        <View style={styles.infoContainer}>
+          <Text style={styles.currentLocation}>{item?.time}</Text>
+          <Text style={styles.museumName}>{item?.name}</Text>
+          <Text style={styles.currentLocation}>{item?.description}</Text>
+        </View>
+      </ImageBackground>
+    </View>
   );
 };
 
@@ -83,44 +86,74 @@ const openGoogleMaps = (latitude: number, longitude: number) => {
   Linking.openURL(url).catch((err) => console.error("An error occurred", err));
 };
 
-// Main App component
 const App: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>(
     categories[0].name
   );
   const [categoryData, setCategoryData] = useState<any[]>([]);
+  const { reset } = useNavigation();
   const [loading, setLoading] = useState<boolean>(true);
   const { userId, authenticateUser } = useSignIn();
-  // state for currentItem
   const [currentItem, setCurrentItem] = useState<any>();
+  const [fadeAnim] = useState(new Animated.Value(0));
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       await authenticateUser();
+
+      if (!userId) {
+        console.error("User ID is not defined");
+        setLoading(false);
+        return;
+      }
+
       try {
-        console.log("Fetching data for userId:", userId); // Log the userId
+        console.log("Fetching data for userId:", userId);
         const userDoc = await getDoc(doc(db, "users", userId));
+
         if (userDoc.exists()) {
           const userData = userDoc.data();
-          console.log("User data fetched:", userData); // Log the fetched user data
+          console.log("User data fetched:", userData);
+
           const travelPlan = userData?.travelPlan || {};
           const data = travelPlan[selectedCategory] || [];
-          console.log("Data for selected category:", selectedCategory, data); // Log the data for the selected category
+
+          console.log("Data for selected category:", selectedCategory, data);
           setCategoryData(data);
         } else {
           console.log("User document does not exist");
+          setCategoryData([]);
         }
       } catch (error) {
         console.error("Error fetching data:", error);
+        setCategoryData([]);
       }
+
       setLoading(false);
     };
+
     fetchData();
   }, [selectedCategory, userId]);
 
+  useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 1000,
+      useNativeDriver: true,
+    }).start();
+  }, [fadeAnim]);
+
   return (
     <SafeAreaView style={styles.container}>
+      <Animated.View style={[styles.header, { opacity: fadeAnim }]}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => reset({ index: 0, routes: [{ name: "Main" }] })}
+        >
+          <MaterialIcons name="arrow-back" size={28} color="white" />
+        </TouchableOpacity>
+      </Animated.View>
       <View style={styles.menu}>
         {categories.map((category) => (
           <MenuButton
@@ -131,13 +164,20 @@ const App: React.FC = () => {
           />
         ))}
       </View>
-      {loading ? (
-        <ActivityIndicator size="large" color="#FFC107" />
+      {loading && categoryData.length < 1 ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#FFC107" />
+          <Text style={styles.loadingText}>Loading...</Text>
+        </View>
       ) : (
         <Swiper
           cards={categoryData}
           renderCard={(card) => (
-            <CategoryCard category={selectedCategory} item={card} setCurrentItem={setCurrentItem} />
+            <CategoryCard
+              category={selectedCategory}
+              item={card}
+              setCurrentItem={setCurrentItem}
+            />
           )}
           infinite
           backgroundColor="transparent"
@@ -146,6 +186,7 @@ const App: React.FC = () => {
           stackSize={3}
           containerStyle={styles.swiperContainer}
           cardStyle={styles.card}
+          onSwiped={(cardIndex) => setCurrentItem(categoryData[cardIndex])}
         />
       )}
       <View style={styles.footer}>
@@ -153,7 +194,9 @@ const App: React.FC = () => {
           label="Open In Google Maps"
           backgroundColor="#FFC107"
           color="white"
-          onPress={() => openGoogleMaps(currentItem?.latitude, currentItem?.longitude)}
+          onPress={() =>
+            openGoogleMaps(currentItem?.latitude, currentItem?.longitude)
+          }
           style={styles.mapsButton}
         />
       </View>
@@ -161,16 +204,29 @@ const App: React.FC = () => {
   );
 };
 
-// Styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
   },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 15,
+    backgroundColor: "#333",
+    paddingTop: Platform.OS === "android" ? 25 : 0, // Add padding for Android status bar
+    position: "absolute",
+    top: 0,
+    width: "100%",
+    zIndex: 10, // Ensure the header is on top
+  },
+  backButton: {
+    marginLeft: 10,
+  },
   menu: {
     position: "absolute",
     left: 10,
-    top: 50,
+    top: 100,
     zIndex: 1, // Ensure the menu is on top
   },
   button: {
@@ -182,6 +238,11 @@ const styles = StyleSheet.create({
   selected: {
     borderWidth: 2,
     borderColor: "#FFC107",
+  },
+  cardContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
   card: {
     flex: 1,
@@ -218,6 +279,16 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 25,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: "#FFC107",
   },
 });
 

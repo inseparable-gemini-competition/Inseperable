@@ -7,10 +7,12 @@ import useGoogleImageSearch from "@/hooks/useGoogleImageSearch";
 import { db } from "../helpers/firebaseConfig"; // Import the Firestore instance
 import { doc, setDoc } from "firebase/firestore";
 import { useSignIn } from "@/hooks/useSignIn";
-import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import Main from "@/app/screens/Main";
+import Chat from "@/app/screens/Chat";
 import Plan from "@/app/screens/Plan";
+import HandmadeItems from "@/app/screens/HandmadeItems";
+
 import Questionnaire from "../screens/Questionnaire";
 
 polyfillEncoding();
@@ -64,6 +66,8 @@ export default function TabLayout() {
       >
         <Stack.Screen name="Main" component={Main} />
         <Stack.Screen name="Plan" component={Plan} />
+        <Stack.Screen name="Shopping" component={HandmadeItems} />
+        <Stack.Screen name="Chat" component={Chat} />
         <Stack.Screen name="Questionnaire">
           {(props) => <Questionnaire {...props} onFinish={onFinish} />}
         </Stack.Screen>

@@ -12,20 +12,26 @@ import {
   ActivityIndicator,
   Linking,
 } from "react-native";
-import { CameraView } from "expo-camera"; // Ensure correct import
+import { CameraView, useCameraPermissions } from "expo-camera";
 import { Ionicons } from "@expo/vector-icons";
 import Animated, { Easing, withTiming } from "react-native-reanimated";
 import Voice from "@react-native-voice/voice";
 import * as Speech from "expo-speech";
 import { useMain } from "@/hooks/useMain";
-import { Dialog, PanningProvider } from "react-native-ui-lib";
+import { Dialog, PanningProvider, Button } from "react-native-ui-lib";
 import useStore from "../store";
 import { generateSchema } from "@/hooks/utils/generateSchema";
 import { useJsonControlledGeneration } from "@/hooks/useJsonControlledGeneration";
 import { useNavigation } from "expo-router";
 import { NavigationProp } from "@react-navigation/native";
 
-const categories = [
+type Category = {
+  id: string;
+  title: string;
+  imageUrl: any;
+};
+
+const categories: Category[] = [
   {
     id: "1",
     title: "Identify",
@@ -47,25 +53,30 @@ const categories = [
     imageUrl: require("../../assets/images/help.png"),
   },
   {
-    id: "4",
+    id: "5",
     title: "Plan",
     imageUrl: require("../../assets/images/plan.png"),
+  },
+  {
+    id: "6",
+    title: "Shop",
+    imageUrl: require("../../assets/images/shop.png"), // Add appropriate image for Shop
   },
 ];
 
 const Main = () => {
-  const [clickCount, setClickCount] = useState<number>(0);
+  const [facing, setFacing] = useState("back");
+  const [permission, requestPermission] = useCameraPermissions();
   const [listening, setListening] = useState<boolean>(false);
   const [voiceCountdown, setVoiceCountdown] = useState<number | null>(null);
   const [lastCommand, setLastCommand] = useState<string>("");
-  const clickTimeout = useRef<NodeJS.Timeout | null>(null);
   const voiceCountdownRef = useRef<NodeJS.Timeout | null>(null);
   const [command, setCommand] = useState<string>("");
   const [currentPrompt, setCurrentPrompt] = useState("");
   const [donationModalVisible, setDonationModalVisible] = useState(false);
+  const [showFullDescription, setShowFullDescription] = useState(false);
   const { userData } = useStore();
-  // navigation
-  const { navigate } = useNavigation<NavigationProp<any>>();
+  const navigation = useNavigation<NavigationProp<any>>();
 
   const openBrowser = (url: string) => {
     Linking.openURL(url).catch((err) =>
@@ -110,6 +121,12 @@ const Main = () => {
       Voice.destroy().then(Voice.removeAllListeners);
     };
   }, []);
+
+  useEffect(() => {
+    if (showCamera && !permission?.granted) {
+      requestPermission();
+    }
+  }, [showCamera]);
 
   const onSpeechStart = (e: any) => {
     console.log("onSpeechStart:", e);
@@ -162,9 +179,11 @@ const Main = () => {
         await handleDonate(prompt); // Handle the donation command directly
         return;
       case "plan":
-        navigate("Plan");
+        navigation.navigate("Plan");
         return;
-
+      case "shop":
+        navigation.navigate("Shopping");
+        return;
       default:
         prompt = "";
     }
@@ -185,17 +204,10 @@ const Main = () => {
     }
   };
 
-  const handleThreeClicks = () => {
+  const handleLongPress = () => {
     if (!showCamera || !capturedImage) {
-      console.log("Screen clicked");
-      if (clickTimeout.current) clearTimeout(clickTimeout.current);
-      setClickCount((prev) => prev + 1);
-      clickTimeout.current = setTimeout(() => setClickCount(0), 1000);
-      if (clickCount === 2) {
-        console.log("Three clicks detected");
-        setClickCount(0);
-        activateVoiceCommand();
-      }
+      console.log("Deep click (long press) detected");
+      activateVoiceCommand();
     }
   };
 
@@ -263,8 +275,19 @@ const Main = () => {
     Voice.stop();
   };
 
+  if (showCamera && !permission?.granted) {
+    return (
+      <View style={styles.permissionContainer}>
+        <Text style={styles.permissionText}>
+          We need your permission to show the camera
+        </Text>
+        <Button onPress={requestPermission} label="Grant Permission" />
+      </View>
+    );
+  }
+
   return (
-    <TouchableWithoutFeedback onPress={handleThreeClicks}>
+    <TouchableWithoutFeedback onLongPress={handleLongPress}>
       <View style={{ flex: 1 }}>
         <ImageBackground
           source={{
@@ -273,24 +296,23 @@ const Main = () => {
           style={styles.background}
         >
           <View style={styles.container}>
-            <View style={styles.header}>
-              <TouchableOpacity
-                onPress={() => {
-                  setShowCamera(false);
-                  setCapturedImage(null);
-                  cameraOpacity.value = 0;
-                  opacity.value = withTiming(1, {
-                    duration: 700,
-                    easing: Easing.inOut(Easing.ease),
-                  });
-                }}
-              >
-                <Text style={styles.icon}>{"<"}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity>
-                <Text style={styles.icon}>☰</Text>
-              </TouchableOpacity>
-            </View>
+            {(showCamera || capturedImage) && (
+              <View style={styles.header}>
+                <TouchableOpacity
+                  onPress={() => {
+                    setShowCamera(false);
+                    setCapturedImage(null);
+                    cameraOpacity.value = 0;
+                    opacity.value = withTiming(1, {
+                      duration: 700,
+                      easing: Easing.inOut(Easing.ease),
+                    });
+                  }}
+                >
+                  <Ionicons name="arrow-back" size={24} color="black" />
+                </TouchableOpacity>
+              </View>
+            )}
             {!!showCamera ? (
               <Animated.View style={[{ flex: 1 }, cameraAnimatedStyle]}>
                 {countdown !== null && (
@@ -304,7 +326,7 @@ const Main = () => {
                     </TouchableOpacity>
                   </View>
                 )}
-                <CameraView ref={cameraRef} style={{ flex: 1 }}>
+                <CameraView ref={cameraRef} facing={facing} style={{ flex: 1 }}>
                   <TouchableOpacity
                     style={styles.captureButton}
                     onPress={handleManualCapture}
@@ -340,7 +362,18 @@ const Main = () => {
               <Animated.View style={[styles.content, animatedStyle]}>
                 <View>
                   <Text style={styles.title}>{userData.country}</Text>
-                  <Text style={styles.subtitle}>{userData.description}</Text>
+                  <Text style={styles.subtitle}>
+                    {showFullDescription
+                      ? userData.description
+                      : userData.description.split("\n").slice(0, 3).join("\n")}
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => setShowFullDescription(!showFullDescription)}
+                  >
+                    <Text style={styles.seeMoreText}>
+                      {showFullDescription ? "See Less" : "See More"}
+                    </Text>
+                  </TouchableOpacity>
                 </View>
                 <Modal
                   animationType="slide"
@@ -380,9 +413,10 @@ const Main = () => {
                   showsVerticalScrollIndicator={false}
                   renderItem={({ item }) => (
                     <TouchableOpacity
-                      style={[styles.card]}
+                      style={styles.card}
                       onPress={() => {
-                        if (item.title !== "Donate") handleShowCamera();
+                        if (item.title !== "Donate" && item.title !== "Shop")
+                          handleShowCamera();
                         const command =
                           item.title === "Identify"
                             ? "identify"
@@ -392,6 +426,8 @@ const Main = () => {
                             ? "read"
                             : item.title === "Donate"
                             ? "donate"
+                            : item.title === "Shop"
+                            ? "shop"
                             : "plan";
                         handleCommand(command);
                       }}
@@ -429,25 +465,21 @@ const Main = () => {
                   <Text style={modalStyles.modalText}>
                     {result?.description}
                   </Text>
-                  <TouchableOpacity
+                  <Button
                     style={modalStyles.modalButton}
                     onPress={() => {
                       const url =
-                        `https://translate.google.com/translate?sl=auto&tl=${userData?.baseLanguage}&u=` +
+                        "https://translate.google.com/translate?sl=auto&tl=${userData?.baseLanguage}&u=" +
                         encodeURIComponent(result?.websiteLink);
                       openBrowser(url);
                     }}
-                  >
-                    <Text style={modalStyles.modalButtonText}>
-                      View in Google Translate
-                    </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
+                    label="View in Google Translate"
+                  />
+                  <Button
                     style={modalStyles.modalCloseButton}
                     onPress={() => setDonationModalVisible(false)}
-                  >
-                    <Text style={modalStyles.modalCloseButtonText}>Close</Text>
-                  </TouchableOpacity>
+                    label="Close"
+                  />
                 </>
               )}
             </View>
@@ -479,6 +511,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     paddingHorizontal: 16,
+    marginTop: 20,
   },
   title: {
     fontSize: 48,
@@ -490,6 +523,11 @@ const styles = StyleSheet.create({
     fontFamily: "marcellus",
     marginVertical: 16,
   },
+  seeMoreText: {
+    fontSize: 16,
+    color: "blue",
+    textDecorationLine: "underline",
+  },
   cardContainer: {
     justifyContent: "space-between",
     marginTop: 16,
@@ -497,7 +535,7 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: "#FFFFFF",
     borderRadius: 16,
-    width: "48%",
+    width: "42%",
     alignItems: "center",
     padding: 16,
     marginBottom: 16,
@@ -509,7 +547,7 @@ const styles = StyleSheet.create({
   },
   cardImage: {
     width: "100%",
-    height: 100,
+    height: 70,
     borderRadius: 16,
   },
   cardText: {
@@ -604,6 +642,17 @@ const styles = StyleSheet.create({
     textAlign: "center",
     paddingHorizontal: 20,
     fontFamily: "marcellus",
+  },
+  permissionContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 16,
+  },
+  permissionText: {
+    fontSize: 18,
+    textAlign: "center",
+    marginBottom: 16,
   },
 });
 
