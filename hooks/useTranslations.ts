@@ -7,7 +7,7 @@ export const useTranslations = ({setIsProcessing}:
     {setIsProcessing: (value: boolean) => void}
 ) => {
   const [translations, setTranslations] = useState<{ [key: string]: any }>({});
-  const { mutateAsync } = useGenerateTextMutation();
+  const { mutateAsync } = useGenerateTextMutation(()=>{});
 
 
   const updateTranslations = async (language: string) => {

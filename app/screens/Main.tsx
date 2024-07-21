@@ -22,6 +22,8 @@ import { Dialog, PanningProvider } from "react-native-ui-lib";
 import useStore from "../store";
 import { generateSchema } from "@/hooks/utils/generateSchema";
 import { useJsonControlledGeneration } from "@/hooks/useJsonControlledGeneration";
+import { useNavigation } from "expo-router";
+import { NavigationProp } from "@react-navigation/native";
 
 const categories = [
   {
@@ -44,6 +46,11 @@ const categories = [
     title: "Donate",
     imageUrl: require("../../assets/images/help.png"),
   },
+  {
+    id: "4",
+    title: "Plan",
+    imageUrl: require("../../assets/images/plan.png"),
+  },
 ];
 
 const Main = () => {
@@ -57,6 +64,9 @@ const Main = () => {
   const [currentPrompt, setCurrentPrompt] = useState("");
   const [donationModalVisible, setDonationModalVisible] = useState(false);
   const { userData } = useStore();
+  // navigation
+  const { navigate } = useNavigation<NavigationProp<any>>();
+
   const openBrowser = (url: string) => {
     Linking.openURL(url).catch((err) =>
       console.error("Couldn't load page", err)
@@ -151,6 +161,10 @@ const Main = () => {
           userData?.country;
         await handleDonate(prompt); // Handle the donation command directly
         return;
+      case "plan":
+        navigate("Plan");
+        return;
+
       default:
         prompt = "";
     }
@@ -363,6 +377,7 @@ const Main = () => {
 
                 <FlatList
                   data={categories}
+                  showsVerticalScrollIndicator={false}
                   renderItem={({ item }) => (
                     <TouchableOpacity
                       style={[styles.card]}
@@ -375,7 +390,9 @@ const Main = () => {
                             ? "price"
                             : item.title === "Read"
                             ? "read"
-                            : "donate";
+                            : item.title === "Donate"
+                            ? "donate"
+                            : "plan";
                         handleCommand(command);
                       }}
                     >
@@ -387,6 +404,7 @@ const Main = () => {
                   numColumns={2}
                   columnWrapperStyle={styles.cardContainer}
                   contentContainerStyle={{ paddingBottom: 16 }}
+                  style={{ flex: 1 }} // Ensure FlatList takes full space
                 />
               </Animated.View>
             )}
@@ -458,6 +476,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
   },
   content: {
+    flex: 1,
     alignItems: "center",
     paddingHorizontal: 16,
   },

@@ -24,7 +24,12 @@
       "permissions": [
         "android.permission.RECORD_AUDIO"
       ],
-      "package": "com.competition.inseparable"
+      "package": "com.competition.inseparable",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyDVYTI7arlD0a4lcyo1VXaydDkDLdPMFKQ"
+        }
+      }
     },
     "web": {
       "bundler": "metro",
@@ -43,7 +48,7 @@
         "origin": false
       },
       "eas": {
-        "projectId": "eafb1c30-b06d-4b1d-8915-112ff8ea9849"
+        "projectId": "72bb0bfa-4a62-4577-9569-5f27f8cd38d7"
       }
     }
   }

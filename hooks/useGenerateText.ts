@@ -41,7 +41,7 @@ const generateText = async ({
   );
 
   const model = genAI.getGenerativeModel({
-    model: modelType ?? "gemini-1.5-pro-latest",
+    model: modelType ?? "gemini-1.5-pro",
   });
 
   let result: any;

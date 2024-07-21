@@ -26,7 +26,6 @@ const Questionnaire = ({ onFinish }: Props) => {
   const schema = generateSchema("recommendation for country or plan", {
     country: ["string", "recommended country"],
     flag: ["string", "flag"],
-    plan: ["array", "An array of strings for the plan", false, "string"],
     description: ["string", "recommended country description", false, "string"],
     baseLanguage: ["string", "base country language code"],
     mostFamousLandmark: [
@@ -169,7 +168,6 @@ const Questionnaire = ({ onFinish }: Props) => {
               }}
             >
               {result?.description !== "null" ? result?.description : ""}
-              {"\n \n"} {result?.plan?.day1}
             </Text>
 
             <Button

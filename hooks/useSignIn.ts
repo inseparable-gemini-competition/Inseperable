@@ -1,38 +1,43 @@
 import { auth } from "@/app/helpers/firebaseConfig";
-import { onAuthStateChanged, signInAnonymously, User } from "firebase/auth";
+import { onAuthStateChanged, signInAnonymously, User, signOut } from "firebase/auth";
 import { useEffect, useState } from "react";
-//add return type for hook
+
+// Add return type for hook
 export const useSignIn = (): {
   userId: string | null;
   loading: boolean;
   setUserId: (userId: string | null) => void;
   setLoading: (loading: boolean) => void;
+  authenticateUser: () => Promise<string | null>;
 } => {
-  //state fo user id
+  // State for user ID
   const [userId, setUserId] = useState<string | null>(null);
-  //state for loading
+  // State for loading
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const authenticateUser = async () => {
+  const authenticateUser = async (): Promise<string | null> => {
+    return new Promise((resolve, reject) => {
       onAuthStateChanged(auth, async (user: User | null) => {
         if (user) {
-          setUserId(user.uid);
+          const userCredential = await signInAnonymously(auth);
+          setUserId(userCredential.user.uid);
+          setLoading(false);
+          resolve(userCredential.user.uid);
         } else {
           try {
             const userCredential = await signInAnonymously(auth);
-            
             setUserId(userCredential.user.uid);
+            setLoading(false);
+            resolve(userCredential.user.uid);
           } catch (error) {
             console.error("Error signing in anonymously:", error);
+            setLoading(false);
+            reject(null);
           }
         }
-        setLoading(false);
       });
-    };
+    });
+  };
 
-    authenticateUser();
-  }, []);
-
-  return { userId, loading, setUserId, setLoading };
+  return { userId, loading, setUserId, setLoading, authenticateUser };
 };

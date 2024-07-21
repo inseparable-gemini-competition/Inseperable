@@ -3,8 +3,7 @@ import { useMutation, UseMutationResult } from "react-query";
 import { fetch } from "react-native-fetch-api";
 
 const API_KEY = "AIzaSyDTiF7YjBUWM0l0nKpzicv9R6kReU3dn8Q";
-const URL = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:streamGenerateContent?key=${API_KEY}`;
-
+const URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:streamGenerateContent?key=${API_KEY}`;
 interface MessagePart {
   text: string;
 }

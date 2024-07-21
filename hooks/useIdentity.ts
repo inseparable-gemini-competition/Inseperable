@@ -13,7 +13,7 @@ const useIdentity = () => {
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [capturing, setCapturing] = useState(false);
   const [pendingCommand, setPendingCommand] = useState<string | null>(null);
-  const { mutateAsync, isLoading } = useGenerateTextMutation();
+  const { mutateAsync, isLoading } = useGenerateTextMutation(()=>{});
   const cameraRef = useRef<any>();
 
   const { translations, updateTranslations } = useTranslations({

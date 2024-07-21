@@ -6,7 +6,6 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 type userDataType = {
   country: string;
   flag: string;
-  plan: string;
   description: string;
   baseLanguage: string;
   mostFamousLandmark: string;
@@ -28,7 +27,7 @@ type MyPersist = (
 const useStore = create<StoreState>(
   (persist as MyPersist)(
     (set) => ({
-      userData: { country: "", flag: "", plan: "", description: "", mostFamousLandmark: "", baseLanguage: "" },
+      userData: { country: "", flag: "", description: "", mostFamousLandmark: "", baseLanguage: "" },
       setUserData: (data: userDataType) => set({ userData: data }),
     }),
     {
