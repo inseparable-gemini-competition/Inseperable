@@ -10,7 +10,6 @@ import {
   Linking,
   ActivityIndicator,
   Animated,
-  Platform,
 } from "react-native";
 import Swiper from "react-native-deck-swiper";
 import { MaterialIcons } from "@expo/vector-icons";
