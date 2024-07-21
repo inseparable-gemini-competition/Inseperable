@@ -22,7 +22,7 @@ interface HandmadeItem {
   name: string;
   price: string;
   imageUrl: string;
-  carbonPrint: string;
+  carbonFootprint: string;
   ownerId: string; // Added ownerId field
 }
 
@@ -74,17 +74,7 @@ const HandMade: React.FC = () => {
     });
 
   const purchaseItem = (item: HandmadeItem) => {
-    Alert.alert(
-      "Contact seller",
-      `We will connect you to the seller with auto translated chat`,
-      [
-        {
-          text: "Contact seller",
-          onPress: () =>
-            navigation.navigate("Chat", { recipientId: item.ownerId }),
-        },
-      ]
-    );
+    navigation.navigate("Chat", { recipientId: item.ownerId });
   };
 
   const renderItem: ListRenderItem<HandmadeItem> = ({ item }) => (
@@ -99,7 +89,7 @@ const HandMade: React.FC = () => {
             { text: item.name, text70: true, grey10: true },
             { text: item.price, text80: true, grey20: true },
             {
-              text: `Carbon Footprint: ${item.carbonPrint}`,
+              text: `Carbon Footprint: ${item.carbonFootprint}`,
               text90: true,
               grey30: true,
             },
@@ -160,6 +150,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     padding: 20,
     backgroundColor: "#f8f9fa",
+    paddingBottom: 70,
   },
   title: {
     fontSize: 24,

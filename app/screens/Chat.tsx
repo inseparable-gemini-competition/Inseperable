@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { View, StyleSheet, SafeAreaView, TouchableOpacity } from "react-native";
-import { GiftedChat, IMessage, MessageText } from "react-native-gifted-chat";
+import { GiftedChat, IMessage, MessageText, Bubble } from "react-native-gifted-chat";
 import {
   collection,
   addDoc,
@@ -184,6 +184,7 @@ const ChatScreen: React.FC = () => {
       <UILibView flex>
         <GiftedChat
           messages={messages}
+          renderBubble={(props) => <Bubble {...props} wrapperStyle={{ left: { backgroundColor: colors.warning } }} />} 
           renderMessageText={(props) => <CustomMessageText {...props} />}
           onSend={handleSend}
           user={{
