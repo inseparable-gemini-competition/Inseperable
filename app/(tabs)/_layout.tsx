@@ -34,7 +34,7 @@ export default function TabLayout() {
   }) => {
     if (userData?.country) {
       setLocalLoading(loading);
-      const landmarkUri = await fetchPhotos(userData.mostFamousLandmark);
+      const landmarkUri = await fetchPhotos(userData?.mostFamousLandmark);
       const updatedUserData = {
         ...userData,
         mostFamousLandmark: landmarkUri || "",
@@ -60,6 +60,7 @@ export default function TabLayout() {
 
   return (
     <QueryClientProvider client={queryClient}>
+    {userData ? (
       <Stack.Navigator
         screenOptions={{ headerShown: false }}
         initialRouteName={userData?.country ? "Main" : "Questionnaire"}
@@ -72,7 +73,10 @@ export default function TabLayout() {
           {(props) => <Questionnaire {...props} onFinish={onFinish} />}
         </Stack.Screen>
       </Stack.Navigator>
-    </QueryClientProvider>
+    ) : (
+      <Questionnaire onFinish={onFinish} />
+    )}
+  </QueryClientProvider>
   );
 }
 

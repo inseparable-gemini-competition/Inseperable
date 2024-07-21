@@ -1,7 +1,7 @@
-import React from "react";
-import { StyleSheet, Alert, FlatList, ListRenderItem, TouchableOpacity } from "react-native";
+import React, { useEffect } from "react";
+import { StyleSheet, FlatList, ListRenderItem, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { View, Text, Card, Button, LoaderScreen } from "react-native-ui-lib";
+import { View, Text, Card, Button } from "react-native-ui-lib";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import {
   collection,
@@ -16,6 +16,9 @@ import {
 import { useNavigation, NavigationProp } from "@react-navigation/native";
 import { db } from "@/app/helpers/firebaseConfig";
 import { Ionicons } from "@expo/vector-icons";
+import Animated, { Easing, useSharedValue, useAnimatedStyle, withRepeat, withTiming } from 'react-native-reanimated';
+import { colors } from "@/app/theme";
+import { translate } from "@/app/helpers/i18n";
 
 interface HandmadeItem {
   id: string;
@@ -23,7 +26,7 @@ interface HandmadeItem {
   price: string;
   imageUrl: string;
   carbonFootprint: string;
-  ownerId: string; // Added ownerId field
+  ownerId: string;
 }
 
 interface FetchResponse {
@@ -31,9 +34,7 @@ interface FetchResponse {
   lastVisible: QueryDocumentSnapshot<DocumentData> | null;
 }
 
-const fetchHandmadeItems = async ({
-  pageParam = undefined,
-}): Promise<FetchResponse> => {
+const fetchHandmadeItems = async ({ pageParam = undefined }): Promise<FetchResponse> => {
   const itemsQuery = query(
     collection(db, "products"),
     orderBy("createdAt"),
@@ -70,53 +71,107 @@ const HandMade: React.FC = () => {
       queryKey: ["handmadeItems"],
       queryFn: fetchHandmadeItems,
       getNextPageParam: (lastPage) => lastPage.lastVisible,
-      staleTime: 1000, // This keeps the data fresh for 1 second
+      staleTime: 1000,
     });
 
   const purchaseItem = (item: HandmadeItem) => {
-    navigation.navigate("Chat", { recipientId: item.ownerId });
+    navigation.navigate("Chat", { recipientId: item.ownerId, itemName: item.name });
   };
 
   const renderItem: ListRenderItem<HandmadeItem> = ({ item }) => (
-    <View style={styles.itemContainer}>
+    <Animated.View style={[styles.itemContainer, fadeInUpStyle]}>
       <Card style={styles.card}>
         <Card.Section
           imageSource={{ uri: item.imageUrl }}
           imageStyle={styles.itemImage}
         />
-        <Card.Section
-          content={[
-            { text: item.name, text70: true, grey10: true },
-            { text: item.price, text80: true, grey20: true },
-            {
-              text: `Carbon Footprint: ${item.carbonFootprint}`,
-              text90: true,
-              grey30: true,
-            },
-          ]}
-          contentStyle={styles.itemDetails}
-        />
+        <View style={styles.cardContent}>
+          <Text style={styles.itemName}>{item.name}</Text>
+          <View style={styles.itemRow}>
+            <Ionicons name="pricetag" size={16} color={colors.primary} style={styles.icon} />
+            <Text style={styles.itemPrice}>{item.price}</Text>
+          </View>
+          <View style={styles.itemRow}>
+            <Ionicons name="leaf" size={16} color={colors.secondary} style={styles.icon} />
+            <View>
+              <Text style={styles.itemCarbonFootprint}>{translate("carbonFootprint")}</Text>
+              <Text style={styles.itemCarbonFootprintValue}>{item.carbonFootprint}</Text>
+            </View>
+          </View>
+          <Button
+            label={translate("contactSeller")}
+            onPress={() => purchaseItem(item)}
+            style={styles.buyButton}
+          />
+        </View>
       </Card>
-      <Button
-        label="Contact Seller"
-        onPress={() => purchaseItem(item)}
-        style={styles.buyButton}
-      />
-    </View>
+    </Animated.View>
   );
+
+  const opacity = useSharedValue(0);
+  const fadeInUpStyle = useAnimatedStyle(() => {
+    return {
+      opacity: withTiming(opacity.value, {
+        duration: 500,
+        easing: Easing.inOut(Easing.ease),
+      }),
+      transform: [{ translateY: withTiming(opacity.value === 1 ? 0 : 20, {
+        duration: 500,
+        easing: Easing.inOut(Easing.ease),
+      }) }],
+    };
+  });
+
+  useEffect(() => {
+    opacity.value = 1;
+  }, [opacity]);
+
+  const fadeInDownStyle = useAnimatedStyle(() => {
+    return {
+      opacity: withTiming(1, {
+        duration: 500,
+        easing: Easing.inOut(Easing.ease),
+      }),
+      transform: [{ translateY: withTiming(0, {
+        duration: 500,
+        easing: Easing.inOut(Easing.ease),
+      }) }],
+    };
+  });
+
+  const loadingRotation = useSharedValue(0);
+  const loadingAnimatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{
+        rotate: `${loadingRotation.value}deg`,
+      }],
+    };
+  });
+
+  useEffect(() => {
+    loadingRotation.value = withRepeat(withTiming(360, {
+      duration: 1000,
+      easing: Easing.linear,
+    }), -1, false);
+  }, [loadingRotation]);
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
+      <Animated.View style={[styles.header, fadeInDownStyle]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="black" />
+          <Ionicons name="arrow-back" size={24} color={colors.white} />
         </TouchableOpacity>
-        <Text style={styles.title}>Handmade Items</Text>
-      </View>
-      {isLoading && <LoaderScreen color="blue" message="Loading..." overlay />}
+        <Text style={styles.title}>{translate("handmadeItems")}</Text>
+      </Animated.View>
+      {isLoading && (
+        <Animated.View style={[styles.loadingContainer, loadingAnimatedStyle]}>
+          <Ionicons name="reload" size={48} color={colors.primary} />
+          <Text style={styles.loadingText}>{translate("loading")}</Text>
+        </Animated.View>
+      )}
       {error && (
         <Text style={styles.errorText}>
-          Something went wrong while fetching handmade items.
+          {translate("fetchError")}
         </Text>
       )}
       {data && (
@@ -133,13 +188,16 @@ const HandMade: React.FC = () => {
           onEndReachedThreshold={0.5}
           ListFooterComponent={
             isFetching ? (
-              <LoaderScreen color="blue" message="Loading more..." overlay />
+              <Animated.View style={[styles.loadingContainer, loadingAnimatedStyle]}>
+                <Ionicons name="reload" size={48} color={colors.primary} />
+                <Text style={styles.loadingText}>{translate("loadingMore")}</Text>
+              </Animated.View>
             ) : null
           }
         />
       )}
       {!data && !isLoading && (
-        <Text style={styles.noDataText}>No handmade items available</Text>
+        <Text style={styles.noDataText}>{translate("noHandmadeItems")}</Text>
       )}
     </SafeAreaView>
   );
@@ -147,25 +205,27 @@ const HandMade: React.FC = () => {
 
 const styles = StyleSheet.create({
   container: {
-    flexGrow: 1,
+    flex: 1,
     padding: 20,
-    backgroundColor: "#f8f9fa",
-    paddingBottom: 70,
+    backgroundColor: colors.backgroundGradientStart,
   },
   title: {
     fontSize: 24,
-    fontWeight: "bold",
+    fontFamily: "marcellus",
+    color: colors.white,
     marginBottom: 20,
-    textAlign: "center",
+    top: 10,
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 20,
+    backgroundColor: colors.headerBackground,
+    padding: 10,
+    borderRadius: 10,
   },
   backButton: {
     marginRight: 10,
-    marginTop: -17,
   },
   itemContainer: {
     marginBottom: 20,
@@ -176,32 +236,77 @@ const styles = StyleSheet.create({
     width: "100%",
     borderRadius: 20,
     elevation: 3,
-    paddingBottom: 10,
+    backgroundColor: colors.white,
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
   },
   itemImage: {
     width: "100%",
-    height: 300,
+    height: 200,
     resizeMode: "cover",
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
   },
-  itemDetails: {
+  cardContent: {
     padding: 15,
-    alignItems: "center",
+    backgroundColor: colors.backgroundGradientEnd,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+  },
+  itemName: {
+    fontSize: 20,
+    fontFamily: "marcellus",
+    color: colors.black,
+    marginBottom: 5,
+  },
+  itemRow: {
+    flexDirection: "row",
+    marginBottom: 5,
+  },
+  icon: {
+    marginRight: 5,
+  },
+  itemPrice: {
+    fontSize: 18,
+    color: colors.primary,
+  },
+  itemCarbonFootprint: {
+    fontSize: 16,
+    color: colors.secondary,
+    fontFamily: 'bold'
+  },
+  itemCarbonFootprintValue: {
+    fontSize: 16,
+    color: colors.secondary,
+    marginTop: 5,
   },
   buyButton: {
     marginTop: 10,
-    backgroundColor: "#007aff",
-    alignSelf: "center",
+    backgroundColor: colors.primary,
+    borderRadius: 10,
+    alignSelf: "stretch",
   },
   noDataText: {
     fontSize: 16,
-    color: "#6c757d",
+    color: colors.secondary,
     textAlign: "center",
   },
   errorText: {
-    color: "red",
+    color: colors.danger,
     textAlign: "center",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: 18,
+    color: colors.primary,
+    marginTop: 10,
   },
 });
 

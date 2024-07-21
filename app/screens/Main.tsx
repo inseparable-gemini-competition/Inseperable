@@ -24,6 +24,9 @@ import { generateSchema } from "@/hooks/utils/generateSchema";
 import { useJsonControlledGeneration } from "@/hooks/useJsonControlledGeneration";
 import { useNavigation } from "expo-router";
 import { NavigationProp } from "@react-navigation/native";
+import { auth } from "@/app/helpers/firebaseConfig";
+import { signOut } from "firebase/auth";
+import { translate } from "@/app/helpers/i18n";  // Import translate function
 
 type Category = {
   id: string;
@@ -34,33 +37,43 @@ type Category = {
 const categories: Category[] = [
   {
     id: "1",
-    title: "Identify",
+    title: translate("identify"),
     imageUrl: require("../../assets/images/marks.png"),
   },
   {
     id: "2",
-    title: "Fair Price",
+    title: translate("fairPrice"),
     imageUrl: require("../../assets/images/fair-pricee.png"),
   },
   {
     id: "3",
-    title: "Read",
+    title: translate("read"),
     imageUrl: require("../../assets/images/menu.png"),
   },
   {
     id: "4",
-    title: "Donate",
+    title: translate("donate"),
     imageUrl: require("../../assets/images/help.png"),
   },
   {
     id: "5",
-    title: "Plan",
+    title: translate("plan"),
     imageUrl: require("../../assets/images/plan.png"),
   },
   {
     id: "6",
-    title: "Shop",
+    title: translate("shop"),
     imageUrl: require("../../assets/images/shop.png"),
+  },
+  {
+    id: "7",
+    title: translate("environmentalImpact"),
+    imageUrl: require("../../assets/images/environmental.png"),
+  },
+  {
+    id: "8",
+    title: translate("whatToSay"),
+    imageUrl: require("../../assets/images/say.png"),
   },
 ];
 
@@ -75,7 +88,7 @@ const Main = () => {
   const [currentPrompt, setCurrentPrompt] = useState("");
   const [donationModalVisible, setDonationModalVisible] = useState(false);
   const [showFullDescription, setShowFullDescription] = useState(false);
-  const { userData } = useStore();
+  const { userData, setUserData } = useStore();
   const navigation = useNavigation<NavigationProp<any>>();
 
   const openBrowser = (url: string) => {
@@ -148,13 +161,13 @@ const Main = () => {
 
     if (validCommands.includes(command) && command !== lastCommand) {
       setLastCommand(command);
-      console.log("Valid command:", command);
+      console.log(translate("validCommand"), command);
       setListening(false);
       clearVoiceCountdown();
       Voice.stop();
       handleCommand(command, true); // Call the handler for the command
     } else {
-      console.log("Invalid or repeated command ignored:", command);
+      console.log(translate("invalidCommand"), command);
     }
   };
 
@@ -214,7 +227,7 @@ const Main = () => {
   const activateVoiceCommand = () => {
     console.log("Activating voice command");
     setListening(true);
-    Speech.speak("You have 10 seconds to say your command", {
+    Speech.speak(translate("youHave10Seconds"), {
       onDone: () => {
         console.log("Speech finished, starting voice recognition");
         startVoiceCountdown();
@@ -240,11 +253,11 @@ const Main = () => {
       setVoiceCountdown((prev) => {
         if (prev && prev <= 1) {
           clearVoiceCountdown();
-          console.log("Voice countdown finished, stopping voice recognition");
+          console.log(translate("countdownFinished"));
           setListening(false);
           Voice.stop()
             .then(() => {
-              console.log("Voice recognition stopped");
+              console.log(translate("voiceRecognitionStopped"));
             })
             .catch((err) => {
               console.log("Voice recognition stop error:", err);
@@ -279,9 +292,9 @@ const Main = () => {
     return (
       <View style={styles.permissionContainer}>
         <Text style={styles.permissionText}>
-          We need your permission to show the camera
+          {translate("permissionText")}
         </Text>
-        <Button onPress={requestPermission} label="Grant Permission" />
+        <Button onPress={requestPermission} label={translate("grantPermission")} />
       </View>
     );
   }
@@ -290,21 +303,25 @@ const Main = () => {
     <TouchableOpacity
       style={styles.card}
       onPress={() => {
-        if (item.title !== "Donate" && item.title !== "Shop")
+        if (item.title !== translate("donate") && item.title !== translate("shop") && item.title !== translate("environmentalImpact") && item.title !== translate("whatToSay"))
           handleShowCamera();
         const command =
-          item.title === "Identify"
+          item.title === translate("identify")
             ? "identify"
-            : item.title === "Fair Price"
+            : item.title === translate("fairPrice")
             ? "price"
-            : item.title === "Read"
+            : item.title === translate("read")
             ? "read"
-            : item.title === "Donate"
+            : item.title === translate("donate")
             ? "donate"
-            : item.title === "Shop"
+            : item.title === translate("shop")
             ? "shop"
+            : item.title === translate("environmentalImpact")
+            ? ""
+            : item.title === translate("whatToSay")
+            ? ""
             : "plan";
-        handleCommand(command);
+        if(command) handleCommand(command);
       }}
     >
       <Image source={item.imageUrl} style={styles.cardImage} />
@@ -318,18 +335,31 @@ const Main = () => {
     <View style={styles.headerContainer}>
       <Text style={styles.subtitle}>
         {showFullDescription
-          ? userData.description
-          : userData.description.slice(0, 160) + "..."}
+          ? userData?.description
+          : userData?.description.slice(0, 160) + "..."}
       </Text>
       <TouchableOpacity
         onPress={() => setShowFullDescription(!showFullDescription)}
       >
         <Text style={styles.seeMoreText}>
-          {showFullDescription ? "See Less" : "See More"}
+          {showFullDescription ? translate("seeLess") : translate("seeMore")}
         </Text>
       </TouchableOpacity>
     </View>
   );
+
+  const handleResetAndLogout = async () => {
+    // Clear user data (if any specific data to be cleared)
+    // Log out from Firebase
+    try {
+      await signOut(auth);
+      setUserData(null as any);
+
+      // Navigate to login or home screen if needed
+    } catch (error) {
+      console.error("Error logging out:", error);
+    }
+  };
 
   return (
     <TouchableWithoutFeedback onLongPress={handleLongPress}>
@@ -340,9 +370,11 @@ const Main = () => {
           }}
           style={styles.background}
         >
-          {! (showCamera || capturedImage) && <View style={styles.fixedHeader}>
-            <Text style={styles.title}>{userData.country}</Text>
-          </View>}
+          {!(showCamera || capturedImage) && (
+            <View style={styles.fixedHeader}>
+              <Text style={styles.title}>{userData?.country}</Text>
+            </View>
+          )}
           <View style={styles.container}>
             {(showCamera || capturedImage) && (
               <View style={styles.header}>
@@ -370,7 +402,7 @@ const Main = () => {
                       style={styles.cancelButton}
                       onPress={handleCancelCountdown}
                     >
-                      <Text style={styles.cancelText}>Cancel auto capture</Text>
+                      <Text style={styles.cancelText}>{translate("cancelAutoCapture")}</Text>
                     </TouchableOpacity>
                   </View>
                 )}
@@ -393,7 +425,7 @@ const Main = () => {
                   >
                     <View style={styles.loadingContainer}>
                       <ActivityIndicator size="large" color="#ffffff" />
-                      <Text style={styles.loadingText}>Analyzing...</Text>
+                      <Text style={styles.loadingText}>{translate("analyzing")}</Text>
                     </View>
                   </TouchableOpacity>
                 )}
@@ -412,7 +444,9 @@ const Main = () => {
                   data={categories}
                   showsVerticalScrollIndicator={false}
                   ListHeaderComponent={renderHeader}
-                  renderItem={({ item }) => <MemoizedCategoryItem item={item} />}
+                  renderItem={({ item }) => (
+                    <MemoizedCategoryItem item={item} />
+                  )}
                   keyExtractor={(item) => item.id}
                   numColumns={2}
                   columnWrapperStyle={styles.cardContainer}
@@ -422,6 +456,12 @@ const Main = () => {
               </Animated.View>
             )}
           </View>
+          <TouchableOpacity
+            style={styles.resetButton}
+            onPress={handleResetAndLogout}
+          >
+            <Text style={styles.resetButtonText}>{translate("survey")}</Text>
+          </TouchableOpacity>
         </ImageBackground>
         <Modal
           visible={listening && voiceCountdown !== null}
@@ -435,7 +475,7 @@ const Main = () => {
                 {voiceCountdown} seconds
               </Text>
               <Text style={modalStyles.modalRecognizing}>
-                Recognizing your command...
+                {translate("recognizing")}
               </Text>
               <Text style={modalStyles.modalCommandText}>{command}</Text>
 
@@ -448,7 +488,7 @@ const Main = () => {
                   Voice.stop();
                 }}
               >
-                <Text style={modalStyles.modalCancelText}>Cancel</Text>
+                <Text style={modalStyles.modalCancelText}>{translate("cancel")}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -467,7 +507,7 @@ const Main = () => {
                 </View>
               ) : (
                 <>
-                  <Text style={modalStyles.modalTitle}>Donation Info</Text>
+                  <Text style={modalStyles.modalTitle}>{translate("donationInfo")}</Text>
                   <Text style={modalStyles.modalText}>{result?.name}</Text>
                   <Text style={modalStyles.modalText}>
                     {result?.description}
@@ -480,12 +520,12 @@ const Main = () => {
                         encodeURIComponent(result?.websiteLink);
                       openBrowser(url);
                     }}
-                    label="View in Google Translate"
+                    label={translate("viewInGoogleTranslate")}
                   />
                   <Button
                     style={modalStyles.modalCloseButton}
                     onPress={() => setDonationModalVisible(false)}
-                    label="Close"
+                    label={translate("close")}
                   />
                 </>
               )}
@@ -676,6 +716,21 @@ const styles = StyleSheet.create({
   flatListContentContainer: {
     paddingBottom: 16,
     paddingHorizontal: 8, // Increase touchable area
+  },
+  resetButton: {
+    position: "absolute",
+    top: 50,
+    right: 20,
+    backgroundColor: "#f44336",
+    padding: 10,
+    borderRadius: 20,
+    elevation: 5,
+    zIndex: 1,
+  },
+  resetButtonText: {
+    color: "white",
+    fontSize: 18,
+    fontFamily: "marcellus",
   },
 });
 

@@ -20,6 +20,7 @@ import { db } from "../helpers/firebaseConfig"; // Ensure the correct path
 import { colors } from "@/app/theme"; // Ensure the correct path
 import { useSignIn } from "@/hooks/useSignIn";
 import { useNavigation } from "expo-router";
+import { translate } from "@/app/helpers/i18n";
 
 const { width, height } = Dimensions.get("window");
 
@@ -30,13 +31,13 @@ interface MenuButtonProps {
 }
 
 const categories = [
-  { name: "Adventure", icon: "hiking" },
-  { name: "Romance", icon: "favorite" },
-  { name: "Cultural Exploration", icon: "museum" },
-  { name: "Relaxation", icon: "spa" },
-  { name: "Family Fun", icon: "family-restroom" },
-  { name: "Food & Dining", icon: "restaurant" },
-  { name: "Shopping", icon: "shopping-cart" },
+  { name: translate("adventure"), icon: "hiking" },
+  { name: translate("romance"), icon: "favorite" },
+  { name: translate("culturalExploration"), icon: "museum" },
+  { name: translate("relaxation"), icon: "spa" },
+  { name: translate("familyFun"), icon: "family-restroom" },
+  { name: translate("foodDining"), icon: "restaurant" },
+  { name: translate("shopping"), icon: "shopping-cart" },
 ];
 
 const MenuButton: React.FC<MenuButtonProps> = ({
@@ -49,7 +50,7 @@ const MenuButton: React.FC<MenuButtonProps> = ({
       style={[styles.button, selected && styles.selected]}
       onPress={onPress}
     >
-      <MaterialIcons name={iconName} size={24} color="white" />
+      <MaterialIcons name={iconName} size={20} color="white" />
     </TouchableOpacity>
   );
 };
@@ -93,24 +94,24 @@ const App: React.FC = () => {
   const [categoryData, setCategoryData] = useState<any[]>([]);
   const { reset } = useNavigation();
   const [loading, setLoading] = useState<boolean>(true);
-  const { userId, authenticateUser } = useSignIn();
+  const { authenticateUser } = useSignIn();
   const [currentItem, setCurrentItem] = useState<any>();
   const [fadeAnim] = useState(new Animated.Value(0));
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
-      await authenticateUser();
+      const id = await authenticateUser();
 
-      if (!userId) {
+      if (!id) {
         console.error("User ID is not defined");
         setLoading(false);
         return;
       }
 
       try {
-        console.log("Fetching data for userId:", userId);
-        const userDoc = await getDoc(doc(db, "users", userId));
+        console.log("Fetching data for userId:", id);
+        const userDoc = await getDoc(doc(db, "users", id));
 
         if (userDoc.exists()) {
           const userData = userDoc.data();
@@ -134,7 +135,7 @@ const App: React.FC = () => {
     };
 
     fetchData();
-  }, [selectedCategory, userId]);
+  }, [selectedCategory]);
 
   useEffect(() => {
     Animated.timing(fadeAnim, {
@@ -167,7 +168,7 @@ const App: React.FC = () => {
       {loading && categoryData.length < 1 ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#FFC107" />
-          <Text style={styles.loadingText}>Loading...</Text>
+          <Text style={styles.loadingText}>{translate("loading")}</Text>
         </View>
       ) : (
         <Swiper
@@ -191,7 +192,7 @@ const App: React.FC = () => {
       )}
       <View style={styles.footer}>
         <Button
-          label="Open In Google Maps"
+          label={translate("openInGoogleMaps")}
           backgroundColor="#FFC107"
           color="white"
           onPress={() =>
@@ -213,15 +214,16 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     padding: 15,
-    backgroundColor: "#333",
-    paddingTop: Platform.OS === "android" ? 25 : 0, // Add padding for Android status bar
     position: "absolute",
     top: 0,
     width: "100%",
     zIndex: 10, // Ensure the header is on top
   },
   backButton: {
-    marginLeft: 10,
+    marginLeft: 5,
+    marginTop:20,
+    width: 50,
+    height: 50
   },
   menu: {
     position: "absolute",
@@ -231,7 +233,7 @@ const styles = StyleSheet.create({
   },
   button: {
     marginVertical: 10,
-    padding: 15,
+    padding: 10, // Reduced padding
     backgroundColor: "rgba(0,0,0,0.5)",
     borderRadius: 25,
   },

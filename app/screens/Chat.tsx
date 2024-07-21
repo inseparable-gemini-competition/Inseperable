@@ -20,9 +20,10 @@ import {
   View as UILibView,
   Text as UILibText,
   LoaderScreen,
+  Typography,
 } from "react-native-ui-lib";
+import { Ionicons } from "@expo/vector-icons";
 import { colors } from "@/app/theme";
-import { Ionicons } from "@expo/vector-icons"; // Import Ionicons
 
 type RootStackParamList = {
   ChatScreen: { recipientId: string };
@@ -36,14 +37,14 @@ interface ChatMessage extends IMessage {
 
 const ChatScreen: React.FC = () => {
   const route = useRoute<ChatScreenRouteProp>();
-  const { recipientId } = route.params || {
+  const { recipientId, itemName } = route.params || {
     recipientId: "2iecagcxcgYrnOj8AaiZEYZfvrf2",
   };
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loadingMore, setLoadingMore] = useState(false);
   const [lastVisible, setLastVisible] =
     useState<QueryDocumentSnapshot<DocumentData> | null>(null);
-  const PAGE_SIZE = 10; // Number of messages to load per page
+  const PAGE_SIZE = 10;
 
   const getChatRoomId = (userId1: string, userId2: string) => {
     return [userId1, userId2].sort().join("_");
@@ -82,7 +83,6 @@ const ChatScreen: React.FC = () => {
       setMessages(messagesData);
       setLoading(false);
 
-      // Subscribe to real-time updates
       const unsubscribe = onSnapshot(q, (snapshot) => {
         const realTimeMessages = snapshot.docs.map((doc) => {
           const firebaseData = doc.data();
@@ -152,10 +152,10 @@ const ChatScreen: React.FC = () => {
         const chatRoomId = getChatRoomId(userId, recipientId);
         await addDoc(collection(db, "chatRooms", chatRoomId, "messages"), {
           text: newMessage.text,
-          translatedText: "", // Initialize translated text
+          translatedText: "",
           createdAt: new Date(),
           userId: userId,
-          userName: `User-${userId.substring(0, 6)}`, // Generates a fake username for display
+          userName: `User-${userId.substring(0, 6)}`,
         });
       } catch (error) {
         console.error("Error sending message:", error);
@@ -171,6 +171,7 @@ const ChatScreen: React.FC = () => {
     );
   }
 
+  
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -180,12 +181,34 @@ const ChatScreen: React.FC = () => {
         >
           <Ionicons name="arrow-back" size={24} color={colors.primary} />
         </TouchableOpacity>
+        <UILibText style={{top: 38, fontFamily: 'marcellus', fontSize: 22}}>Chat about {itemName}</UILibText>
       </View>
       <UILibView flex>
         <GiftedChat
           messages={messages}
-          renderBubble={(props) => <Bubble {...props} wrapperStyle={{ left: { backgroundColor: colors.warning } }} />} 
-          renderMessageText={(props) => <CustomMessageText {...props} />}
+          renderBubble={(props) => (
+            <Bubble
+              {...props}
+              wrapperStyle={{
+                left: {
+                  backgroundColor: colors.bubbleLeft,
+                  borderRadius: 20,
+                  marginTop: 10,
+                },
+                right: {
+                  borderRadius: 20,
+                },
+              }}
+              textStyle={{
+                right: {
+                  color: "white",
+                },
+              }}
+            />
+          )}
+          renderMessageText={(props) => (
+            <CustomMessageText {...props as any} currentUserId={userId || ""} />
+          )}
           onSend={handleSend}
           user={{
             _id: userId || "",
@@ -199,18 +222,22 @@ const ChatScreen: React.FC = () => {
   );
 };
 
-const CustomMessageText = (props: { currentMessage: ChatMessage }) => {
-  const { currentMessage } = props;
+const CustomMessageText = (props: { currentMessage: ChatMessage; currentUserId: string }) => {
+  const { currentMessage, currentUserId } = props;
+  const isRightBubble = currentMessage.user._id === currentUserId;
+  const textColor = isRightBubble ? "white" : colors.translatedTextLight;
 
   return (
     <UILibView>
       <MessageText {...props} />
       {currentMessage.translatedText ? (
-        <UILibText style={styles.translatedText}>
+        <UILibText style={[styles.translatedText, { color: textColor }]}>
           {currentMessage.translatedText}
         </UILibText>
       ) : (
-        <UILibText style={styles.translatedText}>Translating...</UILibText>
+        <UILibText style={[styles.translatedText, { color: textColor }]}>
+          Translating...
+        </UILibText>
       )}
     </UILibView>
   );
@@ -222,23 +249,19 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   header: {
-    paddingVertical: 30,
+    flexDirection: "row",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
   },
   backButton: {
-    padding: 10,
-  },
-  headerTitle: {
-    flex: 1,
-    textAlign: "center",
-    color: colors.white,
-    fontSize: 18,
-    fontFamily: "marcellus",
+    paddingLeft: 5,
+    marginTop: 40,
+    marginRight: 10,
   },
   translatedText: {
     fontSize: 12,
     marginTop: 5,
     marginLeft: 10,
-    color: colors.white,
     fontFamily: "marcellus",
   },
 });

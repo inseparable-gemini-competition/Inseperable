@@ -105,7 +105,7 @@ const TabsScreen = () => {
             {userData?.country && (
               <>
                 <Text>
-                  Welcome to {userData.country} {userData.flag}
+                  Welcome to {userData?.country} {userData?.flag}
                 </Text>
                 <Text>Enjoy the ride 😉</Text>
               </>
