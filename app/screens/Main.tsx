@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 import {
   View,
   ImageBackground,
@@ -7,24 +7,22 @@ import {
   TouchableOpacity,
   Text,
   ActivityIndicator,
-} from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import Animated from "react-native-reanimated";
-import { useMain } from "@/hooks/useMain";
-import { Button, Dialog, PanningProvider } from "react-native-ui-lib";
-import { translate } from "@/app/helpers/i18n";
-import { styles } from "./MainStyles";
-import { categories } from "@/app/helpers/categories";
-import CameraView from "@/app/components/CameraView";
-import VoiceRecognitionModal from "@/app/components/VoiceRecognitionModal";
-import DonationModal from "@/app/components/DonationModal";
-import CategoryList from "@/app/components/CategoryList";
-import HeaderDescription from "@/app/components/HeaderDescription";
-import { SafeAreaView } from "react-native-safe-area-context";
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import Animated from 'react-native-reanimated';
+import { useMain } from '@/hooks/useMain';
+import { Button, Dialog, PanningProvider } from 'react-native-ui-lib';
+import { translate } from '@/app/helpers/i18n';
+import { styles } from './MainStyles';
+import { categories } from '@/app/helpers/categories';
+import CameraView from '@/app/components/CameraView';
+import VoiceRecognitionModal from '@/app/components/VoiceRecognitionModal';
+import DonationModal from '@/app/components/DonationModal';
+import CategoryList from '@/app/components/CategoryList';
+import HeaderDescription from '@/app/components/HeaderDescription';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const Main = () => {
-
-
   const {
     showCamera,
     voiceCountdown,
@@ -48,7 +46,7 @@ const Main = () => {
     donationResult,
     permission,
     requestPermission,
-    donationModalVisible, 
+    donationModalVisible,
     setDonationModalVisible,
     command,
     handleLongPress,
@@ -57,21 +55,17 @@ const Main = () => {
     handleResetAndLogout,
   } = useMain();
 
-
   if (showCamera && !permission?.granted) {
     return (
       <View style={styles.permissionContainer}>
-        <Text style={styles.permissionText}>{translate("permissionText")}</Text>
-        <Button
-          onPress={requestPermission}
-          label={translate("grantPermission")}
-        />
+        <Text style={styles.permissionText}>{translate('permissionText')}</Text>
+        <Button onPress={requestPermission} label={translate('grantPermission')} />
       </View>
     );
   }
 
   return (
-    <SafeAreaView style={{flex: 1}}>
+    <SafeAreaView style={{ flex: 1 }}>
       <TouchableWithoutFeedback onLongPress={handleLongPress}>
         <View style={{ flex: 1 }}>
           <ImageBackground
@@ -91,12 +85,12 @@ const Main = () => {
                 <View style={styles.header}>
                   <TouchableOpacity
                     onPress={() => {
+                      console.log('there')
                       if (showCamera) {
-                        handleCleanup();
+                        handleCleanup(stopSpeech);
                       } else {
                         dismissFeedback();
                       }
-                      stopSpeech();
                     }}
                   >
                     <Ionicons name="arrow-back" size={24} color="black" />
@@ -117,15 +111,10 @@ const Main = () => {
                 <View style={{ flex: 1 }}>
                   <Image source={{ uri: capturedImage }} style={{ flex: 1 }} />
                   {isLoadingFromGemini && (
-                    <TouchableOpacity
-                      style={styles.bottomOverlay}
-                      onPress={dismissFeedback}
-                    >
+                    <TouchableOpacity style={styles.bottomOverlay} onPress={dismissFeedback}>
                       <View style={styles.loadingContainer}>
                         <ActivityIndicator size="large" color="#ffffff" />
-                        <Text style={styles.loadingText}>
-                          {translate("analyzing")}
-                        </Text>
+                        <Text style={styles.loadingText}>{translate('analyzing')}</Text>
                       </View>
                     </TouchableOpacity>
                   )}
@@ -149,11 +138,8 @@ const Main = () => {
                 </Animated.View>
               )}
             </View>
-            <TouchableOpacity
-              style={styles.resetButton}
-              onPress={handleResetAndLogout}
-            >
-              <Text style={styles.resetButtonText}>{translate("survey")}</Text>
+            <TouchableOpacity style={styles.resetButton} onPress={handleResetAndLogout}>
+              <Text style={styles.resetButtonText}>{translate('survey')}</Text>
             </TouchableOpacity>
           </ImageBackground>
           <VoiceRecognitionModal

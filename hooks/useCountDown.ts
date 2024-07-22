@@ -1,29 +1,36 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 
 export const useCountdown = () => {
   const [countdown, setCountdown] = useState<number | null>(null);
   const countdownRef = useRef<NodeJS.Timeout | null>(null);
 
-  const startCountdown = (duration: number, onComplete: () => void) => {
+  const startCountdown = useCallback(() => {
     handleCancelCountdown();
-    setCountdown(duration);
+    setCountdown(10);
     countdownRef.current = setInterval(() => {
       setCountdown((prev) => {
-        if (prev === 1) {
+        if (prev === null) return prev;
+        if (prev === 0) {
           clearInterval(countdownRef.current!);
           countdownRef.current = null;
-          onComplete();
+          return null;
         }
-        return prev! - 1 > 0 ? prev! - 1 : 0;
+        return prev - 1;
       });
     }, 1000);
-  };
+  }, []);
 
-  const handleCancelCountdown = () => {
-    if (countdownRef.current) clearInterval(countdownRef.current);
+  const handleCancelCountdown = useCallback(() => {
+    if (countdownRef.current) {
+      clearInterval(countdownRef.current);
+    }
     countdownRef.current = null;
     setCountdown(null);
-  };
+  }, []);
 
-  return { countdown, startCountdown, handleCancelCountdown };
+  return {
+    countdown,
+    startCountdown,
+    handleCancelCountdown,
+  };
 };
