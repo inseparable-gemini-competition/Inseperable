@@ -114,6 +114,8 @@ const Main = () => {
   const handleCommand = async (command: string) => {
     Speech.stop(); // Stop any ongoing speech before processing new command
     setLastCommand(command);
+    onVoiceRecognitionClosed();
+    
 
     switch (command) {
       case "read":
