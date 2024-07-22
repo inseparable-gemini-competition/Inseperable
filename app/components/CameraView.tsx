@@ -1,58 +1,48 @@
-import React from "react";
-import { View, TouchableOpacity } from "react-native";
-import { MaterialIcons } from "@expo/vector-icons";
-import { Image } from "react-native-ui-lib";
-import CameraModule from "../screens/Identify/CameraModule";
-import styles from "../screens/Identify/styles";
-import * as Speech from "expo-speech";
+import React from 'react';
+import { View, Text, TouchableOpacity } from 'react-native';
+import { CameraView as ExpoCameraView } from 'expo-camera';
+import { Ionicons } from '@expo/vector-icons';
+import {styles} from '@/app/screens/MainStyles';
+import { translate } from '@/app/helpers/i18n';
 
 interface CameraViewProps {
-  imageUri: string | null;
-  setImageUri: (uri: string | null) => void;
-  capturing: boolean;
-  isLoading: boolean;
-  cameraRef: React.RefObject<any>;
-  facing: string;
-  switchCamera: () => void;
-  feedbackText: string;
-  setFeedbackText: (text: string) => void;
-  translations: { [key: string]: string };
+  facing: 'front' | 'back';
+  countdown: number | null;
+  cameraRef: React.RefObject<ExpoCameraView>;
+  onManualCapture: () => void;
+  onCancelCountdown: () => void;
 }
 
 const CameraView: React.FC<CameraViewProps> = ({
-  imageUri,
-  setImageUri,
-  capturing,
-  isLoading,
-  cameraRef,
   facing,
-  switchCamera,
-  setFeedbackText,
-  translations
+  countdown,
+  cameraRef,
+  onManualCapture,
+  onCancelCountdown,
 }) => {
   return (
     <View style={{ flex: 1 }}>
-      {imageUri ? (
-        <View style={{ flex: 1 }}>
-          <Image source={{ uri: imageUri }} style={{ width: "100%", height: "100%" }} />
+      {countdown !== null && (
+        <View style={styles.countdownContainer}>
+          <Text style={styles.countdownText}>{countdown}</Text>
           <TouchableOpacity
-            style={styles.goBackButton}
-            onPress={() => {
-              if (isLoading || capturing) {
-                setFeedbackText(translations.waitMessage || "Please wait until loading ends");
-                return;
-              }
-              setImageUri(null);
-              Speech.stop();
-              setFeedbackText("");
-            }}
+            style={styles.cancelButton}
+            onPress={onCancelCountdown}
           >
-            <MaterialIcons name="arrow-back" size={30} color="#ffffff" />
+            <Text style={styles.cancelText}>
+              {translate('cancelAutoCapture')}
+            </Text>
           </TouchableOpacity>
         </View>
-      ) : (
-        <CameraModule facing={facing} switchCamera={switchCamera} cameraRef={cameraRef} style={{ flex: 1 }} />
       )}
+      <ExpoCameraView ref={cameraRef} facing={facing} style={{ flex: 1 }}>
+        <TouchableOpacity
+          style={styles.captureButton}
+          onPress={onManualCapture}
+        >
+          <Ionicons name="camera" size={40} color="black" />
+        </TouchableOpacity>
+      </ExpoCameraView>
     </View>
   );
 };

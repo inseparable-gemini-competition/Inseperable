@@ -11,7 +11,6 @@ export const styles = StyleSheet.create({
     header: {
       flexDirection: "row",
       justifyContent: "space-between",
-      padding: 16,
       marginTop: 20,
     },
     icon: {
@@ -20,7 +19,7 @@ export const styles = StyleSheet.create({
     content: {
       flex: 1,
       alignItems: "center",
-      paddingHorizontal: 16,
+      paddingHorizontal: 10,
       marginTop: 20,
     },
     fixedHeader: {
@@ -181,7 +180,7 @@ export const styles = StyleSheet.create({
     },
     resetButton: {
       position: "absolute",
-      top: 50,
+      top: 28,
       right: 20,
       backgroundColor: "#f44336",
       padding: 10,

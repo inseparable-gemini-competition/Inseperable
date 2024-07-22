@@ -1,34 +1,38 @@
-import React, { useState, useRef, useEffect, memo } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
-  Text,
   ImageBackground,
   Image,
-  FlatList,
-  TouchableOpacity,
   TouchableWithoutFeedback,
-  Modal,
+  TouchableOpacity,
+  Text,
   ActivityIndicator,
-  Linking,
 } from "react-native";
-import { CameraView, useCameraPermissions } from "expo-camera";
+import { useCameraPermissions } from "expo-camera";
 import { Ionicons } from "@expo/vector-icons";
-import Animated, { Easing, withTiming } from "react-native-reanimated";
+import Animated from "react-native-reanimated";
 import Voice from "@react-native-voice/voice";
 import * as Speech from "expo-speech";
 import { useMain } from "@/hooks/useMain";
-import { Dialog, PanningProvider, Button } from "react-native-ui-lib";
+import { Button, Dialog, PanningProvider } from "react-native-ui-lib";
 import useStore from "../store";
-import { generateSchema } from "@/hooks/utils/generateSchema";
 import { useJsonControlledGeneration } from "@/hooks/useJsonControlledGeneration";
 import { useNavigation } from "expo-router";
 import { NavigationProp } from "@react-navigation/native";
 import { auth } from "@/app/helpers/firebaseConfig";
 import { signOut } from "firebase/auth";
 import { translate } from "@/app/helpers/i18n";
-import { styles, modalStyles } from "./MainStyles";
-import { categories, Category } from "@/app/helpers/categories";
-import CategoryCard from "@/app/components/CategoryCard";
+import { styles } from "./MainStyles";
+import { categories } from "@/app/helpers/categories";
+import { generateSchema } from "@/hooks/utils/generateSchema";
+
+// Import new components
+import CameraView from "@/app/components/CameraView";
+import VoiceRecognitionModal from "@/app/components/VoiceRecognitionModal";
+import DonationModal from "@/app/components/DonationModal";
+import CategoryList from "@/app/components/CategoryList";
+import HeaderDescription from "@/app/components/HeaderDescription";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const Main = () => {
   const [facing, setFacing] = useState("back");
@@ -40,7 +44,6 @@ const Main = () => {
   const [command, setCommand] = useState<string>("");
   const [currentPrompt, setCurrentPrompt] = useState("");
   const [donationModalVisible, setDonationModalVisible] = useState(false);
-  const [showFullDescription, setShowFullDescription] = useState(false);
   const { userData, setUserData } = useStore();
   const navigation = useNavigation<NavigationProp<any>>();
 
@@ -60,11 +63,6 @@ const Main = () => {
     handleCleanup,
     stopSpeech,
   } = useMain({ currentPrompt });
-
-  const dismissFeedback = () => {
-    setCapturedImage(null);
-    stopSpeech();
-  };
 
   const schema = generateSchema("recommendation donation entity name", {
     name: ["string", "donation entity name"],
@@ -112,10 +110,9 @@ const Main = () => {
   };
 
   const handleCommand = async (command: string) => {
-    Speech.stop(); // Stop any ongoing speech before processing new command
+    Speech.stop();
     setLastCommand(command);
     onVoiceRecognitionClosed();
-    
 
     switch (command) {
       case "read":
@@ -143,12 +140,6 @@ const Main = () => {
         break;
       case "shop":
         navigation.navigate("Shopping");
-        break;
-      case "environmentalImpact":
-        console.log("Environmental Impact feature not yet implemented");
-        break;
-      case "whatToSay":
-        console.log("What to Say feature not yet implemented");
         break;
       default:
         console.log("Unknown command:", command);
@@ -230,39 +221,6 @@ const Main = () => {
     Voice.stop();
   };
 
-  const renderCategoryItem = ({ item }: { item: Category }) => (
-    <CategoryCard
-      title={translate(item.title)}
-      imageUrl={item.imageUrl}
-      onPress={() =>
-        handleCommand(
-          item.title?.toLocaleLowerCase() === "fair price"
-            ? "price"
-            : item.title?.toLocaleLowerCase()
-        )
-      }
-    />
-  );
-
-  const MemoizedCategoryItem = memo(renderCategoryItem);
-
-  const renderHeader = () => (
-    <View style={styles.headerContainer}>
-      <Text style={styles.subtitle}>
-        {showFullDescription
-          ? userData?.description
-          : userData?.description.slice(0, 160) + "..."}
-      </Text>
-      <TouchableOpacity
-        onPress={() => setShowFullDescription(!showFullDescription)}
-      >
-        <Text style={styles.seeMoreText}>
-          {showFullDescription ? translate("seeLess") : translate("seeMore")}
-        </Text>
-      </TouchableOpacity>
-    </View>
-  );
-
   const handleResetAndLogout = async () => {
     try {
       await signOut(auth);
@@ -270,6 +228,11 @@ const Main = () => {
     } catch (error) {
       console.error("Error logging out:", error);
     }
+  };
+
+  const dismissFeedback = () => {
+    setCapturedImage(null);
+    stopSpeech();
   };
 
   if (showCamera && !permission?.granted) {
@@ -285,186 +248,107 @@ const Main = () => {
   }
 
   return (
-    <TouchableWithoutFeedback onLongPress={handleLongPress}>
-      <View style={{ flex: 1 }}>
-        <ImageBackground
-          source={{
-            uri: userData?.mostFamousLandmark,
-          }}
-          style={styles.background}
-        >
-          {!(showCamera || capturedImage) && (
-            <View style={styles.fixedHeader}>
-              <Text style={styles.title}>{userData?.country}</Text>
-            </View>
-          )}
-          <View style={styles.container}>
-            {(showCamera || capturedImage) && (
-              <View style={styles.header}>
-                <TouchableOpacity
-                  onPress={() => {
-                    if (showCamera) {
-                      handleCleanup();
-                    } else {
-                      dismissFeedback();
-                    }
-                    stopSpeech();
-                  }}
-                >
-                  <Ionicons name="arrow-back" size={24} color="black" />
-                </TouchableOpacity>
-              </View>
-            )}
-            {showCamera ? (
-              <Animated.View style={[{ flex: 1 }, cameraAnimatedStyle]}>
-                {countdown !== null && (
-                  <View style={styles.countdownContainer}>
-                    <Text style={styles.countdownText}>{countdown}</Text>
-                    <TouchableOpacity
-                      style={styles.cancelButton}
-                      onPress={handleCancelCountdown}
-                    >
-                      <Text style={styles.cancelText}>
-                        {translate("cancelAutoCapture")}
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                )}
-                <CameraView ref={cameraRef} facing={facing} style={{ flex: 1 }}>
-                  <TouchableOpacity
-                    style={styles.captureButton}
-                    onPress={handleManualCapture}
-                  >
-                    <Ionicons name="camera" size={40} color="black" />
-                  </TouchableOpacity>
-                </CameraView>
-              </Animated.View>
-            ) : capturedImage ? (
-              <View style={{ flex: 1 }}>
-                <Image source={{ uri: capturedImage }} style={{ flex: 1 }} />
-                {isLoadingFromGemini && (
-                  <TouchableOpacity
-                    style={styles.bottomOverlay}
-                    onPress={dismissFeedback}
-                  >
-                    <View style={styles.loadingContainer}>
-                      <ActivityIndicator size="large" color="#ffffff" />
-                      <Text style={styles.loadingText}>
-                        {translate("analyzing")}
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
-                )}
-                <Dialog
-                  visible={!!feedbackText}
-                  bottom
-                  onDismiss={() => setCapturedImage(null)}
-                  panDirection={PanningProvider.Directions.DOWN}
-                >
-                  <Text style={styles.feedbackText}>{feedbackText}</Text>
-                </Dialog>
-              </View>
-            ) : (
-              <Animated.View style={[styles.content, animatedStyle]}>
-                <FlatList
-                  data={categories}
-                  showsVerticalScrollIndicator={false}
-                  ListHeaderComponent={renderHeader}
-                  renderItem={({ item }) => (
-                    <MemoizedCategoryItem item={item} />
-                  )}
-                  keyExtractor={(item) => item.id}
-                  numColumns={2}
-                  columnWrapperStyle={styles.cardContainer}
-                  contentContainerStyle={styles.flatListContentContainer}
-                  style={{ flex: 1 }}
-                />
-              </Animated.View>
-            )}
-          </View>
-          <TouchableOpacity
-            style={styles.resetButton}
-            onPress={handleResetAndLogout}
+    <SafeAreaView style={{flex: 1}}>
+      <TouchableWithoutFeedback onLongPress={handleLongPress}>
+        <View style={{ flex: 1 }}>
+          <ImageBackground
+            source={{
+              uri: userData?.mostFamousLandmark,
+            }}
+            style={styles.background}
           >
-            <Text style={styles.resetButtonText}>{translate("survey")}</Text>
-          </TouchableOpacity>
-        </ImageBackground>
-        <Modal
-          visible={listening && voiceCountdown !== null}
-          transparent={true}
-          animationType="slide"
-          onRequestClose={onVoiceRecognitionClosed}
-        >
-          <View style={modalStyles.modalContainer}>
-            <View style={modalStyles.modalContent}>
-              <Text style={modalStyles.modalCountdownText}>
-                {voiceCountdown} seconds
-              </Text>
-              <Text style={modalStyles.modalRecognizing}>
-                {translate("recognizing")}
-              </Text>
-              <Text style={modalStyles.modalCommandText}>{command}</Text>
-              <TouchableOpacity
-                style={modalStyles.modalCancelButton}
-                onPress={() => {
-                  setListening(false);
-                  clearVoiceCountdown();
-                  setVoiceCountdown(null);
-                  Voice.stop();
-                }}
-              >
-                <Text style={modalStyles.modalCancelText}>
-                  {translate("cancel")}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Modal>
-        <Modal
-          visible={donationModalVisible}
-          transparent={true}
-          animationType="slide"
-          onRequestClose={() => setDonationModalVisible(false)}
-        >
-          <View style={modalStyles.modalContainer}>
-            <View style={modalStyles.modalContent}>
-              {isLoading ? (
-                <View style={[styles.loadingContainer, { height: 100 }]}>
-                  <ActivityIndicator />
+            {!(showCamera || capturedImage) && (
+              <HeaderDescription
+                country={userData?.country}
+                description={userData?.description}
+              />
+            )}
+            <View style={styles.container}>
+              {(showCamera || capturedImage) && (
+                <View style={styles.header}>
+                  <TouchableOpacity
+                    onPress={() => {
+                      if (showCamera) {
+                        handleCleanup();
+                      } else {
+                        dismissFeedback();
+                      }
+                      stopSpeech();
+                    }}
+                  >
+                    <Ionicons name="arrow-back" size={24} color="black" />
+                  </TouchableOpacity>
+                </View>
+              )}
+              {showCamera ? (
+                <Animated.View style={[{ flex: 1 }, cameraAnimatedStyle]}>
+                  <CameraView
+                    facing={facing}
+                    countdown={countdown}
+                    cameraRef={cameraRef}
+                    onManualCapture={handleManualCapture}
+                    onCancelCountdown={handleCancelCountdown}
+                  />
+                </Animated.View>
+              ) : capturedImage ? (
+                <View style={{ flex: 1 }}>
+                  <Image source={{ uri: capturedImage }} style={{ flex: 1 }} />
+                  {isLoadingFromGemini && (
+                    <TouchableOpacity
+                      style={styles.bottomOverlay}
+                      onPress={dismissFeedback}
+                    >
+                      <View style={styles.loadingContainer}>
+                        <ActivityIndicator size="large" color="#ffffff" />
+                        <Text style={styles.loadingText}>
+                          {translate("analyzing")}
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  )}
+                  <Dialog
+                    visible={!!feedbackText}
+                    bottom
+                    onDismiss={() => setCapturedImage(null)}
+                    panDirection={PanningProvider.Directions.DOWN}
+                  >
+                    <Text style={styles.feedbackText}>{feedbackText}</Text>
+                  </Dialog>
                 </View>
               ) : (
-                <>
-                  <Text style={modalStyles.modalTitle}>
-                    {translate("donationInfo")}
-                  </Text>
-                  <Text style={modalStyles.modalText}>{result?.name}</Text>
-                  <Text style={modalStyles.modalText}>
-                    {result?.description}
-                  </Text>
-                  <Button
-                    style={modalStyles.modalButton}
-                    onPress={() => {
-                      const url =
-                        "https://translate.google.com/translate?sl=auto&tl=${userData?.baseLanguage}&u=" +
-                        encodeURIComponent(result?.websiteLink);
-                      Linking.openURL(url).catch((err) =>
-                        console.error("Couldn't load page", err)
-                      );
-                    }}
-                    label={translate("viewInGoogleTranslate")}
+                <Animated.View style={[styles.content, animatedStyle]}>
+                  <CategoryList
+                    categories={categories}
+                    onCategoryPress={(category) => handleCommand(category)}
+                    country={userData?.country}
+                    description={userData?.description}
                   />
-                  <Button
-                    style={modalStyles.modalCloseButton}
-                    onPress={() => setDonationModalVisible(false)}
-                    label={translate("close")}
-                  />
-                </>
+                </Animated.View>
               )}
             </View>
-          </View>
-        </Modal>
-      </View>
-    </TouchableWithoutFeedback>
+            <TouchableOpacity
+              style={styles.resetButton}
+              onPress={handleResetAndLogout}
+            >
+              <Text style={styles.resetButtonText}>{translate("survey")}</Text>
+            </TouchableOpacity>
+          </ImageBackground>
+          <VoiceRecognitionModal
+            visible={listening && voiceCountdown !== null}
+            countdown={voiceCountdown}
+            command={command}
+            onCancel={onVoiceRecognitionClosed}
+          />
+          <DonationModal
+            visible={donationModalVisible}
+            isLoading={isLoading}
+            result={result}
+            onClose={() => setDonationModalVisible(false)}
+            userLanguage={userData?.baseLanguage}
+          />
+        </View>
+      </TouchableWithoutFeedback>
+    </SafeAreaView>
   );
 };
 
