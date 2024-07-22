@@ -85,7 +85,6 @@ const Main = () => {
                 <View style={styles.header}>
                   <TouchableOpacity
                     onPress={() => {
-                      console.log('there')
                       if (showCamera) {
                         handleCleanup(stopSpeech);
                       } else {
