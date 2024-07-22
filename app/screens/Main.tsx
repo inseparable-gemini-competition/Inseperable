@@ -120,7 +120,10 @@ const Main = () => {
                   <Dialog
                     visible={!!feedbackText}
                     bottom
-                    onDismiss={() => setCapturedImage(null)}
+                    onDismiss={() => {
+                      setCapturedImage(null);
+                      stopSpeech();
+                    }}
                     panDirection={PanningProvider.Directions.DOWN}
                   >
                     <Text style={styles.feedbackText}>{feedbackText}</Text>
