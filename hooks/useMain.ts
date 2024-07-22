@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import { CameraView } from "expo-camera";
 import {
   Easing,
@@ -7,29 +7,51 @@ import {
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
-import * as Speech from "expo-speech";
-import Voice from "@react-native-voice/voice";
+import { useTextToSpeech } from "@/hooks/useTextToSpeech";
 import { useGenerateTextMutation } from "@/hooks/useGenerateText";
 
-export const useMain = ({ currentPrompt }: any) => {
+export const useMain = ({ currentPrompt }: { currentPrompt: string }) => {
   const [showCamera, setShowCamera] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [countdown, setCountdown] = useState<number | null>(null);
-  const [clickCount, setClickCount] = useState(0);
-  const [listening, setListening] = useState(false);
   const countdownRef = useRef<NodeJS.Timeout | null>(null);
   const cameraRef = useRef<CameraView | null>(null);
   const opacity = useSharedValue(1);
   const cameraOpacity = useSharedValue(0);
+  const { speak, stop } = useTextToSpeech();
+  
+  
   const {
     mutateAsync,
     isLoading: isLoadingFromGemini,
     data: feedbackText,
   } = useGenerateTextMutation({
-    onSuccess: () => {
-      Speech.speak(feedbackText || "", { language: "en-US" });
+    onSuccess: (data: any) => {
+      if (data && typeof data === 'string') {
+        speak(data);
+      }
     },
   });
+
+  const handleCapture = useCallback(async () => {
+    if (cameraRef.current) {
+      const photo = (await cameraRef.current.takePictureAsync()) as any;
+      setCapturedImage(photo.uri);
+      setShowCamera(false);
+      handleCancelCountdown();
+      cameraOpacity.value = 0;
+      opacity.value = withTiming(1, {
+        duration: 700,
+        easing: Easing.inOut(Easing.ease),
+      });
+      await mutateAsync({ imageUri: photo.uri, text: currentPrompt });
+    }
+  }, [currentPrompt, mutateAsync]);
+
+  const stopSpeech = ()=>{
+    stop();
+  }
+
 
   const animatedStyle = useAnimatedStyle(() => {
     return {
@@ -43,15 +65,7 @@ export const useMain = ({ currentPrompt }: any) => {
     };
   });
 
-  const handleAutoCapture = (autoCapture?: boolean) => {
-    if (autoCapture) {
-      setTimeout(() => {
-        handleCapture();
-      }, 100);
-    }
-  };
-
-  const handleShowCamera = ({ autoCapture }: { autoCapture?: boolean } = {}) => {
+  const handleShowCamera = useCallback(({ autoCapture = false }: { autoCapture?: boolean } = {}) => {
     opacity.value = withTiming(
       0,
       {
@@ -61,107 +75,82 @@ export const useMain = ({ currentPrompt }: any) => {
       () => {
         runOnJS(setShowCamera)(true);
         runOnJS(startCountdown)();
-        runOnJS(handleAutoCapture)(autoCapture);
+        if (autoCapture) {
+          runOnJS(handleAutoCapture)();
+        }
         cameraOpacity.value = withTiming(1, {
           duration: 700,
           easing: Easing.inOut(Easing.ease),
         });
       }
     );
-  };
+  }, []);
 
-  const startCountdown = () => {
+  const startCountdown = useCallback(() => {
     handleCancelCountdown(); // Ensure any previous countdown is cleared
     setCountdown(10);
     countdownRef.current = setInterval(() => {
       setCountdown((prev) => {
-        if (prev === 1) {
+        if (prev === 0) {
           clearInterval(countdownRef.current!);
           countdownRef.current = null;
-          handleCapture();
+          return null;
         }
-        return prev! - 1 > 0 ? prev! - 1 : 0;
+        return prev! - 1;
       });
     }, 1000);
-  };
+  }, []);
 
-  const handleCancelCountdown = () => {
+  const handleCancelCountdown = useCallback(() => {
     if (countdownRef.current) clearInterval(countdownRef.current);
     countdownRef.current = null;
     setCountdown(null);
-  };
+  }, []);
 
-  const handleCapture = async () => {
-    if (cameraRef.current) {
-      const photo = (await cameraRef.current.takePictureAsync()) as any;
-      setCapturedImage(photo.uri);
-      setShowCamera(false);
-      handleCancelCountdown(); // Ensure the countdown is reset
-      cameraOpacity.value = 0;
-      opacity.value = withTiming(1, {
-        duration: 700,
-        easing: Easing.inOut(Easing.ease),
-      });
-      await mutateAsync({ imageUri: photo.uri, text: currentPrompt });
-    }
-  };
 
-  const handleManualCapture = () => {
+  const handleManualCapture = useCallback(() => {
     handleCancelCountdown();
     handleCapture();
-  };
+  }, [handleCancelCountdown, handleCapture]);
 
-  const handleVoiceCommandStart = () => {
-    setListening(true);
-    Speech.speak("You have 10 seconds to say your command", {
-      onDone: startListening,
-    });
-  };
+  const handleAutoCapture = useCallback(() => {
+    const captureInterval = setInterval(() => {
+      if (countdown === 0) {
+        clearInterval(captureInterval);
+        handleCapture();
+      }
+    }, 100);
+  }, [countdown, handleCapture]);
 
-  const startListening = () => {
-    handleCancelCountdown(); // Ensure any previous countdown is cleared
-    setCountdown(10);
-    Voice.start("en-US");
-    countdownRef.current = setInterval(() => {
-      setCountdown((prev) => {
-        if (prev === 1) {
-          clearInterval(countdownRef.current!);
-          countdownRef.current = null;
-          stopListening();
-        }
-        return prev! - 1 > 0 ? prev! - 1 : 0;
-      });
-    }, 1000);
-  };
-
-  const stopListening = () => {
-    Voice.stop();
-    setListening(false);
+  const handleCleanup = useCallback(() => {
+    setShowCamera(false);
+    setCapturedImage(null);
     handleCancelCountdown();
-  };
+    cameraOpacity.value = 0;
+    opacity.value = withTiming(1, {
+      duration: 700,
+      easing: Easing.inOut(Easing.ease),
+    });
+  }, [handleCancelCountdown]);
 
   return {
-    capturedImage,
     showCamera,
+    setShowCamera,
+    capturedImage,
+    setCapturedImage,
     countdown,
     cameraRef,
-    opacity,
+    handleManualCapture,
     cameraOpacity,
+    opacity,
     animatedStyle,
     cameraAnimatedStyle,
     handleShowCamera,
-    handleCapture,
     handleCancelCountdown,
-    handleManualCapture,
-    handleVoiceCommandStart,
-    setShowCamera,
-    setCapturedImage,
-    clickCount,
-    setClickCount,
-    listening,
-    setListening,
     isLoadingFromGemini,
     feedbackText,
-    mutateAsync,
+    handleCleanup,
+    speak,
+    stopSpeech,
   };
 };

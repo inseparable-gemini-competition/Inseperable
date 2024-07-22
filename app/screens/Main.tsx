@@ -25,11 +25,10 @@ import { useNavigation } from "expo-router";
 import { NavigationProp } from "@react-navigation/native";
 import { auth } from "@/app/helpers/firebaseConfig";
 import { signOut } from "firebase/auth";
-import { translate } from "@/app/helpers/i18n";  // Import translate function
-import {styles, modalStyles} from './MainStyles';
-import {categories, Category} from '@/app/helpers/categories';
+import { translate } from "@/app/helpers/i18n";
+import { styles, modalStyles } from "./MainStyles";
+import { categories, Category } from "@/app/helpers/categories";
 import CategoryCard from "@/app/components/CategoryCard";
-
 
 const Main = () => {
   const [facing, setFacing] = useState("back");
@@ -45,29 +44,27 @@ const Main = () => {
   const { userData, setUserData } = useStore();
   const navigation = useNavigation<NavigationProp<any>>();
 
-  const openBrowser = (url: string) => {
-    Linking.openURL(url).catch((err) =>
-      console.error("Couldn't load page", err)
-    );
-  };
-
   const {
     showCamera,
-    setShowCamera,
     capturedImage,
     setCapturedImage,
     countdown,
     cameraRef,
     handleManualCapture,
-    cameraOpacity,
-    opacity,
     animatedStyle,
     cameraAnimatedStyle,
     handleShowCamera,
     handleCancelCountdown,
     isLoadingFromGemini,
     feedbackText,
+    handleCleanup,
+    stopSpeech,
   } = useMain({ currentPrompt });
+
+  const dismissFeedback = () => {
+    setCapturedImage(null);
+    stopSpeech();
+  };
 
   const schema = generateSchema("recommendation donation entity name", {
     name: ["string", "donation entity name"],
@@ -110,64 +107,58 @@ const Main = () => {
   const onSpeechResults = (result: any) => {
     console.log("onSpeechResults:", result);
     const commands = result.value[0].toLowerCase().split(" ");
-    const validCommands = ["read", "identify", "price", "donate", "cancel"];
     const command = commands[commands.length - 1];
-
-    if (validCommands.includes(command) && command !== lastCommand) {
-      setLastCommand(command);
-      console.log(translate("validCommand"), command);
-      setListening(false);
-      clearVoiceCountdown();
-      Voice.stop();
-      handleCommand(command, true); // Call the handler for the command
-    } else {
-      console.log(translate("invalidCommand"), command);
-    }
+    handleCommand(command);
   };
 
-  const handleCommand = async (command: string, autoCapture?: boolean) => {
-    let prompt = "";
+  const handleCommand = async (command: string) => {
+    Speech.stop(); // Stop any ongoing speech before processing new command
+    setLastCommand(command);
+
     switch (command) {
       case "read":
-        prompt = "Read the text in this image.";
-        break;
       case "identify":
-        prompt =
-          "Identify the image, give a concise and professional description within three lines. If it's a historical landmark, provide brief information about it.";
-        break;
       case "price":
-        prompt =
-          "Analyze the photo to identify the item. If uncertain, provide a reasonable assumption based on visual cues. Determine the fair market price range for the item (or assumed equivalent) in Egypt as of July 2024, considering its condition if possible. Respond with the item name (or assumption) followed by the estimated price range in Egyptian Pounds (EGP), omitting any introductory phrases";
+        let prompt = "";
+        if (command === "read") {
+          prompt = "Read the text in this image.";
+        } else if (command === "identify") {
+          prompt =
+            "Identify the image, give a concise and professional description within three lines. If it's a historical landmark, provide brief information about it.";
+        } else if (command === "price") {
+          prompt =
+            "Analyze the photo to identify the item. If uncertain, provide a reasonable assumption based on visual cues. Determine the fair market price range for the item (or assumed equivalent) in Egypt as of July 2024, considering its condition if possible. Respond with the item name (or assumption) followed by the estimated price range in Egyptian Pounds (EGP), omitting any introductory phrases";
+        }
+        setCurrentPrompt(prompt);
+        handleShowCamera({ autoCapture: true });
         break;
       case "donate":
-        prompt =
-          "tell me about donation entities or organizations you have to give url, name and description (6 exact lines) for the organization that could benefit from my donation in" +
-          userData?.country;
-        await handleDonate(prompt); // Handle the donation command directly
-        return;
+        const donatePrompt = `Tell me about donation entities or organizations you have to give url, name and description (6 exact lines) for the organization that could benefit from my donation in ${userData?.country}`;
+        await handleDonate(donatePrompt);
+        break;
       case "plan":
         navigation.navigate("Plan");
-        return;
+        break;
       case "shop":
         navigation.navigate("Shopping");
-        return;
+        break;
+      case "environmentalImpact":
+        console.log("Environmental Impact feature not yet implemented");
+        break;
+      case "whatToSay":
+        console.log("What to Say feature not yet implemented");
+        break;
       default:
-        prompt = "";
-    }
-
-    if (prompt && prompt !== "donate") {
-      setCurrentPrompt(prompt);
-      onVoiceRecognitionClosed();
-      handleShowCamera({ autoCapture });
+        console.log("Unknown command:", command);
     }
   };
 
   const handleDonate = async (prompt: string) => {
     try {
-      generate(prompt);
+      await generate(prompt);
       setDonationModalVisible(true);
     } catch (error) {
-      console.log("Error fetching donation information:", error);
+      console.error("Error fetching donation information:", error);
     }
   };
 
@@ -230,11 +221,6 @@ const Main = () => {
     }
   };
 
-  const dismissFeedback = () => {
-    setCapturedImage(null);
-    Speech.stop();
-  };
-
   const onVoiceRecognitionClosed = () => {
     setListening(false);
     clearVoiceCountdown();
@@ -242,31 +228,19 @@ const Main = () => {
     Voice.stop();
   };
 
-  if (showCamera && !permission?.granted) {
-    return (
-      <View style={styles.permissionContainer}>
-        <Text style={styles.permissionText}>
-          {translate("permissionText")}
-        </Text>
-        <Button onPress={requestPermission} label={translate("grantPermission")} />
-      </View>
-    );
-  }
-
-
-  const renderCategoryItem = ({ item }: { item: typeof categories[0] }) => (
+  const renderCategoryItem = ({ item }: { item: Category }) => (
     <CategoryCard
       title={translate(item.title)}
       imageUrl={item.imageUrl}
-      onPress={() => {
-        if (item.title !== 'donate' && item.title !== 'shop' && item.title !== 'environmentalImpact' && item.title !== 'whatToSay') {
-          handleShowCamera();
-        }
-        handleCommand(item.title);
-      }}
+      onPress={() =>
+        handleCommand(
+          item.title?.toLocaleLowerCase() === "fair price"
+            ? "price"
+            : item.title?.toLocaleLowerCase()
+        )
+      }
     />
   );
-
 
   const MemoizedCategoryItem = memo(renderCategoryItem);
 
@@ -288,17 +262,25 @@ const Main = () => {
   );
 
   const handleResetAndLogout = async () => {
-    // Clear user data (if any specific data to be cleared)
-    // Log out from Firebase
     try {
       await signOut(auth);
       setUserData(null as any);
-
-      // Navigate to login or home screen if needed
     } catch (error) {
       console.error("Error logging out:", error);
     }
   };
+
+  if (showCamera && !permission?.granted) {
+    return (
+      <View style={styles.permissionContainer}>
+        <Text style={styles.permissionText}>{translate("permissionText")}</Text>
+        <Button
+          onPress={requestPermission}
+          label={translate("grantPermission")}
+        />
+      </View>
+    );
+  }
 
   return (
     <TouchableWithoutFeedback onLongPress={handleLongPress}>
@@ -319,20 +301,19 @@ const Main = () => {
               <View style={styles.header}>
                 <TouchableOpacity
                   onPress={() => {
-                    setShowCamera(false);
-                    setCapturedImage(null);
-                    cameraOpacity.value = 0;
-                    opacity.value = withTiming(1, {
-                      duration: 700,
-                      easing: Easing.inOut(Easing.ease),
-                    });
+                    if (showCamera) {
+                      handleCleanup();
+                    } else {
+                      dismissFeedback();
+                    }
+                    stopSpeech();
                   }}
                 >
                   <Ionicons name="arrow-back" size={24} color="black" />
                 </TouchableOpacity>
               </View>
             )}
-            {!!showCamera ? (
+            {showCamera ? (
               <Animated.View style={[{ flex: 1 }, cameraAnimatedStyle]}>
                 {countdown !== null && (
                   <View style={styles.countdownContainer}>
@@ -341,7 +322,9 @@ const Main = () => {
                       style={styles.cancelButton}
                       onPress={handleCancelCountdown}
                     >
-                      <Text style={styles.cancelText}>{translate("cancelAutoCapture")}</Text>
+                      <Text style={styles.cancelText}>
+                        {translate("cancelAutoCapture")}
+                      </Text>
                     </TouchableOpacity>
                   </View>
                 )}
@@ -364,7 +347,9 @@ const Main = () => {
                   >
                     <View style={styles.loadingContainer}>
                       <ActivityIndicator size="large" color="#ffffff" />
-                      <Text style={styles.loadingText}>{translate("analyzing")}</Text>
+                      <Text style={styles.loadingText}>
+                        {translate("analyzing")}
+                      </Text>
                     </View>
                   </TouchableOpacity>
                 )}
@@ -390,7 +375,7 @@ const Main = () => {
                   numColumns={2}
                   columnWrapperStyle={styles.cardContainer}
                   contentContainerStyle={styles.flatListContentContainer}
-                  style={{ flex: 1 }} // Ensure FlatList takes full space
+                  style={{ flex: 1 }}
                 />
               </Animated.View>
             )}
@@ -417,7 +402,6 @@ const Main = () => {
                 {translate("recognizing")}
               </Text>
               <Text style={modalStyles.modalCommandText}>{command}</Text>
-
               <TouchableOpacity
                 style={modalStyles.modalCancelButton}
                 onPress={() => {
@@ -427,7 +411,9 @@ const Main = () => {
                   Voice.stop();
                 }}
               >
-                <Text style={modalStyles.modalCancelText}>{translate("cancel")}</Text>
+                <Text style={modalStyles.modalCancelText}>
+                  {translate("cancel")}
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -446,7 +432,9 @@ const Main = () => {
                 </View>
               ) : (
                 <>
-                  <Text style={modalStyles.modalTitle}>{translate("donationInfo")}</Text>
+                  <Text style={modalStyles.modalTitle}>
+                    {translate("donationInfo")}
+                  </Text>
                   <Text style={modalStyles.modalText}>{result?.name}</Text>
                   <Text style={modalStyles.modalText}>
                     {result?.description}
@@ -457,7 +445,9 @@ const Main = () => {
                       const url =
                         "https://translate.google.com/translate?sl=auto&tl=${userData?.baseLanguage}&u=" +
                         encodeURIComponent(result?.websiteLink);
-                      openBrowser(url);
+                      Linking.openURL(url).catch((err) =>
+                        console.error("Couldn't load page", err)
+                      );
                     }}
                     label={translate("viewInGoogleTranslate")}
                   />
@@ -475,7 +465,5 @@ const Main = () => {
     </TouchableWithoutFeedback>
   );
 };
-
-
 
 export default Main;
