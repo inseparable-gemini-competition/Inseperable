@@ -40,6 +40,9 @@ export const translations = {
       noHandmadeItems: "No handmade items available",
       environmentalImpact: "Env Impact",
       whatToSay: "What to say?",
+      tabooInfo: "Taboo",
+      enterSituation: "Enter Situation"
+
     },
     // Other languages can be added here
   } as any;

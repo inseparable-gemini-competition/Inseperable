@@ -271,4 +271,21 @@ export const styles = StyleSheet.create({
       fontSize: 18,
       fontFamily: "marcellus",
     },
+    textInput: {
+      width: 300,
+      alignSelf: 'center',
+      height: 100,
+      borderColor: 'gray',
+      borderWidth: 1,
+      borderRadius: 5,
+      padding: 10,
+      marginBottom: 20,
+      textAlignVertical: 'top', // Ensures text starts at the top of the input
+    },
+    scrollViewContent: {
+      flexGrow: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    
   });

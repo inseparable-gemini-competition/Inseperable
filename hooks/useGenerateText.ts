@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenerativeAI, HarmBlockThreshold, HarmCategory } from "@google/generative-ai";
 import * as ImageManipulator from "expo-image-manipulator";
 import { useMutation } from "react-query";
 
@@ -40,8 +40,26 @@ const generateText = async ({
     "AIzaSyDTiF7YjBUWM0l0nKpzicv9R6kReU3dn8Q"
   );
 
+  
   const model = genAI.getGenerativeModel({
     model: modelType ?? "gemini-1.5-pro",
+    safetySettings: [
+      {
+        category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+        threshold: HarmBlockThreshold.BLOCK_NONE,
+      },
+      {
+        category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+        threshold: HarmBlockThreshold.BLOCK_NONE,
+      },
+      {
+        category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+        threshold: HarmBlockThreshold.BLOCK_NONE,
+      },
+    ],
+    generationConfig: {
+      temperature: 1
+    }
   });
 
   let result: any;
@@ -57,7 +75,7 @@ const generateText = async ({
     result = await model.generateContent([text]);
   }
 
-  return result?.response.candidates[0].content.parts[0].text || "";
+  return result?.response?.text();
 };
 
 // React hook to use the generateText function with useMutation

@@ -1,10 +1,10 @@
 // CategoryList.tsx
-import React, { useState, memo } from 'react';
-import { FlatList, View, Text, TouchableOpacity } from 'react-native';
-import { Category } from '@/app/helpers/categories';
-import CategoryCard from '@/app/components/CategoryCard';
-import { translate } from '@/app/helpers/i18n';
-import { styles } from '@/app/screens/MainStyles';
+import React, { useState, memo } from "react";
+import { FlatList, View, Text, TouchableOpacity } from "react-native";
+import { Category } from "@/app/helpers/categories";
+import CategoryCard from "@/app/components/CategoryCard";
+import { translate } from "@/app/helpers/i18n";
+import { styles } from "@/app/screens/MainStyles";
 
 interface CategoryListProps {
   categories: Category[];
@@ -13,15 +13,17 @@ interface CategoryListProps {
   description: string;
 }
 
-const CategoryList: React.FC<CategoryListProps> = ({ categories, onCategoryPress, country, description }) => {
+const CategoryList: React.FC<CategoryListProps> = ({
+  categories,
+  onCategoryPress,
+  description,
+}) => {
   const [showFullDescription, setShowFullDescription] = useState(false);
 
   const renderHeader = () => (
     <View style={styles.headerContainer}>
       <Text style={styles.subtitle}>
-        {showFullDescription
-          ? description
-          : description.slice(0, 160) + "..."}
+        {showFullDescription ? description : description.slice(0, 160) + "..."}
       </Text>
       <TouchableOpacity
         onPress={() => setShowFullDescription(!showFullDescription)}
@@ -41,6 +43,10 @@ const CategoryList: React.FC<CategoryListProps> = ({ categories, onCategoryPress
         onCategoryPress(
           item.title?.toLowerCase() === "fair price"
             ? "price"
+            : item.title?.toLocaleLowerCase() === "what to say?"
+            ? "whatToSay"
+            : item.title?.toLocaleLowerCase() === "env impact"
+            ? "impact"
             : item.title?.toLowerCase()
         )
       }

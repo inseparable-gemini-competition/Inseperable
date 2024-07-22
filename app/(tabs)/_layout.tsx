@@ -14,6 +14,8 @@ import Plan from "@/app/screens/Plan";
 import HandmadeItems from "@/app/screens/HandmadeItems";
 
 import Questionnaire from "../screens/Questionnaire";
+import EnvironmentalImpactQuestionnaire from "@/app/screens/EnvironmentalImpactQuestionnaire";
+import { useNavigation } from "expo-router";
 
 polyfillEncoding();
 polyfillReadableStream();
@@ -24,7 +26,7 @@ export default function TabLayout() {
   const { fetchPhotos, setLoading, loading } = useGoogleImageSearch();
   const { authenticateUser } = useSignIn(); // Assuming this hook provides the userId correctly
   const Stack = createStackNavigator();
-
+  const { goBack } = useNavigation();
   const onFinish = async ({
     userData,
     setLocalLoading,
@@ -60,23 +62,26 @@ export default function TabLayout() {
 
   return (
     <QueryClientProvider client={queryClient}>
-    {userData ? (
-      <Stack.Navigator
-        screenOptions={{ headerShown: false }}
-        initialRouteName={userData?.country ? "Main" : "Questionnaire"}
-      >
-        <Stack.Screen name="Main" component={Main} />
-        <Stack.Screen name="Plan" component={Plan} />
-        <Stack.Screen name="Shopping" component={HandmadeItems} />
-        <Stack.Screen name="Chat" component={Chat} />
-        <Stack.Screen name="Questionnaire">
-          {(props) => <Questionnaire {...props} onFinish={onFinish} />}
-        </Stack.Screen>
-      </Stack.Navigator>
-    ) : (
-      <Questionnaire onFinish={onFinish} />
-    )}
-  </QueryClientProvider>
+      {userData ? (
+        <Stack.Navigator
+          screenOptions={{ headerShown: false }}
+          initialRouteName={userData?.country ? "Main" : "Questionnaire"}
+        >
+          <Stack.Screen name="Main" component={Main} />
+          <Stack.Screen name="Plan" component={Plan} />
+          <Stack.Screen name="Shopping" component={HandmadeItems} />
+          <Stack.Screen name="EnvImpact">
+            {(props) => <EnvironmentalImpactQuestionnaire {...props} onFinish={goBack} />}
+          </Stack.Screen>
+          <Stack.Screen name="Chat" component={Chat} />
+          <Stack.Screen name="Questionnaire">
+            {(props) => <Questionnaire {...props} onFinish={onFinish} />}
+          </Stack.Screen>
+        </Stack.Navigator>
+      ) : (
+        <Questionnaire onFinish={onFinish} />
+      )}
+    </QueryClientProvider>
   );
 }
 
