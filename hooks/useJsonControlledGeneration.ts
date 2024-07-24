@@ -1,45 +1,20 @@
 import { useMutation } from "react-query";
-import {
-  FunctionDeclarationSchemaType,
-  GoogleGenerativeAI,
-} from "@google/generative-ai";
+import { httpsCallable } from "firebase/functions";
+import { functions } from "@/app/helpers/firebaseConfig"; 
 
-interface SchemaItem {
-  type: FunctionDeclarationSchemaType;
-  description?: string;
-  nullable?: boolean;
-}
+export const useJsonControlledGeneration = ({
+  promptType,
+  inputData,
+}: {
+  promptType: string;
+  inputData?: object;
+}) => {
+  const generateJsonContent = httpsCallable(functions, "generateJsonContent");
 
-interface Schema {
-  description: string;
-  type: FunctionDeclarationSchemaType;
-  items: {
-    type: FunctionDeclarationSchemaType;
-    properties: Record<string, SchemaItem>;
-    required: string[];
-  };
-}
-
-export const useJsonControlledGeneration = (schema: Schema) => {
-  const genAI = new GoogleGenerativeAI(
-    "AIzaSyDTiF7YjBUWM0l0nKpzicv9R6kReU3dn8Q"
-  );
-
-  const fetchJsonControlledGeneration = async (prompt: string) => {
-    const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-pro",
-      generationConfig: {
-        responseMimeType: "application/json",
-        responseSchema: schema,
-      },
-    });
-
-    const result = (await model.generateContent(prompt)) as any;
-    const jsonResult = JSON.parse(
-      result?.response.candidates[0].content.parts[0].text
-    )?.[0];
-    if (__DEV__) console.log("jsonResult ", jsonResult);
-    return jsonResult;
+  const fetchJsonControlledGeneration = async () => {
+    const result = await generateJsonContent({ promptType, inputData });
+    if (__DEV__) console.log("jsonResult ", result.data);
+    return result.data;
   };
 
   const { mutate, data, isLoading, isError } = useMutation(
@@ -48,7 +23,7 @@ export const useJsonControlledGeneration = (schema: Schema) => {
 
   return {
     generate: mutate,
-    result: data,
+    result: data as any,
     isLoading,
     isError,
   };

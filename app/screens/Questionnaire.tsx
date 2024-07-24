@@ -1,15 +1,12 @@
 import { useState } from "react";
 import { View, Text, Button } from "react-native-ui-lib";
 import { colors } from "../theme";
-import Question from "@/components/Question/Question";
+import Question from "@/app/components/Question/Question";
 import { ActivityIndicator, ScrollView } from "react-native";
 import { useJsonControlledGeneration } from "@/hooks/useJsonControlledGeneration";
-import { generateSchema } from "@/hooks/utils/generateSchema";
 import {
   convertJSONToObject,
   defaultQuestions,
-  generatePrompt,
-  nextQuestionPrompt,
 } from "@/app/helpers/questionnaireHelpers";
 import { userDataType } from "../store";
 import { useGenerateContent } from "@/hooks/useGeminiStream";
@@ -24,29 +21,30 @@ type Props = {
 const Questionnaire = ({ onFinish }: Props) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<string[]>([]);
-  const schema = generateSchema("recommendation for country or plan", {
-    country: ["string", "recommended country"],
-    flag: ["string", "flag"],
-    description: ["string", "recommended country description", false, "string"],
-    baseLanguage: ["string", "base country language code"],
-    mostFamousLandmark: [
-      "string",
-      "most famous landmark for the recommended country",
-    ],
-  });
-  const { generate, isLoading, result } = useJsonControlledGeneration(schema);
+
   const [localLoading, setLocalLoading] = useState(false);
 
   const [questions, setQuestions] = useState(defaultQuestions);
+  const {
+    generate: generateCountryRecommendation,
+    isLoading,
+    result,
+  } = useJsonControlledGeneration({
+    promptType: "countryRecommendation",
+    inputData: {
+      questions,
+      answers,
+    },
+  });
   const { sendMessage: sendAnswer, isLoading: isLoadingNextQuestion } =
-    useGenerateContent(nextQuestionPrompt, (question: any) => {
-      const updatedQuestions = [...questions, convertJSONToObject(question)];
-      setQuestions((questions) => [
-        ...questions,
-        convertJSONToObject(question),
-      ]);
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
-      setQuestion(updatedQuestions[currentQuestionIndex + 1]);
+    useGenerateContent({
+      promptType: "nextQuestionCountry",
+      onSuccess: (result) => {
+        const updatedQuestions = [...questions, convertJSONToObject(result)];
+        setQuestions(updatedQuestions);
+        setCurrentQuestionIndex(currentQuestionIndex + 1);
+        setQuestion(updatedQuestions[currentQuestionIndex + 1]);
+      },
     });
 
   const [question, setQuestion] = useState(questions[0]);
@@ -65,8 +63,7 @@ const Questionnaire = ({ onFinish }: Props) => {
       sendAnswer(option);
     } else {
       setCurrentQuestionIndex((i) => i + 1);
-      const prompt = generatePrompt(answers, questions);
-      generate(prompt);
+      generateCountryRecommendation();
     }
   };
 

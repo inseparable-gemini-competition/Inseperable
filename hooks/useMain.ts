@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import { useGenerateTextMutation } from "@/hooks/useGenerateText";
 import { useTextToSpeech } from "@/hooks/useTextToSpeech";
 import { useCamera } from "./useCamera";
@@ -7,7 +7,7 @@ import { useDonation } from "./useDonation";
 import { useNavigationAndUser } from "./useNavigationAndUser";
 
 export const useMain = () => {
-  const [currentPrompt, setCurrentPrompt] = useState("");
+  const [currentPromptType, setCurrentPromptType] = useState("");
   const [tabooModalVisible, setTabooModalVisible] = useState(false);
   const [whatToSayModalVisible, setWhatToSayModalVisible] = useState(false);
   const [userSituation, setUserSituation] = useState("");
@@ -50,37 +50,22 @@ export const useMain = () => {
     facing,
     setFacing,
     countdown,
-  } = useCamera(mutateAsync, currentPrompt);
+  } = useCamera(mutateAsync, currentPromptType);
 
   const handleCommand = async (command: string) => {
     onVoiceRecognitionClosed();
-
+    setCurrentPromptType(command);
     switch (command) {
       case "read":
       case "identify":
       case "price":
-        let prompt = "";
-        if (command === "read") {
-          prompt = "Read the text in this image.";
-        } else if (command === "identify") {
-          prompt =
-            "Identify the image, give a concise and professional description within three lines. If it's a historical landmark, provide brief information about it.";
-        } else if (command === "price") {
-          prompt =
-            "Analyze the photo to identify the item. If uncertain, provide a reasonable assumption based on visual cues. Determine the fair market price range for the item (or assumed equivalent) in Egypt as of July 2024, considering its condition if possible. Respond with the item name (or assumption) followed by the estimated price range in Egyptian Pounds (EGP), omitting any introductory phrases";
-        }
-        setCurrentPrompt(prompt);
         handleShowCamera({ autoCapture: true });
         break;
       case "donate":
-        const donatePrompt = `Tell me about donation entities or organizations you have to give url, name and description (6 exact lines) for the organization that could benefit from my donation in ${userData?.country}`;
-        await handleDonate(donatePrompt);
+        await handleDonate();
         break;
       case "taboo":
-        setTabooModalVisible(true);
-        const tabooPrompt = `Using ${Date.now()} as a seed, think of about max diverse cultural taboos you can for ${userData?.country}, select one random taboo, and describe it concisely in 3 lines or less, focusing on its significance and how travelers can respectfully avoid it. try to be diversified`;       
-         setCurrentPrompt(tabooPrompt);
-        await mutateAsync({ text: tabooPrompt });
+        handleTabooSumbit();
         break;
       case "whatToSay":
         setWhatToSayModalVisible(true);
@@ -103,16 +88,22 @@ export const useMain = () => {
   };
 
   const handleSituationSubmit = async () => {
-    const prompt = `I am in the following situation: ${userSituation}. What should I say in ${userData?.country} language?`;
-    setCurrentPrompt(prompt);
-    await mutateAsync({ text: prompt });
+    await mutateAsync({
+      promptType: "situation",
+      inputData: {
+        userSituation,
+        country: userData.country,
+      },
+    });
   };
 
   const handleSelectTipType = async (selectedType: string) => {
-    const currentTime = new Date().getTime();
-    const prompt = `Using ${currentTime} as a random seed, think of 100 unique travel tips for ${selectedType} in ${userData?.country}. Then, select 3 truly random tips from this list. Ensure the tips are diverse and not commonly known. Provide only these 3 tips, keeping the total response under 150 words. Do not repeat tips from previous interactions.`;
-    setCurrentPrompt(prompt);
-    await mutateAsync({ text: prompt });
+    await mutateAsync({ promptType: "tibs", inputData: {selectedType} });
+  };
+
+  const handleTabooSumbit = async () => {
+    setTabooModalVisible(true);
+    await mutateAsync({ promptType: "taboo", inputData: {country: userData?.country} });
   };
   const {
     listening,

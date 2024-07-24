@@ -1,6 +1,11 @@
 import { auth } from "@/app/helpers/firebaseConfig";
-import { onAuthStateChanged, signInAnonymously, User, signOut } from "firebase/auth";
-import { useEffect, useState } from "react";
+import {
+  onAuthStateChanged,
+  signInAnonymously,
+  User,
+  signOut,
+} from "firebase/auth";
+import { useState } from "react";
 
 // Add return type for hook
 export const useSignIn = (): {

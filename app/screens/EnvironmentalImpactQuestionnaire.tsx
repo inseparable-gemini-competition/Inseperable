@@ -1,15 +1,12 @@
 import { useState } from "react";
 import { View, Text, Button } from "react-native-ui-lib";
 import { colors } from "../theme";
-import Question from "@/components/Question/Question";
+import Question from "@/app/components/Question/Question";
 import { ActivityIndicator, ScrollView } from "react-native";
 import { useJsonControlledGeneration } from "@/hooks/useJsonControlledGeneration";
-import { generateSchema } from "@/hooks/utils/generateSchema";
 import {
   convertJSONToObject,
   defaultQuestions,
-  generatePrompt,
-  nextQuestionPrompt,
 } from "@/app/helpers/environmentalQuestionnaireHelpers";
 import { userDataType } from "../store";
 import { useGenerateContent } from "@/hooks/useGeminiStream";
@@ -24,23 +21,31 @@ type Props = {
 const EnvironmentalImpactQuestionnaire = ({ onFinish }: Props) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<string[]>([]);
-  const schema = generateSchema("calculate environmental impact", {
-    impactScore: ["number", "environmental impact score"],
-    recommendations: ["string", "steps to avoid bad impact"],
-  });
-  const { generate, isLoading, result } = useJsonControlledGeneration(schema);
-  const [localLoading, setLocalLoading] = useState(false);
 
   const [questions, setQuestions] = useState(defaultQuestions);
+
+  const {
+    generate: generateEnvironmentalImpact,
+    isLoading,
+    result,
+  } = useJsonControlledGeneration({
+    promptType: "countryRecommendation",
+    inputData: {
+      questions,
+      answers,
+    },
+  });
+  const [localLoading, setLocalLoading] = useState(false);
+
   const { sendMessage: sendAnswer, isLoading: isLoadingNextQuestion } =
-    useGenerateContent(nextQuestionPrompt, (question: any) => {
-      const updatedQuestions = [...questions, convertJSONToObject(question)];
-      setQuestions((questions) => [
-        ...questions,
-        convertJSONToObject(question),
-      ]);
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
-      setQuestion(updatedQuestions[currentQuestionIndex + 1]);
+    useGenerateContent({
+      promptType: "nextQuestionEnvironment",
+      onSuccess: (result) => {
+        const updatedQuestions = [...questions, convertJSONToObject(result)];
+        setQuestions(updatedQuestions);
+        setCurrentQuestionIndex(currentQuestionIndex + 1);
+        setQuestion(updatedQuestions[currentQuestionIndex + 1]);
+      },
     });
 
   const [question, setQuestion] = useState(questions[0]);
@@ -59,8 +64,7 @@ const EnvironmentalImpactQuestionnaire = ({ onFinish }: Props) => {
       sendAnswer(option);
     } else {
       setCurrentQuestionIndex((i) => i + 1);
-      const prompt = generatePrompt(answers, questions);
-      generate(prompt);
+      generateEnvironmentalImpact();
     }
   };
 
@@ -147,8 +151,7 @@ const EnvironmentalImpactQuestionnaire = ({ onFinish }: Props) => {
                 paddingHorizontal: 30,
               }}
             >
-              Recommendations to reduce your impact:{" "}
-              {result?.recommendations}
+              Recommendations to reduce your impact: {result?.recommendations}
             </Text>
 
             <Button

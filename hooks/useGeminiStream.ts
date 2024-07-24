@@ -1,121 +1,70 @@
-import { useState, useCallback } from "react";
-import { useMutation, UseMutationResult } from "react-query";
-import { fetch } from "react-native-fetch-api";
+import { useState, useCallback, useEffect } from "react";
+import { useMutation } from "react-query";
+import { getFunctions, httpsCallable } from "firebase/functions";
 
-const API_KEY = "AIzaSyDTiF7YjBUWM0l0nKpzicv9R6kReU3dn8Q";
-const URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:streamGenerateContent?key=${API_KEY}`;
-interface MessagePart {
-  text: string;
+const functions = getFunctions();
+const generateStreamContent = httpsCallable(functions, "generateStreamContent");
+
+interface CloudFunctionResponse {
+  result: string;
 }
 
-interface Message {
-  role: "user" | "model";
-  parts: MessagePart[];
-}
-
-interface FetchResponse {
-  candidates: {
-    content: {
-      parts: {
-        text: string;
-      }[];
-    }[];
-  }[];
-}
-
-const fetchContent = async (messages: Message[]): Promise<string> => {
-  const response = await fetch(URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      contents: messages,
-    }),
-    reactNative: { textStreaming: true },
-  });
-
-  if (!response.ok) {
-    throw new Error("Network response was not ok");
+const fetchContent = async (
+  data: UseGenerateContentOptions
+): Promise<string> => {
+  try {
+    const result = await generateStreamContent(data);
+    return (result.data as CloudFunctionResponse).result;
+  } catch (error) {
+    console.error("Error calling Cloud Function:", error);
+    throw error;
   }
-
-  const reader = response.body?.getReader();
-  if (!reader) {
-    throw new Error("Failed to get reader from response body");
-  }
-
-  const decoder = new TextDecoder("utf-8");
-  let done = false;
-  let result = "";
-
-  while (!done) {
-    const { value, done: streamDone } = await reader.read();
-    done = streamDone;
-    result += decoder.decode(value, { stream: true });
-  }
-
-  return result;
 };
 
 interface UseGenerateContentResult {
-  messages: Message[];
   sendMessage: (userText: string) => void;
   isLoading: boolean;
   error: unknown;
-  lastResponse: string;
+  aiResponse: string;
+}
+
+interface UseGenerateContentOptions {
+  promptType: string;
+  onSuccess?: (data: string) => void;
+  inputData?: object;
+  message?: string;
 }
 
 export const useGenerateContent = (
-  initialMessage: string,
-  onSuccess?: (data: string) => void,
+  options: UseGenerateContentOptions
 ): UseGenerateContentResult => {
-  const [messages, setMessages] = useState<Message[]>([
-    { role: "user", parts: [{ text: initialMessage }] },
-  ]);
-  const [lastResponse, setLastResponse] = useState<string>("");
+  const { promptType, onSuccess, inputData } = options;
+  const [aiResponse, setAiResponse] = useState<string>("");
 
-  const mutation: UseMutationResult<string, unknown, Message[], unknown> =
-    useMutation((messages: Message[]) => fetchContent(messages), {
+  const mutation = useMutation(
+    (message: string) => fetchContent({ promptType, inputData, message }),
+    {
       onSuccess: (data) => {
-        const parsedResult: FetchResponse[] = JSON.parse(data);
-        const answer = parsedResult
-          .map((item) =>
-            item.candidates
-              .map((candidate) =>
-                candidate.content.parts.map((part) => part.text).join(" ")
-              )
-              .join("")
-          )
-          .join("");
-        setLastResponse(answer);
-        setMessages((prevMessages) => [
-          ...prevMessages,
-          { role: "model", parts: [{ text: answer }] },
-        ]);
-        onSuccess?.(answer);
+        setAiResponse(data);
+        onSuccess?.(data);
       },
       onError: (error) => {
         console.error("Error fetching content:", error);
       },
-    });
+    }
+  );
 
   const sendMessage = useCallback(
     (userText: string) => {
-      const newMessages: Message[] = [
-        ...messages,
-        { role: "user", parts: [{ text: userText }] },
-      ];
-      setMessages(newMessages);
-      mutation.mutate(newMessages);
+      mutation.mutate(userText);
     },
-    [messages, mutation]
+    [mutation]
   );
 
   return {
-    messages,
     sendMessage,
     isLoading: mutation.isLoading,
     error: mutation.error,
-    lastResponse,
+    aiResponse,
   };
 };

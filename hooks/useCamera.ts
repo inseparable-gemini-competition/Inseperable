@@ -1,3 +1,4 @@
+import { GenerateTextInput } from "./useGenerateText";
 import { useState, useRef, useCallback, useEffect } from "react";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import {
@@ -8,8 +9,12 @@ import {
   withTiming,
 } from "react-native-reanimated";
 import { useCountdown } from "@/hooks/useCountDown";
+import { useNavigationAndUser } from "@/hooks/useNavigationAndUser";
 
-export const useCamera = (mutateAsync: any, currentPrompt: string) => {
+export const useCamera = (
+  mutateAsync: (variables: GenerateTextInput) => Promise<string>,
+  currentPromptType: string
+) => {
   const [showCamera, setShowCamera] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const cameraRef = useRef<CameraView | null>(null);
@@ -24,6 +29,8 @@ export const useCamera = (mutateAsync: any, currentPrompt: string) => {
     countdownRef.current = countdown;
   }, [countdown]);
 
+  const { userData } = useNavigationAndUser();
+
   const handleCapture = useCallback(async () => {
     if (cameraRef.current) {
       const photo = (await cameraRef.current.takePictureAsync()) as any;
@@ -34,9 +41,16 @@ export const useCamera = (mutateAsync: any, currentPrompt: string) => {
         duration: 700,
         easing: Easing.inOut(Easing.ease),
       });
-      await mutateAsync({ imageUri: photo.uri, text: currentPrompt });
+      await mutateAsync({
+        image: photo.uri,
+        promptType: currentPromptType,
+        inputData: {
+          country: userData?.country,
+          language: userData?.baseLanguage,
+        },
+      });
     }
-  }, [currentPrompt, mutateAsync]);
+  }, [currentPromptType, mutateAsync]);
 
   const handleAutoCapture = useCallback(() => {
     const captureInterval = setInterval(() => {

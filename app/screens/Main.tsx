@@ -22,8 +22,9 @@ import CategoryList from "@/app/components/CategoryList";
 import HeaderDescription from "@/app/components/HeaderDescription";
 import TabooModal from "@/app/components/TabooModal"; // Import TabooModal
 import { SafeAreaView } from "react-native-safe-area-context";
-import WhatToSayModal from "@/hooks/WhatToSayModal";
 import TipsModal from "@/app/components/tipModal";
+import WhatToSayModal from "@/app/components/WhatToSayModal";
+
 
 const Main = () => {
   const {

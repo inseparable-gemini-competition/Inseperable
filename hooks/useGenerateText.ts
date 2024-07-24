@@ -1,13 +1,27 @@
-import { GoogleGenerativeAI, HarmBlockThreshold, HarmCategory } from "@google/generative-ai";
 import * as ImageManipulator from "expo-image-manipulator";
-import { useMutation } from "react-query";
+import { useMutation, UseMutationResult } from "react-query";
+import {
+  getFunctions,
+  httpsCallable,
+  Functions,
+  HttpsCallable,
+} from "firebase/functions";
 
 const IMAGE_RESIZE_WIDTH = 512;
 
-interface GenerateTextData {
-  text: string;
-  imageUri?: string;
+export interface GenerateTextInput {
+  image?: string | null;
   modelType?: string;
+  promptType: string;
+  inputData?: object;
+}
+
+interface GenerateTextOutput {
+  result: string;
+}
+
+interface UseGenerateTextOptions {
+  onSuccess?: (data: string) => void;
 }
 
 // Helper function to manipulate image
@@ -30,57 +44,31 @@ const manipulateImage = async (imageUri: string): Promise<string> => {
   }
 };
 
-// Function to generate text using Google Generative AI
-const generateText = async ({
-  text,
-  imageUri,
-  modelType,
-}: GenerateTextData): Promise<string> => {
-  const genAI = new GoogleGenerativeAI(
-    "AIzaSyDTiF7YjBUWM0l0nKpzicv9R6kReU3dn8Q"
-  );
+// Function to generate text using Firebase function
+const generateText = async (input: GenerateTextInput): Promise<string> => {
+  const functions: Functions = getFunctions();
+  const generateTextFunction: HttpsCallable<
+    GenerateTextInput,
+    GenerateTextOutput
+  > = httpsCallable(functions, "generateText");
 
-  
-  const model = genAI.getGenerativeModel({
-    model: modelType ?? "gemini-1.5-pro",
-    safetySettings: [
-      {
-        category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
-        threshold: HarmBlockThreshold.BLOCK_NONE,
-      },
-      {
-        category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
-        threshold: HarmBlockThreshold.BLOCK_NONE,
-      },
-      {
-        category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
-        threshold: HarmBlockThreshold.BLOCK_NONE,
-      },
-    ],
-    generationConfig: {
-      temperature: 1
-    }
-  });
-
-  let result: any;
-  if (imageUri) {
-    const image = {
-      inlineData: {
-        data: await manipulateImage(imageUri),
-        mimeType: "image/png",
-      },
-    };
-    result = await model.generateContent([text, image]);
-  } else {
-    result = await model.generateContent([text]);
+  try {
+    const result = await generateTextFunction({
+      ...input,
+      ...(input.image && { image: await manipulateImage(input.image) }),
+    });
+    return result.data.result;
+  } catch (error) {
+    console.error("Error generating text:", error);
+    throw error;
   }
-
-  return result?.response?.text();
 };
 
 // React hook to use the generateText function with useMutation
-export const useGenerateTextMutation = ({ onSuccess }: any) => {
-  return useMutation(generateText, {
-    onSuccess,
+export const useGenerateTextMutation = (
+  options: UseGenerateTextOptions = {}
+): UseMutationResult<string, Error, GenerateTextInput, unknown> => {
+  return useMutation<string, Error, GenerateTextInput, unknown>(generateText, {
+    onSuccess: options.onSuccess,
   });
 };
