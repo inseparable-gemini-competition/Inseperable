@@ -1,4 +1,4 @@
-import { GenerateTextInput } from "./useGenerateText";
+import { GenerateTextInput } from "./gemini/useGenerateText";
 import { useState, useRef, useCallback, useEffect } from "react";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import {
@@ -8,7 +8,7 @@ import {
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
-import { useCountdown } from "@/hooks/useCountDown";
+import { useCountdown } from "@/hooks/ui/useCountDown";
 import { useNavigationAndUser } from "@/hooks/useNavigationAndUser";
 
 export const useCamera = (

@@ -1,4 +1,4 @@
-import { useGenerateTextMutation } from "@/hooks/useGenerateText";
+import { useGenerateTextMutation } from "@/hooks/gemini/useGenerateText";
 import * as Speech from "expo-speech";
 
 export const useGenerateText = () => {

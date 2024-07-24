@@ -1,4 +1,4 @@
-import { GenerateTextInput } from "./../useGenerateText";
+import { GenerateTextInput } from "../gemini/useGenerateText";
 
 export const fetchTranslations = async (
   text: { [key: string]: any },

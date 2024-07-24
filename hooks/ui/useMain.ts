@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { useGenerateTextMutation } from "@/hooks/useGenerateText";
+import { useGenerateTextMutation } from "@/hooks/gemini/useGenerateText";
 import { useTextToSpeech } from "@/hooks/useTextToSpeech";
-import { useCamera } from "./useCamera";
+import { useCamera } from "../useCamera";
 import { useVoiceCommands } from "@/hooks/useVoiceCommand";
 import { useDonation } from "./useDonation";
-import { useNavigationAndUser } from "./useNavigationAndUser";
+import { useNavigationAndUser } from "../authentication/useNavigationAndUser";
 
 export const useMain = () => {
   const [currentPromptType, setCurrentPromptType] = useState("");
