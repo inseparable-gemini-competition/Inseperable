@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import Animated from "react-native-reanimated";
-import { useMain } from "@/hooks/useMain";
+import { useMain } from "@/hooks/ui/useMain";
 import { Button, Dialog, PanningProvider } from "react-native-ui-lib";
 import { translate } from "@/app/helpers/i18n";
 import { styles } from "./MainStyles";
