@@ -3,13 +3,13 @@ import { View, Text, Button } from "react-native-ui-lib";
 import { colors } from "../theme";
 import Question from "@/app/components/Question/Question";
 import { ActivityIndicator, ScrollView } from "react-native";
-import { useJsonControlledGeneration } from "@/hooks/useJsonControlledGeneration";
+import { useJsonControlledGeneration } from "@/hooks/gemini/useJsonControlledGeneration";
 import {
   convertJSONToObject,
   defaultQuestions,
 } from "@/app/helpers/questionnaireHelpers";
 import { userDataType } from "../store";
-import { useGenerateContent } from "@/hooks/useGeminiStream";
+import { useGenerateContent } from "@/hooks/gemini/useGeminiStream";
 
 type Props = {
   onFinish: (userData: {

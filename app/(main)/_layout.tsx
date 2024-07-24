@@ -3,10 +3,10 @@ import { QueryClient, QueryClientProvider } from "react-query";
 import useStore, { userDataType } from "../store";
 import { polyfill as polyfillEncoding } from "react-native-polyfill-globals/src/encoding";
 import { polyfill as polyfillReadableStream } from "react-native-polyfill-globals/src/readable-stream";
-import useGoogleImageSearch from "@/hooks/useGoogleImageSearch";
+import useGoogleImageSearch from "@/hooks/ui/useGoogleImageSearch";
 import { db } from "../helpers/firebaseConfig"; // Import the Firestore instance
 import { doc, setDoc } from "firebase/firestore";
-import { useSignIn } from "@/hooks/useSignIn";
+import { useSignIn } from "@/hooks/authentication/useSignIn";
 import { createStackNavigator } from "@react-navigation/stack";
 import Main from "@/app/screens/Main";
 import Chat from "@/app/screens/Chat";

@@ -1,4 +1,4 @@
-import { GenerateTextInput } from "./gemini/useGenerateText";
+import { GenerateTextInput } from "@/hooks/gemini/useGenerateText";
 import { useState, useRef, useCallback, useEffect } from "react";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import {
@@ -9,7 +9,7 @@ import {
   withTiming,
 } from "react-native-reanimated";
 import { useCountdown } from "@/hooks/ui/useCountDown";
-import { useNavigationAndUser } from "@/hooks/useNavigationAndUser";
+import { useNavigationAndUser } from "@/hooks/authentication/useNavigationAndUser";
 
 export const useCamera = (
   mutateAsync: (variables: GenerateTextInput) => Promise<string>,

@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useGenerateTextMutation } from "@/hooks/gemini/useGenerateText";
-import { useTextToSpeech } from "@/hooks/useTextToSpeech";
-import { useCamera } from "../useCamera";
-import { useVoiceCommands } from "@/hooks/useVoiceCommand";
+import { useTextToSpeech } from "@/hooks/ui/useTextToSpeech";
+import { useCamera } from "@/hooks/ui/useCamera";
+import { useVoiceCommands } from "@/hooks/ui/useVoiceCommand";
 import { useDonation } from "./useDonation";
 import { useNavigationAndUser } from "../authentication/useNavigationAndUser";
 

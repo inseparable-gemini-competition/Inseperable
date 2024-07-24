@@ -17,7 +17,7 @@ import { Button } from "react-native-ui-lib";
 import { getDoc, doc } from "firebase/firestore";
 import { db } from "../helpers/firebaseConfig"; // Ensure the correct path
 import { colors } from "@/app/theme"; // Ensure the correct path
-import { useSignIn } from "@/hooks/useSignIn";
+import { useSignIn } from "@/hooks/authentication/useSignIn";
 import { useNavigation } from "expo-router";
 import { translate } from "@/app/helpers/i18n";
 

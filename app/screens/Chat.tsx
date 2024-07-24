@@ -15,7 +15,7 @@ import {
 } from "firebase/firestore";
 import { db } from "@/app/helpers/firebaseConfig";
 import { useRoute, RouteProp, useNavigation } from "@react-navigation/native";
-import { useSignIn } from "@/hooks/useSignIn";
+import { useSignIn } from "@/hooks/authentication/useSignIn";
 import {
   View as UILibView,
   Text as UILibText,

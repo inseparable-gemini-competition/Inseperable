@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useJsonControlledGeneration } from "@/hooks/useJsonControlledGeneration";
-import { useNavigationAndUser } from "@/hooks/useNavigationAndUser";
+import { useJsonControlledGeneration } from "@/hooks/gemini/useJsonControlledGeneration";
+import { useNavigationAndUser } from "@/hooks/authentication/useNavigationAndUser";
 
 export const useDonation = () => {
   const [donationModalVisible, setDonationModalVisible] = useState(false);
