@@ -1,6 +1,6 @@
 import { useMutation } from "react-query";
 import { httpsCallable } from "firebase/functions";
-import { functions } from "@/app/helpers/firebaseConfig"; 
+import { functions } from "@/app/helpers/firebaseConfig";
 
 export const useJsonControlledGeneration = ({
   promptType,
@@ -12,9 +12,11 @@ export const useJsonControlledGeneration = ({
   const generateJsonContent = httpsCallable(functions, "generateJsonContent");
 
   const fetchJsonControlledGeneration = async () => {
-    const result = await generateJsonContent({ promptType, inputData });
+    const result = await generateJsonContent({ promptType, inputData }) as any;
     if (__DEV__) console.log("jsonResult ", result.data);
-    return result.data;
+    return result.data?.result?.[0]
+      ? result.data?.result?.[0]
+      : result.data?.result;
   };
 
   const { mutate, data, isLoading, isError } = useMutation(
@@ -23,7 +25,7 @@ export const useJsonControlledGeneration = ({
 
   return {
     generate: mutate,
-    result: data as any,
+    result: data,
     isLoading,
     isError,
   };

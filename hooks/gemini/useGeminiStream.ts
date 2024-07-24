@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { useMutation } from "react-query";
 import { getFunctions, httpsCallable } from "firebase/functions";
 

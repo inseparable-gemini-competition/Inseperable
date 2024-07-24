@@ -39,8 +39,8 @@ const Questionnaire = ({ onFinish }: Props) => {
   const { sendMessage: sendAnswer, isLoading: isLoadingNextQuestion } =
     useGenerateContent({
       promptType: "nextQuestionCountry",
-      onSuccess: (result) => {
-        const updatedQuestions = [...questions, convertJSONToObject(result)];
+      onSuccess: (nextQuestion) => {
+        const updatedQuestions = [...questions, convertJSONToObject(nextQuestion)];
         setQuestions(updatedQuestions);
         setCurrentQuestionIndex(currentQuestionIndex + 1);
         setQuestion(updatedQuestions[currentQuestionIndex + 1]);

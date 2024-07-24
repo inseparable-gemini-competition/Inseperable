@@ -55,7 +55,7 @@ const generateText = async (input: GenerateTextInput): Promise<string> => {
   try {
     const result = await generateTextFunction({
       ...input,
-      ...(input.image && { image: await manipulateImage(input.image) }),
+      ...(input.image && { base64Image: await manipulateImage(input.image) }),
     });
     return result.data.result;
   } catch (error) {
