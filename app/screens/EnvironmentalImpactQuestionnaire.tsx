@@ -29,7 +29,7 @@ const EnvironmentalImpactQuestionnaire = ({ onFinish }: Props) => {
     isLoading,
     result,
   } = useJsonControlledGeneration({
-    promptType: "countryRecommendation",
+    promptType: "environmentalImpact",
     inputData: {
       questions,
       answers,

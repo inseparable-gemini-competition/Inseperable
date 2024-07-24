@@ -6,6 +6,7 @@ import {
   Functions,
   HttpsCallable,
 } from "firebase/functions";
+import {convertMarkdownToPlainText} from '../../app/helpers/markdown'
 
 const IMAGE_RESIZE_WIDTH = 512;
 
@@ -57,7 +58,7 @@ const generateText = async (input: GenerateTextInput): Promise<string> => {
       ...input,
       ...(input.image && { base64Image: await manipulateImage(input.image) }),
     });
-    return result.data.result;
+    return convertMarkdownToPlainText(result.data.result);
   } catch (error) {
     console.error("Error generating text:", error);
     throw error;

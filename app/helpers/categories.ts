@@ -62,7 +62,7 @@ export const categories: Category[] = [
   },
   {
     id: "10",
-    title: translate("tibs"),
+    title: translate("tips"),
     imageUrl: require("../../assets/images/taboo.png"),
     openCamera: false,
   },

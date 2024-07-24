@@ -79,7 +79,7 @@ export const useMain = () => {
       case "impact":
         navigation.navigate("EnvImpact");
         break;
-      case "tibs":
+      case "tips":
         setTipsModalVisible(true);
         break;
       default:
