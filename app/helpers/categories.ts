@@ -60,4 +60,10 @@ export const categories: Category[] = [
     imageUrl: require("../../assets/images/taboo.png"),
     openCamera: false,
   },
+  {
+    id: "10",
+    title: translate("tibs"),
+    imageUrl: require("../../assets/images/taboo.png"),
+    openCamera: false,
+  },
 ];

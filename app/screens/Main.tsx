@@ -23,6 +23,7 @@ import HeaderDescription from "@/app/components/HeaderDescription";
 import TabooModal from "@/app/components/TabooModal"; // Import TabooModal
 import { SafeAreaView } from "react-native-safe-area-context";
 import WhatToSayModal from "@/hooks/WhatToSayModal";
+import TipsModal from "@/app/components/tipModal";
 
 const Main = () => {
   const {
@@ -63,6 +64,9 @@ const Main = () => {
     userSituation,
     setUserSituation,
     resetGeneratedText,
+    tipsModalVisible,
+    setTipsModalVisible,
+    handleSelectTipType,
   } = useMain();
 
   if (showCamera && !permission?.granted) {
@@ -200,6 +204,17 @@ const Main = () => {
             onSubmit={handleSituationSubmit}
             userSituation={userSituation}
             setUserSituation={setUserSituation}
+          />
+          <TipsModal
+            visible={tipsModalVisible}
+            isLoading={isLoadingFromGemini}
+            result={feedbackText || ""}
+            onClose={() => {
+              setTipsModalVisible(false);
+              stopSpeech();
+              resetGeneratedText();
+            }}
+            onSelectTipType={handleSelectTipType}
           />
         </View>
       </TouchableWithoutFeedback>

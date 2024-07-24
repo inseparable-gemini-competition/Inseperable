@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useGenerateTextMutation } from "@/hooks/useGenerateText";
 import { useTextToSpeech } from "@/hooks/useTextToSpeech";
 import { useCamera } from "./useCamera";
@@ -12,6 +12,9 @@ export const useMain = () => {
   const [whatToSayModalVisible, setWhatToSayModalVisible] = useState(false);
   const [userSituation, setUserSituation] = useState("");
   const { speak, stop } = useTextToSpeech();
+
+  const [tipsModalVisible, setTipsModalVisible] = useState(false);
+  const [selectedTipType, setSelectedTipType] = useState("");
 
   const dismissFeedback = () => {
     setCapturedImage(null);
@@ -75,8 +78,8 @@ export const useMain = () => {
         break;
       case "taboo":
         setTabooModalVisible(true);
-        const tabooPrompt = `Provide one random taboo and culturally sensitive topic to avoid while in ${userData?.country}, in no more than 3 lines`;
-        setCurrentPrompt(tabooPrompt);
+        const tabooPrompt = `Using ${Date.now()} as a seed, think of about max diverse cultural taboos you can for ${userData?.country}, select one random taboo, and describe it concisely in 3 lines or less, focusing on its significance and how travelers can respectfully avoid it. try to be diversified`;       
+         setCurrentPrompt(tabooPrompt);
         await mutateAsync({ text: tabooPrompt });
         break;
       case "whatToSay":
@@ -91,6 +94,9 @@ export const useMain = () => {
       case "impact":
         navigation.navigate("EnvImpact");
         break;
+      case "tibs":
+        setTipsModalVisible(true);
+        break;
       default:
         console.log("Unknown command:", command);
     }
@@ -102,6 +108,12 @@ export const useMain = () => {
     await mutateAsync({ text: prompt });
   };
 
+  const handleSelectTipType = async (selectedType: string) => {
+    const currentTime = new Date().getTime();
+    const prompt = `Using ${currentTime} as a random seed, think of 100 unique travel tips for ${selectedType} in ${userData?.country}. Then, select 3 truly random tips from this list. Ensure the tips are diverse and not commonly known. Provide only these 3 tips, keeping the total response under 150 words. Do not repeat tips from previous interactions.`;
+    setCurrentPrompt(prompt);
+    await mutateAsync({ text: prompt });
+  };
   const {
     listening,
     voiceCountdown,
@@ -166,5 +178,9 @@ export const useMain = () => {
     userSituation,
     setUserSituation,
     resetGeneratedText: reset,
+    tipsModalVisible,
+    setTipsModalVisible,
+    selectedTipType,
+    handleSelectTipType,
   };
 };
