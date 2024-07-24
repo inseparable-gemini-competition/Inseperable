@@ -3,7 +3,6 @@ import {
   onAuthStateChanged,
   signInAnonymously,
   User,
-  signOut,
 } from "firebase/auth";
 import { useState } from "react";
 
