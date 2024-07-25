@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   StyleSheet,
   View,
   SafeAreaView,
   TouchableOpacity,
-  ImageBackground,
   Text,
   Dimensions,
   Linking,
@@ -12,6 +11,7 @@ import {
   Animated,
 } from "react-native";
 import Swiper from "react-native-deck-swiper";
+import FastImage from "react-native-fast-image";
 import { MaterialIcons } from "@expo/vector-icons";
 import { Button } from "react-native-ui-lib";
 import { getDoc, doc } from "firebase/firestore";
@@ -54,29 +54,40 @@ const MenuButton: React.FC<MenuButtonProps> = ({
   );
 };
 
-const CategoryCard: React.FC<{
-  category: string;
-  item: any;
-  setCurrentItem: any;
-}> = ({ item, setCurrentItem }) => {
-  useEffect(() => {
-    setCurrentItem(item);
-  }, [item, setCurrentItem]);
+const CustomImage: React.FC<{ source: { uri: string }, style: any }> = ({ source, style }) => {
+  const [imageLoaded, setImageLoaded] = useState(false);
 
   return (
+    <View style={[style, styles.imageContainer]}>
+      <FastImage
+        source={{ uri: "https://via.placeholder.com/400x600?text=Loading..." }}
+        style={[StyleSheet.absoluteFill, { opacity: imageLoaded ? 0 : 1 }]}
+        resizeMode={FastImage.resizeMode.cover}
+      />
+      <FastImage
+        source={source}
+        style={[StyleSheet.absoluteFill, { opacity: imageLoaded ? 1 : 0 }]}
+        resizeMode={FastImage.resizeMode.cover}
+        onLoad={() => setImageLoaded(true)}
+      />
+    </View>
+  );
+};
+
+const CategoryCard: React.FC<{
+  item: any;
+}> = ({ item }) => {
+  return (
     <View style={styles.cardContainer}>
-      <ImageBackground
-        source={{
-          uri: item?.photoUrl || "default-placeholder-image-url", // Fallback to a placeholder if the URL is not available
-        }}
+      <CustomImage
+        source={{ uri: item?.photoUrl || "https://via.placeholder.com/400x600?text=No+Image" }}
         style={styles.card}
-      >
-        <View style={styles.infoContainer}>
-          <Text style={styles.currentLocation}>{item?.time}</Text>
-          <Text style={styles.museumName}>{item?.name}</Text>
-          <Text style={styles.currentLocation}>{item?.description}</Text>
-        </View>
-      </ImageBackground>
+      />
+      <View style={styles.infoContainer}>
+        <Text style={styles.currentLocation}>{item?.time}</Text>
+        <Text style={styles.museumName}>{item?.name}</Text>
+        <Text style={styles.currentLocation}>{item?.description}</Text>
+      </View>
     </View>
   );
 };
@@ -119,6 +130,9 @@ const Plan: React.FC = () => {
 
           console.log("Data for selected category:", selectedCategory, data);
           setCategoryData(data);
+          if (data.length > 0) {
+            setCurrentItem(data[0]);
+          }
         } else {
           console.log("User document does not exist");
           setCategoryData([]);
@@ -142,6 +156,10 @@ const Plan: React.FC = () => {
     }).start();
   }, [fadeAnim]);
 
+  const renderCard = useCallback((card: any) => {
+    return <CategoryCard item={card} />;
+  }, []);
+
   return (
     <SafeAreaView style={styles.container}>
       <Animated.View style={[styles.header, { opacity: fadeAnim }]}>
@@ -162,30 +180,31 @@ const Plan: React.FC = () => {
           />
         ))}
       </View>
-      {loading && categoryData.length < 1 ? (
+      {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#FFC107" />
           <Text style={styles.loadingText}>{translate("loading")}</Text>
         </View>
-      ) : (
+      ) : categoryData.length > 0 ? (
         <Swiper
           cards={categoryData}
-          renderCard={(card) => (
-            <CategoryCard
-              category={selectedCategory}
-              item={card}
-              setCurrentItem={setCurrentItem}
-            />
-          )}
-          infinite
-          backgroundColor="transparent"
           cardVerticalMargin={0}
           cardHorizontalMargin={0}
+          renderCard={renderCard}
+          onSwiped={(cardIndex) => setCurrentItem(categoryData[cardIndex])}
+          onSwipedAll={() => console.log('onSwipedAll')}
+          cardIndex={0}
+          backgroundColor={'transparent'}
           stackSize={3}
+          infinite
+          animateCardOpacity
           containerStyle={styles.swiperContainer}
           cardStyle={styles.card}
-          onSwiped={(cardIndex) => setCurrentItem(categoryData[cardIndex])}
         />
+      ) : (
+        <View style={styles.noDataContainer}>
+          <Text style={styles.noDataText}>{translate("noDataAvailable")}</Text>
+        </View>
       )}
       <View style={styles.footer}>
         <Button
@@ -214,11 +233,11 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 0,
     width: "100%",
-    zIndex: 10, // Ensure the header is on top
+    zIndex: 10,
   },
   backButton: {
     marginLeft: 5,
-    marginTop:20,
+    marginTop: 20,
     width: 50,
     height: 50
   },
@@ -226,11 +245,11 @@ const styles = StyleSheet.create({
     position: "absolute",
     left: 10,
     top: 100,
-    zIndex: 1, // Ensure the menu is on top
+    zIndex: 1,
   },
   button: {
     marginVertical: 10,
-    padding: 10, // Reduced padding
+    padding: 10,
     backgroundColor: "rgba(0,0,0,0.5)",
     borderRadius: 25,
   },
@@ -239,24 +258,34 @@ const styles = StyleSheet.create({
     borderColor: "#FFC107",
   },
   cardContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  card: {
-    flex: 1,
     width: width,
     height: height,
-    justifyContent: "flex-end",
-    borderRadius: 20,
-    overflow: "hidden", // Ensure the image doesn't overflow
+    overflow: "hidden",
+  },
+  cardImage: {
+    width: "100%",
+    height: "100%",
+  },
+  imageContainer: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.2)',
+  },
+  card: {
+    width: width,
+    height: height,
+    overflow: "hidden",
+    backgroundColor: 'transparent',
   },
   swiperContainer: {
     flex: 1,
   },
   infoContainer: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
     padding: 20,
-    backgroundColor: "rgba(0, 0, 0, 0.5)", // Add a background for better text visibility
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   currentLocation: {
     color: "#FFF",
@@ -269,7 +298,7 @@ const styles = StyleSheet.create({
   },
   footer: {
     position: "absolute",
-    bottom: 10, // Adjusted bottom margin
+    bottom: 10,
     left: 0,
     right: 0,
     alignItems: "center",
@@ -288,6 +317,15 @@ const styles = StyleSheet.create({
     marginTop: 10,
     fontSize: 16,
     color: "#FFC107",
+  },
+  noDataContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  noDataText: {
+    fontSize: 18,
+    color: "#FFF",
   },
 });
 
