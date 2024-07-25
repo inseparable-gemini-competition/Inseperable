@@ -5,6 +5,7 @@ import { useCamera } from "@/hooks/ui/useCamera";
 import { useVoiceCommands } from "@/hooks/ui/useVoiceCommand";
 import { useDonation } from "./useDonation";
 import { useNavigationAndUser } from "../authentication/useNavigationAndUser";
+import { State } from "react-native-gesture-handler";
 
 export const useMain = () => {
   const [currentPromptType, setCurrentPromptType] = useState("");
@@ -98,12 +99,15 @@ export const useMain = () => {
   };
 
   const handleSelectTipType = async (selectedType: string) => {
-    await mutateAsync({ promptType: "tibs", inputData: {selectedType} });
+    await mutateAsync({ promptType: "tibs", inputData: { selectedType } });
   };
 
   const handleTabooSumbit = async () => {
     setTabooModalVisible(true);
-    await mutateAsync({ promptType: "taboo", inputData: {country: userData?.country} });
+    await mutateAsync({
+      promptType: "taboo",
+      inputData: { country: userData?.country },
+    });
   };
   const {
     listening,
@@ -123,9 +127,11 @@ export const useMain = () => {
 
   const { navigation, userData, handleResetAndLogout } = useNavigationAndUser();
 
-  const handleLongPress = () => {
-    if (!showCamera || !capturedImage) {
-      activateVoiceCommand();
+  const handleLongPress = (event: any) => {
+    if (event.nativeEvent.state === State.ACTIVE) {
+      if (!showCamera || !capturedImage) {
+        activateVoiceCommand();
+      }
     }
   };
 

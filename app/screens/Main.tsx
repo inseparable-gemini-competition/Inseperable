@@ -3,7 +3,6 @@ import {
   View,
   ImageBackground,
   Image,
-  TouchableWithoutFeedback,
   TouchableOpacity,
   Text,
   ActivityIndicator,
@@ -24,7 +23,7 @@ import TabooModal from "@/app/components/TabooModal"; // Import TabooModal
 import { SafeAreaView } from "react-native-safe-area-context";
 import TipsModal from "@/app/components/tipModal";
 import WhatToSayModal from "@/app/components/WhatToSayModal";
-
+import { LongPressGestureHandler } from "react-native-gesture-handler";
 
 const Main = () => {
   const {
@@ -84,7 +83,10 @@ const Main = () => {
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
-      <TouchableWithoutFeedback onLongPress={handleLongPress}>
+      <LongPressGestureHandler
+        onHandlerStateChange={handleLongPress}
+        minDurationMs={500}
+      >
         <View style={{ flex: 1 }}>
           <ImageBackground
             source={{
@@ -218,7 +220,7 @@ const Main = () => {
             onSelectTipType={handleSelectTipType}
           />
         </View>
-      </TouchableWithoutFeedback>
+      </LongPressGestureHandler>
     </SafeAreaView>
   );
 };
