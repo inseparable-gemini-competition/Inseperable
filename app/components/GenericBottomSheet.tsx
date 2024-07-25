@@ -69,6 +69,7 @@ const GenericBottomSheet: React.FC<GenericBottomSheetProps> = ({
     >
       <ContentComponent 
         contentContainerStyle={[styles.contentContainer, contentContainerStyle]}
+        keyboardShouldPersistTaps={'handled'}
       >
         {React.Children.map(children, child => 
           React.isValidElement(child)

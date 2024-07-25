@@ -438,7 +438,9 @@ const styles = StyleSheet.create({
   },
   noDataText: {
     fontSize: 18,
-    color: "#FFF",
+    color: colors.primary,
+    fontFamily: 'marcellus',
+    textAlign: 'center'
   },
   visitingIndicator: {
     position: 'absolute',

@@ -29,12 +29,7 @@ const WhatToSayModal: React.FC<WhatToSayModalProps> = ({
   return (
     <GenericBottomSheet visible={visible} onClose={onClose} enableScroll={true}>
       <Text
-        style={{
-          fontSize: 20,
-          fontFamily: "marcellus",
-          textAlign: "center",
-          marginBottom: 10,
-        }}
+        style={modalStyles.modalTitle}
       >
         {translate("whatToSay")}
       </Text>
@@ -50,6 +45,7 @@ const WhatToSayModal: React.FC<WhatToSayModalProps> = ({
             value={userSituation}
             onChangeText={setUserSituation}
             multiline
+            keyboardType="default"
             style={modalStyles.textInput}
           />
           <Button

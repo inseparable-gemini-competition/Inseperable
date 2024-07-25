@@ -115,6 +115,7 @@ const EnvironmentalImpactQuestionnaire = ({ onFinish }: Props) => {
         backgroundColor: colors.background,
         paddingVertical: 20,
       }}
+      keyboardShouldPersistTaps={"handled"}
     >
       <View>
         {!result?.impactScore && question ? (

@@ -40,7 +40,10 @@ const Questionnaire = ({ onFinish }: Props) => {
     useGenerateContent({
       promptType: "nextQuestionCountry",
       onSuccess: (nextQuestion) => {
-        const updatedQuestions = [...questions, convertJSONToObject(nextQuestion)];
+        const updatedQuestions = [
+          ...questions,
+          convertJSONToObject(nextQuestion),
+        ];
         setQuestions(updatedQuestions);
         setCurrentQuestionIndex(currentQuestionIndex + 1);
         setQuestion(updatedQuestions[currentQuestionIndex + 1]);
@@ -107,6 +110,7 @@ const Questionnaire = ({ onFinish }: Props) => {
   }
   return (
     <ScrollView
+      keyboardShouldPersistTaps={"handled"}
       contentContainerStyle={{
         justifyContent: "center",
         flexGrow: 1,
