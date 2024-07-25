@@ -6,7 +6,8 @@ import {
   Functions,
   HttpsCallable,
 } from "firebase/functions";
-import {convertMarkdownToPlainText} from '../../app/helpers/markdown'
+import { convertMarkdownToPlainText } from '../../app/helpers/markdown';
+import { Toast } from 'react-native-ui-lib'; // Importing Toast component
 
 const IMAGE_RESIZE_WIDTH = 512;
 
@@ -71,5 +72,17 @@ export const useGenerateTextMutation = (
 ): UseMutationResult<string, Error, GenerateTextInput, unknown> => {
   return useMutation<string, Error, GenerateTextInput, unknown>(generateText, {
     onSuccess: options.onSuccess,
+    onError: (error) => {
+      console.error("Mutation error:", error);
+
+      // Display a toast on error
+      Toast.show({
+        text: error.message,
+        position: 'bottom',
+        backgroundColor: 'red',
+        color: 'white',
+        duration: 3000, // Duration the toast is visible
+      });
+    },
   });
 };
