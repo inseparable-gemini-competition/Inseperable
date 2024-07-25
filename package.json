@@ -50,6 +50,7 @@
     "react-dom": "18.2.0",
     "react-native": "0.74.3",
     "react-native-deck-swiper": "^2.0.17",
+    "react-native-fast-image": "^8.6.3",
     "react-native-fetch-api": "^3.0.0",
     "react-native-fs": "^2.20.0",
     "react-native-gesture-handler": "~2.16.1",

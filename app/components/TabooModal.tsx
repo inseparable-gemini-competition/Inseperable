@@ -29,7 +29,7 @@ const TabooModal: React.FC<TabooModalProps> = ({
           {isLoading ? (
             <View style={[styles.loadingContainer, { height: 100 }]}>
               <ActivityIndicator />
-              <Text>Fetching Taboos</Text>
+              <Text style={{fontFamily: "marcellus"}}>Fetching Taboos</Text>
             </View>
           ) : (
             <>

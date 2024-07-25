@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   StyleSheet,
   View,
@@ -15,8 +15,8 @@ import FastImage from "react-native-fast-image";
 import { MaterialIcons } from "@expo/vector-icons";
 import { Button } from "react-native-ui-lib";
 import { getDoc, doc } from "firebase/firestore";
-import { db } from "../helpers/firebaseConfig"; // Ensure the correct path
-import { colors } from "@/app/theme"; // Ensure the correct path
+import { db } from "../helpers/firebaseConfig";
+import { colors } from "@/app/theme";
 import { useSignIn } from "@/hooks/authentication/useSignIn";
 import { useNavigation } from "expo-router";
 import { translate } from "@/app/helpers/i18n";
@@ -39,22 +39,20 @@ const categories = [
   { name: translate("shopping"), icon: "shopping-cart" },
 ];
 
-const MenuButton: React.FC<MenuButtonProps> = ({
+const MenuButton: React.FC<MenuButtonProps> = React.memo(({
   iconName,
   selected,
   onPress,
-}) => {
-  return (
-    <TouchableOpacity
-      style={[styles.button, selected && styles.selected]}
-      onPress={onPress}
-    >
-      <MaterialIcons name={iconName} size={20} color="white" />
-    </TouchableOpacity>
-  );
-};
+}) => (
+  <TouchableOpacity
+    style={[styles.button, selected && styles.selected]}
+    onPress={onPress}
+  >
+    <MaterialIcons name={iconName} size={20} color="white" />
+  </TouchableOpacity>
+));
 
-const CustomImage: React.FC<{ source: { uri: string }, style: any }> = ({ source, style }) => {
+const CustomImage: React.FC<{ source: { uri: string }, style: any }> = React.memo(({ source, style }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
 
   return (
@@ -72,13 +70,40 @@ const CustomImage: React.FC<{ source: { uri: string }, style: any }> = ({ source
       />
     </View>
   );
-};
+});
+
+const VisitingIndicator: React.FC<{ visible: boolean; text: string; style: any }> = React.memo(({ visible, text, style }) => {
+  if (!visible) return null;
+  return (
+    <Animated.View style={[styles.visitingIndicator, style]}>
+      <Text style={styles.visitingIndicatorText}>{text}</Text>
+    </Animated.View>
+  );
+});
 
 const CategoryCard: React.FC<{
   item: any;
-}> = ({ item }) => {
+  cardIndex: number;
+  currentIndex: number;
+  scaleAnim: Animated.Value;
+  rotateAnim: Animated.Value;
+}> = React.memo(({ item, cardIndex, currentIndex, scaleAnim, rotateAnim }) => {
+  const isCurrentCard = cardIndex === currentIndex;
+  const cardStyle = [
+    styles.cardContainer,
+    isCurrentCard ? {
+      transform: [
+        { scale: scaleAnim },
+        { rotate: rotateAnim.interpolate({
+          inputRange: [-300, 0, 300],
+          outputRange: ['-30deg', '0deg', '30deg'],
+        }) },
+      ],
+    } : {}
+  ];
+
   return (
-    <View style={styles.cardContainer}>
+    <Animated.View style={cardStyle}>
       <CustomImage
         source={{ uri: item?.photoUrl || "https://via.placeholder.com/400x600?text=No+Image" }}
         style={styles.card}
@@ -88,9 +113,9 @@ const CategoryCard: React.FC<{
         <Text style={styles.museumName}>{item?.name}</Text>
         <Text style={styles.currentLocation}>{item?.description}</Text>
       </View>
-    </View>
+    </Animated.View>
   );
-};
+});
 
 const openGoogleMaps = (latitude: number, longitude: number) => {
   const url = `https://www.google.com/maps?q=${latitude},${longitude}`;
@@ -98,15 +123,20 @@ const openGoogleMaps = (latitude: number, longitude: number) => {
 };
 
 const Plan: React.FC = () => {
-  const [selectedCategory, setSelectedCategory] = useState<string>(
-    categories[0].name
-  );
+  const [selectedCategory, setSelectedCategory] = useState<string>(categories[0].name);
   const [categoryData, setCategoryData] = useState<any[]>([]);
   const { reset } = useNavigation();
   const [loading, setLoading] = useState<boolean>(true);
   const { authenticateUser } = useSignIn();
   const [currentItem, setCurrentItem] = useState<any>();
   const [fadeAnim] = useState(new Animated.Value(0));
+  const [showVisitingIndicator, setShowVisitingIndicator] = useState(false);
+  const [showNotVisitingIndicator, setShowNotVisitingIndicator] = useState(false);
+  const [currentCardIndex, setCurrentCardIndex] = useState(0);
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const rotateAnim = useRef(new Animated.Value(0)).current;
+  const visitingOpacity = useRef(new Animated.Value(0)).current;
+  const notVisitingOpacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -124,17 +154,13 @@ const Plan: React.FC = () => {
 
         if (userDoc.exists()) {
           const userData = userDoc.data();
-
           const travelPlan = userData?.travelPlan || {};
           const data = travelPlan[selectedCategory] || [];
-
-          console.log("Data for selected category:", selectedCategory, data);
           setCategoryData(data);
           if (data.length > 0) {
             setCurrentItem(data[0]);
           }
         } else {
-          console.log("User document does not exist");
           setCategoryData([]);
         }
       } catch (error) {
@@ -156,9 +182,76 @@ const Plan: React.FC = () => {
     }).start();
   }, [fadeAnim]);
 
-  const renderCard = useCallback((card: any) => {
-    return <CategoryCard item={card} />;
+  const handleSwiping = useCallback((x: number) => {
+    rotateAnim.setValue(x);
+    if (x > 50) {
+      setShowVisitingIndicator(true);
+      setShowNotVisitingIndicator(false);
+      Animated.spring(visitingOpacity, {
+        toValue: 1,
+        friction: 6,
+        useNativeDriver: true,
+      }).start();
+    } else if (x < -50) {
+      setShowVisitingIndicator(false);
+      setShowNotVisitingIndicator(true);
+      Animated.spring(notVisitingOpacity, {
+        toValue: 1,
+        friction: 6,
+        useNativeDriver: true,
+      }).start();
+    } else {
+      resetIndicators();
+    }
   }, []);
+
+  const resetIndicators = useCallback(() => {
+    setShowVisitingIndicator(false);
+    setShowNotVisitingIndicator(false);
+    visitingOpacity.setValue(0);
+    notVisitingOpacity.setValue(0);
+  }, []);
+
+  const resetCardAnimation = useCallback(() => {
+    Animated.parallel([
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        friction: 5,
+        useNativeDriver: true,
+      }),
+      Animated.spring(rotateAnim, {
+        toValue: 0,
+        friction: 5,
+        useNativeDriver: true,
+      }),
+    ]).start();
+    
+    resetIndicators();
+  }, [resetIndicators]);
+
+  const handleSwipeRelease = useCallback(() => {
+    resetCardAnimation();
+  }, [resetCardAnimation]);
+
+  const handleSwipedLeft = useCallback(() => {
+    resetIndicators();
+  }, [resetIndicators]);
+
+  const handleSwipedRight = useCallback(() => {
+    resetIndicators();
+  }, [resetIndicators]);
+
+  const renderCard = useCallback((card: any, cardIndex: number) => {
+    return (
+      <CategoryCard
+        item={card}
+        cardIndex={cardIndex}
+        currentIndex={currentCardIndex}
+        scaleAnim={scaleAnim}
+        rotateAnim={rotateAnim}
+      />
+    );
+  }, [currentCardIndex, scaleAnim, rotateAnim]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -186,21 +279,41 @@ const Plan: React.FC = () => {
           <Text style={styles.loadingText}>{translate("loading")}</Text>
         </View>
       ) : categoryData.length > 0 ? (
-        <Swiper
-          cards={categoryData}
-          cardVerticalMargin={0}
-          cardHorizontalMargin={0}
-          renderCard={renderCard}
-          onSwiped={(cardIndex) => setCurrentItem(categoryData[cardIndex])}
-          onSwipedAll={() => console.log('onSwipedAll')}
-          cardIndex={0}
-          backgroundColor={'transparent'}
-          stackSize={3}
-          infinite
-          animateCardOpacity
-          containerStyle={styles.swiperContainer}
-          cardStyle={styles.card}
-        />
+        <View style={styles.swiperContainer}>
+          <Swiper
+            cards={categoryData}
+            cardVerticalMargin={0}
+            cardHorizontalMargin={0}
+            renderCard={renderCard}
+            onSwiped={(cardIndex) => {
+              setCurrentItem(categoryData[cardIndex]);
+              setCurrentCardIndex(cardIndex);
+              resetCardAnimation();
+            }}
+            onSwipedAll={() => console.log('onSwipedAll')}
+            onSwiping={handleSwiping}
+            onSwipedLeft={handleSwipedLeft}
+            onSwipedRight={handleSwipedRight}
+            onTapCard={handleSwipeRelease}
+            cardIndex={0}
+            backgroundColor={'transparent'}
+            stackSize={3}
+            infinite
+            animateCardOpacity
+            containerStyle={styles.swiperContainer}
+            cardStyle={styles.card}
+          />
+          <VisitingIndicator
+            visible={showVisitingIndicator}
+            text="Visiting"
+            style={{ opacity: visitingOpacity, right: 20 }}
+          />
+          <VisitingIndicator
+            visible={showNotVisitingIndicator}
+            text="Not Visiting"
+            style={{ opacity: notVisitingOpacity, left: 20 }}
+          />
+        </View>
       ) : (
         <View style={styles.noDataContainer}>
           <Text style={styles.noDataText}>{translate("noDataAvailable")}</Text>
@@ -219,7 +332,7 @@ const Plan: React.FC = () => {
       </View>
     </SafeAreaView>
   );
-};
+}; 
 
 const styles = StyleSheet.create({
   container: {
@@ -326,6 +439,18 @@ const styles = StyleSheet.create({
   noDataText: {
     fontSize: 18,
     color: "#FFF",
+  },
+  visitingIndicator: {
+    position: 'absolute',
+    top: 50,
+    padding: 10,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    borderRadius: 5,
+  },
+  visitingIndicatorText: {
+    color: '#FFF',
+    fontSize: 24,
+    fontWeight: 'bold',
   },
 });
 

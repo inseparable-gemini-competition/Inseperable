@@ -1,3 +1,5 @@
+import { noop } from "react-query/types/core/utils";
+
 // translations.js
 export const translations = {
     en: {
@@ -41,7 +43,8 @@ export const translations = {
       environmentalImpact: "Env Impact",
       whatToSay: "What to say?",
       tabooInfo: "Taboo",
-      enterSituation: "Enter Situation"
+      enterSituation: "Enter Situation",
+      noDataAvailable: "Plan Constructing is in Progress, kindly check in seconds :D",
 
     },
     // Other languages can be added here
