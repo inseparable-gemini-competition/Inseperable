@@ -45,6 +45,11 @@ export const translations = {
       tabooInfo: "Taboo",
       enterSituation: "Enter Situation",
       noDataAvailable: "Plan Constructing is in Progress, kindly check in seconds :D",
+      selectTipType: "Select Tip Type",
+      fetchingTips: "Fetching Tips",
+      fetchingResponse: "Fetching Response",
+      fetchingDonationInfo: "Fetching Donation Info",
+      fetchingTaboos: "Fetching Taboos"
 
     },
     // Other languages can be added here

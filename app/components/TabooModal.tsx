@@ -1,8 +1,8 @@
-import React, { useEffect } from "react";
-import { View, Text, Modal, ActivityIndicator } from "react-native";
-import { Button } from "react-native-ui-lib";
+import React from "react";
+import { View, Text, ActivityIndicator } from "react-native";
 import { modalStyles, styles } from "@/app/screens/MainStyles";
 import { translate } from "@/app/helpers/i18n";
+import GenericBottomSheet from "./GenericBottomSheet"; // Adjust the import path as needed
 
 interface TabooModalProps {
   visible: boolean;
@@ -18,37 +18,23 @@ const TabooModal: React.FC<TabooModalProps> = ({
   onClose,
 }) => {
   return (
-    <Modal
-      visible={visible}
-      transparent={true}
-      animationType="slide"
-      onRequestClose={onClose}
-    >
-      <View style={modalStyles.modalContainer}>
-        <View style={modalStyles.modalContent}>
-          {isLoading ? (
-            <View style={[styles.loadingContainer, { height: 100 }]}>
-              <ActivityIndicator />
-              <Text style={{fontFamily: "marcellus"}}>Fetching Taboos</Text>
-            </View>
-          ) : (
-            <>
-              <Text style={modalStyles.modalTitle}>
-                {translate("tabooInfo")}
-              </Text>
-              <Text style={modalStyles.modalText}>
-                {result}
-              </Text>
-              <Button
-                style={modalStyles.modalCloseButton}
-                onPress={onClose}
-                label={translate("close")}
-              />
-            </>
-          )}
-        </View>
-      </View>
-    </Modal>
+    <GenericBottomSheet visible={visible} onClose={onClose} enableScroll={true}>
+        {isLoading ? (
+          <View style={[styles.loadingContainer, { height: 100 }]}>
+            <ActivityIndicator />
+            <Text style={styles.loadingText}>{translate("fetchingTaboos")}</Text>
+          </View>
+        ) : (
+          <>
+            <Text style={modalStyles.modalTitle}>
+              {translate("tabooInfo")}
+            </Text>
+            <Text style={{textAlign: 'center'}}>
+              {result}
+            </Text>
+          </>
+        )}
+    </GenericBottomSheet>
   );
 };
 

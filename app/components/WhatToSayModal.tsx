@@ -1,17 +1,11 @@
-import React, { useRef } from "react";
-import {
-  View,
-  Text,
-  Modal,
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  TextInput,
-  ScrollView,
-  Dimensions,
-} from "react-native";
+import React from "react";
+import { View, Text, ActivityIndicator } from "react-native";
 import { Button } from "react-native-ui-lib";
-import { modalStyles, styles } from "@/app/screens/MainStyles";
+import { styles as globalStyles, modalStyles } from "@/app/screens/MainStyles";
 import { translate } from "@/app/helpers/i18n";
+import GenericBottomSheet, {
+  GenericBottomSheetTextInput,
+} from "./GenericBottomSheet"; // Adjust the import path as needed
 
 interface WhatToSayModalProps {
   visible: boolean;
@@ -23,9 +17,6 @@ interface WhatToSayModalProps {
   setUserSituation: (situation: string) => void;
 }
 
-const { height: screenHeight } = Dimensions.get("window");
-const modalMaxHeight = (2 / 3) * screenHeight;
-
 const WhatToSayModal: React.FC<WhatToSayModalProps> = ({
   visible,
   isLoading,
@@ -35,57 +26,45 @@ const WhatToSayModal: React.FC<WhatToSayModalProps> = ({
   userSituation,
   setUserSituation,
 }) => {
-  const textRef = useRef<TextInput>(null);
   return (
-    <Modal
-      visible={visible}
-      transparent={true}
-      animationType="slide"
-      onRequestClose={()=>{
-        onClose();
-        setUserSituation("");
-        textRef.current?.clear();
-      }}
-    >
-      <KeyboardAvoidingView
-        behavior="padding"
-        style={modalStyles.modalContainer}
+    <GenericBottomSheet visible={visible} onClose={onClose} enableScroll={true}>
+      <Text
+        style={{
+          fontSize: 20,
+          fontFamily: "marcellus",
+          textAlign: "center",
+          marginBottom: 10,
+        }}
       >
-        <View style={[modalStyles.modalContent, { maxHeight: modalMaxHeight }]}>
-          {isLoading ? (
-            <View style={[styles.loadingContainer, { height: 100 }]}>
-              <ActivityIndicator />
-              <Text>{translate("fetchingResponse")}</Text>
-            </View>
-          ) : (
-            <ScrollView contentContainerStyle={modalStyles.scrollViewContent}>
-              <Text style={modalStyles.modalTitle}>
-                {translate("whatToSay")}
-              </Text>
-              <TextInput
-                style={modalStyles.textInput}
-                placeholder={translate("enterSituation")}
-                value={userSituation}
-                onChangeText={setUserSituation}
-                ref={textRef}
-                multiline
-              />
-              <Button
-                style={modalStyles.modalButton}
-                onPress={onSubmit}
-                label={translate("submit")}
-              />
-              {result && <Text style={modalStyles.modalText}>{result}</Text>}
-              <Button
-                style={modalStyles.modalCloseButton}
-                onPress={onClose}
-                label={translate("close")}
-              />
-            </ScrollView>
-          )}
+        {translate("whatToSay")}
+      </Text>
+      {isLoading ? (
+        <View style={[globalStyles.loadingContainer, { height: 100 }]}>
+          <ActivityIndicator />
+          <Text style={{textAlign: 'center', fontFamily: 'marcellus'}}>{translate("fetchingResponse")}</Text>
         </View>
-      </KeyboardAvoidingView>
-    </Modal>
+      ) : (
+        <>
+          <GenericBottomSheetTextInput
+            placeholder={translate("enterSituation")}
+            value={userSituation}
+            onChangeText={setUserSituation}
+            multiline
+            style={modalStyles.textInput}
+          />
+          <Button
+            style={{ marginVertical: 8, maxWidth: '80%', alignSelf: 'center' }}
+            onPress={onSubmit}
+            label={translate("submit")}
+          />
+          {result && (
+            <Text style={{ textAlign: "center", fontFamily: "marcellus" }}>
+              {result}
+            </Text>
+          )}    
+        </>
+      )}
+    </GenericBottomSheet>
   );
 };
 
