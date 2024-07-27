@@ -3,7 +3,6 @@ export * from './useCountDown';
 export * from './useDonation';
 export * from './useTextFeedback';
 export * from './useGoogleImageSearch';
-export * from './useImageCapture';
 export * from './useModals';
 export * from './useSituationAndTaboo';
 export * from './useTextToSpeech';
