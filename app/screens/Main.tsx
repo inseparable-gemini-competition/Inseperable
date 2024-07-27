@@ -1,73 +1,130 @@
 import React from "react";
-import {
-  View,
-  ImageBackground,
-  Image,
-  TouchableOpacity,
-  Text,
-  ActivityIndicator,
-} from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import Animated from "react-native-reanimated";
-import { useMain } from "@/hooks/ui/useMain";
-import { Button, Dialog, PanningProvider } from "react-native-ui-lib";
+import { View } from "react-native";
+import { LongPressGestureHandler, State } from "react-native-gesture-handler";
+import CategoryScreen from "./CategoryScreen";
+import { useModals } from "@/hooks/ui/useModals";
+import { useTipSelection } from "@/hooks/ui/useTipsSelection";
+import { useFeedback } from "@/hooks/ui/useFeedback";
+import { useImageCapture } from "@/hooks/ui/useImageCapture";
+import { useNavigationAndUser } from "@/hooks/authentication/useNavigationAndUser";
+import { useSituationAndTaboo } from "@/hooks/ui/useSituationAndTaboo";
+import { useDonation } from "@/hooks/ui/useDonation";
+import { useVoiceActivation } from "@/hooks/ui/useVoiceActivation";
+import { Button, Text } from "react-native-ui-lib";
 import { translate } from "@/app/helpers/i18n";
-import { styles } from "./MainStyles";
-import { categories } from "@/app/helpers/categories";
-import CameraView from "@/app/components/CameraView";
+import { styles } from "@/app/screens/MainStyles";
+import MainLayout from "@/app/components/MainLayout";
+import CameraScreen from "@/app/screens/CamerScreen";
 import VoiceRecognitionModal from "@/app/components/VoiceRecognitionModal";
 import DonationModal from "@/app/components/DonationModal";
-import CategoryList from "@/app/components/CategoryList";
-import HeaderDescription from "@/app/components/HeaderDescription";
-import TabooModal from "@/app/components/TabooModal"; // Import TabooModal
-import { SafeAreaView } from "react-native-safe-area-context";
-import TipsModal from "@/app/components/tipModal";
 import WhatToSayModal from "@/app/components/WhatToSayModal";
-import { LongPressGestureHandler } from "react-native-gesture-handler";
+import TabooModal from "@/app/components/TabooModal";
+import TipsModal from "@/app/components/tipModal";
+import VoiceActivationButton from "@/app/components/VoiceActivationModal";
+import { categories } from "@/app/helpers/categories";
 
 const Main = () => {
   const {
-    showCamera,
-    voiceCountdown,
-    capturedImage,
-    listening,
-    setCapturedImage,
-    countdown,
-    cameraRef,
-    handleManualCapture,
-    animatedStyle,
-    cameraAnimatedStyle,
-    handleCommand,
-    handleCancelCountdown,
-    isLoadingFromGemini,
-    feedbackText,
-    handleCleanup,
-    stopSpeech,
-    onVoiceRecognitionClosed,
-    facing,
-    isDonationLoading,
-    donationResult,
-    permission,
-    requestPermission,
-    donationModalVisible,
-    setDonationModalVisible,
-    command,
-    handleLongPress,
-    dismissFeedback,
-    userData,
-    handleResetAndLogout,
     tabooModalVisible,
     setTabooModalVisible,
     whatToSayModalVisible,
     setWhatToSayModalVisible,
-    handleSituationSubmit,
-    userSituation,
-    setUserSituation,
-    resetGeneratedText,
     tipsModalVisible,
     setTipsModalVisible,
-    handleSelectTipType,
-  } = useMain();
+  } = useModals();
+
+  const { selectedTipType, handleSelectTipType } = useTipSelection();
+
+  const {
+    currentPromptType,
+    setCurrentPromptType,
+    mutateAsync,
+    isLoadingFromGemini,
+    feedbackText,
+    reset: resetGeneratedText,
+    stop: stopSpeech,
+    dismissFeedback,
+  } = useFeedback();
+
+  const {
+    showCamera,
+    capturedImage,
+    cameraRef,
+    handleManualCapture,
+    handleCancelCountdown,
+    handleShowCamera,
+    handleCleanup,
+    animatedStyle,
+    cameraAnimatedStyle,
+    permission,
+    requestPermission,
+    setCapturedImage,
+    facing,
+    countdown,
+  } = useImageCapture(mutateAsync, currentPromptType);
+
+  const { navigation, userData, handleResetAndLogout } = useNavigationAndUser();
+
+  const {
+    userSituation,
+    setUserSituation,
+    handleSituationSubmit,
+    handleTabooSubmit,
+  } = useSituationAndTaboo(mutateAsync, userData, setTabooModalVisible);
+
+  const {
+    donationModalVisible,
+    setDonationModalVisible,
+    isDonationLoading,
+    donationResult,
+    handleDonate,
+  } = useDonation();
+
+  const handleCommand = async (command: string) => {
+    onVoiceRecognitionClosed();
+    setCurrentPromptType(command);
+    switch (command) {
+      case "read":
+      case "identify":
+      case "price":
+        handleShowCamera({ autoCapture: true });
+        break;
+      case "donate":
+        await handleDonate();
+        break;
+      case "taboo":
+        handleTabooSubmit();
+        break;
+      case "whatToSay":
+        setWhatToSayModalVisible(true);
+        break;
+      case "plan":
+        navigation.navigate("Plan");
+        break;
+      case "shop":
+        navigation.navigate("Shopping");
+        break;
+      case "impact":
+        navigation.navigate("EnvImpact");
+        break;
+      case "tips":
+        setTipsModalVisible(true);
+        break;
+      default:
+        console.log("Unknown command:", command);
+    }
+  };
+
+
+
+  const {
+    listening,
+    voiceCountdown,
+    onVoiceRecognitionClosed,
+    command,
+    handleLongPress,
+  } = useVoiceActivation(handleCommand, showCamera, capturedImage);
+
 
   if (showCamera && !permission?.granted) {
     return (
@@ -81,100 +138,55 @@ const Main = () => {
     );
   }
 
+  
+
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <MainLayout
+      onResetPress={handleResetAndLogout}
+      backgroundImage={userData?.mostFamousLandmark || ""}
+    >
       <LongPressGestureHandler
         onHandlerStateChange={handleLongPress}
         minDurationMs={500}
       >
         <View style={{ flex: 1 }}>
-          <ImageBackground
-            source={{
-              uri: userData?.mostFamousLandmark,
-            }}
-            style={styles.background}
-          >
-            {!(showCamera || capturedImage) && (
-              <HeaderDescription
-                country={userData?.country}
-                description={userData?.description}
-              />
-            )}
-            <View style={styles.container}>
-              {(showCamera || capturedImage) && (
-                <View style={styles.header}>
-                  <TouchableOpacity
-                    onPress={() => {
-                      if (showCamera) {
-                        handleCleanup(stopSpeech);
-                      } else {
-                        dismissFeedback();
-                      }
-                    }}
-                  >
-                    <Ionicons name="arrow-back" size={24} color="black" />
-                  </TouchableOpacity>
-                </View>
-              )}
-              {showCamera ? (
-                <Animated.View style={[{ flex: 1 }, cameraAnimatedStyle]}>
-                  <CameraView
-                    facing={facing}
-                    countdown={countdown}
-                    cameraRef={cameraRef}
-                    onManualCapture={handleManualCapture}
-                    onCancelCountdown={handleCancelCountdown}
-                  />
-                </Animated.View>
-              ) : capturedImage ? (
-                <View style={{ flex: 1 }}>
-                  <Image source={{ uri: capturedImage }} style={{ flex: 1 }} />
-                  {isLoadingFromGemini && (
-                    <TouchableOpacity
-                      style={styles.bottomOverlay}
-                      onPress={dismissFeedback}
-                    >
-                      <View style={styles.loadingContainer}>
-                        <ActivityIndicator size="large" color="#ffffff" />
-                        <Text style={styles.loadingText}>
-                          {translate("analyzing")}
-                        </Text>
-                      </View>
-                    </TouchableOpacity>
-                  )}
-                  <Dialog
-                    visible={!!feedbackText}
-                    bottom
-                    onDismiss={() => {
-                      setCapturedImage(null);
-                      stopSpeech();
-                    }}
-                    panDirection={PanningProvider.Directions.DOWN}
-                  >
-                    <Text style={styles.feedbackText}>{feedbackText}</Text>
-                  </Dialog>
-                </View>
-              ) : (
-                <Animated.View style={[styles.content, animatedStyle]}>
-                  <CategoryList
-                    categories={categories}
-                    onCategoryPress={(category) => handleCommand(category)}
-                    country={userData?.country}
-                    description={userData?.description}
-                  />
-                </Animated.View>
-              )}
-            </View>
-            <TouchableOpacity
-              style={styles.resetButton}
-              onPress={handleResetAndLogout}
-            >
-              <Text style={styles.resetButtonText}>{translate("survey")}</Text>
-            </TouchableOpacity>
-          </ImageBackground>
+          {showCamera || capturedImage ? (
+            <CameraScreen
+              showCamera={showCamera}
+              capturedImage={capturedImage}
+              cameraRef={cameraRef}
+              onManualCapture={handleManualCapture}
+              onCancelCountdown={handleCancelCountdown}
+              onBackPress={() => handleCleanup(stopSpeech)}
+              cameraAnimatedStyle={cameraAnimatedStyle}
+              facing={facing}
+              countdown={countdown || 0}
+              isLoadingFromGemini={isLoadingFromGemini}
+              feedbackText={feedbackText || ""}
+              onDismissFeedback={dismissFeedback}
+              onCloseFeedback={() => {
+                setCapturedImage(null);
+                stopSpeech();
+              }}
+            />
+          ) : (
+            <CategoryScreen
+              categories={categories as any}
+              onCategoryPress={(category) => handleCommand(category)}
+              country={userData?.country || ""}
+              description={userData?.description || ""}
+              animatedStyle={animatedStyle}
+            />
+          )}
+          <VoiceActivationButton
+            onPress={() =>
+              handleLongPress({ nativeEvent: { state: State.ACTIVE } })
+            }
+            isListening={listening}
+          />
           <VoiceRecognitionModal
             visible={listening && voiceCountdown !== null}
-            countdown={voiceCountdown}
+            countdown={voiceCountdown || 0}
             command={command}
             onCancel={onVoiceRecognitionClosed}
           />
@@ -183,10 +195,10 @@ const Main = () => {
             isLoading={isDonationLoading}
             result={donationResult}
             onClose={() => setDonationModalVisible(false)}
-            userLanguage={userData?.baseLanguage}
+            userLanguage={userData?.baseLanguage || ""}
           />
           <TabooModal
-            visible={tabooModalVisible} // TabooModal visibility
+            visible={tabooModalVisible}
             isLoading={isLoadingFromGemini}
             result={feedbackText || ""}
             onClose={() => {
@@ -221,7 +233,7 @@ const Main = () => {
           />
         </View>
       </LongPressGestureHandler>
-    </SafeAreaView>
+    </MainLayout>
   );
 };
 
