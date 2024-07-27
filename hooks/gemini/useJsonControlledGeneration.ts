@@ -1,8 +1,6 @@
 import { useMutation } from "react-query";
 import { httpsCallable } from "firebase/functions";
 import { functions } from "@/app/helpers/firebaseConfig";
-import { speak } from "expo-speech";
-import { useTextToSpeech } from "@/hooks/ui";
 
 export const useJsonControlledGeneration = ({
   promptType,
@@ -13,6 +11,7 @@ export const useJsonControlledGeneration = ({
   inputData?: object;
   onSuccess?: () => void;
 }) => {
+  
   const generateJsonContent = httpsCallable(functions, "generateJsonContent");
 
   const fetchJsonControlledGeneration = async () => {
