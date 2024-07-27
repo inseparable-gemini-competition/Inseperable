@@ -20,7 +20,7 @@ interface CommandHandlerDependencies {
     setWhatToSayModalVisible: (visible: boolean) => void;
     setTipsModalVisible: (visible: boolean) => void;
   };
-  feedback: {
+  textFeedBack: {
     setCurrentPromptType: (type: string) => void;
   };
 }
@@ -48,7 +48,7 @@ export const useCommandHandler = (deps: CommandHandlerDependencies) => {
       const lowerCommand = command.toLowerCase() as CommandType;
       const handler = commandMap[lowerCommand];
       if (handler) {
-        deps.feedback.setCurrentPromptType(lowerCommand);
+        deps.textFeedBack.setCurrentPromptType(lowerCommand);
         await handler();
         console.log(`Command '${lowerCommand}' executed successfully`);
       } else {
@@ -57,7 +57,7 @@ export const useCommandHandler = (deps: CommandHandlerDependencies) => {
     } catch (error) {
       console.error(`Error executing command '${command}':`, error);
     }
-  }, [commandMap, deps.feedback]);
+  }, [commandMap, deps.textFeedBack]);
 
   const voiceActivation = useVoiceActivation(
     handleCommand,

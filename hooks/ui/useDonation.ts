@@ -1,11 +1,15 @@
 import { useState } from "react";
 import { useJsonControlledGeneration } from "@/hooks/gemini/useJsonControlledGeneration";
 import { useNavigationAndUser } from "@/hooks/authentication/useNavigationAndUser";
+import { useTextToSpeech } from "@/hooks/ui/useTextToSpeech";
 
 export const useDonation = () => {
   const [donationModalVisible, setDonationModalVisible] = useState(false);
 
   const { userData } = useNavigationAndUser();
+
+  const { speak, stop } = useTextToSpeech();
+  
   const {
     generate,
     isLoading: isDonationLoading,
@@ -15,6 +19,9 @@ export const useDonation = () => {
     inputData: {
       country: userData?.country,
     },
+    onSuccess: ()=>{
+       speak(donationResult?.description)
+    }
   });
 
   const handleDonate = async () => {
@@ -32,5 +39,6 @@ export const useDonation = () => {
     isDonationLoading,
     donationResult,
     handleDonate,
+    stop,
   };
 };

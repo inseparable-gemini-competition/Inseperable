@@ -11,7 +11,7 @@ import { ModalFactory } from "@/app/components/ModalFactory";
 import { categories } from "@/app/helpers/categories";
 import CategoryScreen from "@/app/screens/CategoryScreen";
 import { useModals } from "@/hooks/ui/useModals";
-import { useFeedback } from "@/hooks/ui/useFeedback";
+import { useTextFeedback } from "@/hooks/ui/useTextFeedback";
 import { useImageCapture } from "@/hooks/ui/useImageCapture";
 import { useNavigationAndUser } from "@/hooks/authentication/useNavigationAndUser";
 import { useSituationAndTaboo } from "@/hooks/ui/useSituationAndTaboo";
@@ -22,7 +22,7 @@ import { useVoiceActivation } from "@/hooks/ui/useVoiceActivation";
 interface MainPresentationProps {
   modals: ReturnType<typeof useModals>;
   tipSelection: ReturnType<typeof useTipSelection>;
-  feedback: ReturnType<typeof useFeedback>;
+  textFeedBack: ReturnType<typeof useTextFeedback>;
   imageCapture: ReturnType<typeof useImageCapture>;
   navigationAndUser: ReturnType<typeof useNavigationAndUser>;
   situationAndTaboo: ReturnType<typeof useSituationAndTaboo>;
@@ -34,7 +34,7 @@ interface MainPresentationProps {
 const MainPresentation: React.FC<MainPresentationProps> = ({
   modals,
   tipSelection,
-  feedback,
+  textFeedBack,
   imageCapture,
   navigationAndUser,
   situationAndTaboo,
@@ -71,16 +71,16 @@ const MainPresentation: React.FC<MainPresentationProps> = ({
               cameraRef={imageCapture.cameraRef}
               onManualCapture={imageCapture.handleManualCapture}
               onCancelCountdown={imageCapture.handleCancelCountdown}
-              onBackPress={() => imageCapture.handleCleanup(feedback.stop)}
+              onBackPress={() => imageCapture.handleCleanup(textFeedBack.stop)}
               cameraAnimatedStyle={imageCapture.cameraAnimatedStyle}
               facing={imageCapture.facing}
               countdown={imageCapture.countdown || 0}
-              isLoadingFromGemini={feedback.isLoadingFromGemini}
-              feedbackText={feedback.feedbackText || ""}
-              onDismissFeedback={feedback.dismissFeedback}
+              isLoadingFromGemini={textFeedBack.isLoadingFromGemini}
+              feedbackText={textFeedBack.feedbackText || ""}
+              onDismissFeedback={textFeedBack.dismissFeedback}
               onCloseFeedback={() => {
                 imageCapture.setCapturedImage(null);
-                feedback.stop();
+                textFeedBack.stop();
               }}
             />
           ) : (
@@ -103,7 +103,7 @@ const MainPresentation: React.FC<MainPresentationProps> = ({
           <ModalFactory
             modals={modals}
             donation={donation}
-            feedback={feedback}
+            feedback={textFeedBack}
             situationAndTaboo={situationAndTaboo}
             tipSelection={tipSelection}
             voiceActivation={voiceActivation}

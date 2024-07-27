@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useGenerateTextMutation } from "@/hooks/gemini/useGenerateText";
 import { useTextToSpeech } from "@/hooks/ui/useTextToSpeech";
 
-export const useFeedback = () => {
+export const useTextFeedback = () => {
   const [currentPromptType, setCurrentPromptType] = useState<string>("");
   const { speak, stop } = useTextToSpeech();
 
