@@ -35,7 +35,7 @@ const MainContainer: React.FC = () => {
     donation,
     situationAndTaboo,
     modals,
-    textFeedBack: textFeedBack,
+    textFeedBack,
   });
 
   return (
