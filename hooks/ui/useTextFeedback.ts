@@ -22,6 +22,7 @@ export const useTextFeedback = () => {
 
   const dismissFeedback = () => {
     stop();
+    reset();
   };
 
   return {
