@@ -4,6 +4,7 @@ export const useModals = () => {
   const [tabooModalVisible, setTabooModalVisible] = useState(false);
   const [whatToSayModalVisible, setWhatToSayModalVisible] = useState(false);
   const [tipsModalVisible, setTipsModalVisible] = useState(false);
+  
 
   return {
     tabooModalVisible,

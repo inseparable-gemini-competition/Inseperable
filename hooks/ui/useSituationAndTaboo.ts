@@ -1,16 +1,13 @@
 // hooks/useSituationAndTaboo.ts
+import { useNavigationAndUser } from "@/hooks/authentication";
 import { useState } from "react";
-
-interface UserData {
-  country: string;
-}
 
 export const useSituationAndTaboo = (
   mutateAsync: any,
-  userData: UserData,
   setTabooModalVisible: (visible: boolean) => void
 ) => {
   const [userSituation, setUserSituation] = useState<string>("");
+  const { userData } = useNavigationAndUser();
 
   const handleSituationSubmit = async () => {
     await mutateAsync({

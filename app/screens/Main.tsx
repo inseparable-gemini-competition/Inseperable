@@ -22,7 +22,6 @@ const MainContainer: React.FC = () => {
   const navigationAndUser = useNavigationAndUser();
   const situationAndTaboo = useSituationAndTaboo(
     feedback.mutateAsync,
-    navigationAndUser.userData,
     modals.setTabooModalVisible
   );
   const donation = useDonation();
@@ -32,7 +31,6 @@ const MainContainer: React.FC = () => {
     donation,
     situationAndTaboo,
     modals,
-    navigation: navigationAndUser.navigation,
     feedback,
   });
 

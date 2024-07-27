@@ -4,10 +4,9 @@ import React from "react";
 import {
   createCommandMap,
   createHandleCommand,
-  CommandType,
 } from "@/app/helpers/handlersCommand";
-import { NavigationProp } from "@react-navigation/native"; // Adjust import as needed
 import { useVoiceActivation } from "@/hooks/ui/useVoiceActivation";
+import { useNavigation } from "expo-router";
 
 type CommandHandlerDependencies = {
   imageCapture: {
@@ -21,21 +20,14 @@ type CommandHandlerDependencies = {
     setWhatToSayModalVisible: (visible: boolean) => void;
     setTipsModalVisible: (visible: boolean) => void;
   };
-  navigation: NavigationProp<any>;
   feedback: {
     setCurrentPromptType: (type: string) => void;
   };
 };
 
 export const useCommandHandler = (deps: CommandHandlerDependencies) => {
-  const {
-    imageCapture,
-    donation,
-    situationAndTaboo,
-    modals,
-    navigation,
-    feedback,
-  } = deps;
+  const { imageCapture, donation, situationAndTaboo, modals, feedback } = deps;
+  const navigation = useNavigation();
 
   const commandMap = React.useMemo(
     () =>
