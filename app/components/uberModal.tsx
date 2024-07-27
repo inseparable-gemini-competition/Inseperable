@@ -49,7 +49,7 @@ const UberModal: React.FC<WhatToSayModalProps> = ({
           <Button
             style={{ marginVertical: 8, maxWidth: "80%", alignSelf: "center" }}
             onPress={onSubmit}
-            label={translate("submit")}
+            label={isLoading ?  translate('loading'): translate("submit")}
           />
         </>
       )}
