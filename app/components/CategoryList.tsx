@@ -3,11 +3,11 @@ import React, { useState, memo } from "react";
 import { FlatList, View, Text, TouchableOpacity } from "react-native";
 import { Category } from "@/app/helpers/categories";
 import CategoryCard from "@/app/components/CategoryCard";
-import { translate } from "@/app/helpers/i18n";
 import { styles } from "@/app/screens/MainStyles";
+import { useTranslations } from "@/hooks/ui/useTranslations";
 
 interface CategoryListProps {
-  categories: Category[];
+  categories: (translate: Function) => Category[];
   onCategoryPress: (category: string) => void;
   country: string;
   description: string;
@@ -19,6 +19,7 @@ const CategoryList: React.FC<CategoryListProps> = ({
   description,
 }) => {
   const [showFullDescription, setShowFullDescription] = useState(false);
+  const { translate } = useTranslations();
 
   const renderHeader = () => (
     <View style={styles.headerContainer}>
@@ -57,7 +58,7 @@ const CategoryList: React.FC<CategoryListProps> = ({
 
   return (
     <FlatList
-      data={categories}
+      data={categories(translate)}
       showsVerticalScrollIndicator={false}
       ListHeaderComponent={renderHeader}
       renderItem={({ item }) => <MemoizedCategoryItem item={item} />}

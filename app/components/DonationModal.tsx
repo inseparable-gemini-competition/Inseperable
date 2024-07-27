@@ -4,6 +4,7 @@ import { Button } from 'react-native-ui-lib';
 import { styles, modalStyles } from '@/app/screens/MainStyles';
 import { translate } from '@/app/helpers/i18n';
 import GenericBottomSheet from './GenericBottomSheet'; // Adjust the import path as needed
+import { useTranslations } from '@/hooks/ui/useTranslations';
 
 interface DonationModalProps {
   visible: boolean;
@@ -24,6 +25,7 @@ const DonationModal: React.FC<DonationModalProps> = ({
   onClose,
   userLanguage,
 }) => {
+  const { translate } = useTranslations();
   const handleOpenLink = () => {
     if (result?.websiteLink) {
       const url = `https://translate.google.com/translate?sl=auto&tl=${userLanguage}&u=${encodeURIComponent(result.websiteLink)}`;

@@ -16,10 +16,16 @@ import {
 import { useNavigation, NavigationProp } from "@react-navigation/native";
 import { db } from "@/app/helpers/firebaseConfig";
 import { Ionicons } from "@expo/vector-icons";
-import Animated, { Easing, useSharedValue, useAnimatedStyle, withRepeat, withTiming } from 'react-native-reanimated';
+import Animated, {
+  Easing,
+  useSharedValue,
+  useAnimatedStyle,
+  withRepeat,
+  withTiming,
+} from "react-native-reanimated";
 import { colors } from "@/app/theme";
-import { translate } from "@/app/helpers/i18n";
-import styles from './HandMadeStyles';
+import styles from "./HandMadeStyles";
+import { useTranslations } from "@/hooks/ui/useTranslations";
 
 interface HandmadeItem {
   id: string;
@@ -35,7 +41,9 @@ interface FetchResponse {
   lastVisible: QueryDocumentSnapshot<DocumentData> | null;
 }
 
-const fetchHandmadeItems = async ({ pageParam = undefined }): Promise<FetchResponse> => {
+const fetchHandmadeItems = async ({
+  pageParam = undefined,
+}): Promise<FetchResponse> => {
   const itemsQuery = query(
     collection(db, "products"),
     orderBy("createdAt"),
@@ -74,9 +82,13 @@ const HandMade: React.FC = () => {
       getNextPageParam: (lastPage) => lastPage.lastVisible,
       staleTime: 1000,
     });
+  const { translate } = useTranslations();
 
   const purchaseItem = (item: HandmadeItem) => {
-    navigation.navigate("Chat", { recipientId: item.ownerId, itemName: item.name });
+    navigation.navigate("Chat", {
+      recipientId: item.ownerId,
+      itemName: item.name,
+    });
   };
 
   const renderItem: ListRenderItem<HandmadeItem> = ({ item }) => (
@@ -89,14 +101,28 @@ const HandMade: React.FC = () => {
         <View style={styles.cardContent}>
           <Text style={styles.itemName}>{item.name}</Text>
           <View style={styles.itemRow}>
-            <Ionicons name="pricetag" size={16} color={colors.primary} style={styles.icon} />
+            <Ionicons
+              name="pricetag"
+              size={16}
+              color={colors.primary}
+              style={styles.icon}
+            />
             <Text style={styles.itemPrice}>{item.price}</Text>
           </View>
           <View style={styles.itemRow}>
-            <Ionicons name="leaf" size={16} color={colors.secondary} style={styles.icon} />
+            <Ionicons
+              name="leaf"
+              size={16}
+              color={colors.secondary}
+              style={styles.icon}
+            />
             <View>
-              <Text style={styles.itemCarbonFootprint}>{translate("carbonFootprint")}</Text>
-              <Text style={styles.itemCarbonFootprintValue}>{item.carbonFootprint}</Text>
+              <Text style={styles.itemCarbonFootprint}>
+                {translate("carbonFootprint")}
+              </Text>
+              <Text style={styles.itemCarbonFootprintValue}>
+                {item.carbonFootprint}
+              </Text>
             </View>
           </View>
           <Button
@@ -116,10 +142,14 @@ const HandMade: React.FC = () => {
         duration: 500,
         easing: Easing.inOut(Easing.ease),
       }),
-      transform: [{ translateY: withTiming(opacity.value === 1 ? 0 : 20, {
-        duration: 500,
-        easing: Easing.inOut(Easing.ease),
-      }) }],
+      transform: [
+        {
+          translateY: withTiming(opacity.value === 1 ? 0 : 20, {
+            duration: 500,
+            easing: Easing.inOut(Easing.ease),
+          }),
+        },
+      ],
     };
   });
 
@@ -133,33 +163,46 @@ const HandMade: React.FC = () => {
         duration: 500,
         easing: Easing.inOut(Easing.ease),
       }),
-      transform: [{ translateY: withTiming(0, {
-        duration: 500,
-        easing: Easing.inOut(Easing.ease),
-      }) }],
+      transform: [
+        {
+          translateY: withTiming(0, {
+            duration: 500,
+            easing: Easing.inOut(Easing.ease),
+          }),
+        },
+      ],
     };
   });
 
   const loadingRotation = useSharedValue(0);
   const loadingAnimatedStyle = useAnimatedStyle(() => {
     return {
-      transform: [{
-        rotate: `${loadingRotation.value}deg`,
-      }],
+      transform: [
+        {
+          rotate: `${loadingRotation.value}deg`,
+        },
+      ],
     };
   });
 
   useEffect(() => {
-    loadingRotation.value = withRepeat(withTiming(360, {
-      duration: 1000,
-      easing: Easing.linear,
-    }), -1, false);
+    loadingRotation.value = withRepeat(
+      withTiming(360, {
+        duration: 1000,
+        easing: Easing.linear,
+      }),
+      -1,
+      false
+    );
   }, [loadingRotation]);
 
   return (
     <SafeAreaView style={styles.container}>
       <Animated.View style={[styles.header, fadeInDownStyle]}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backButton}
+        >
           <Ionicons name="arrow-back" size={24} color={colors.white} />
         </TouchableOpacity>
         <Text style={styles.title}>{translate("handmadeItems")}</Text>
@@ -170,11 +213,7 @@ const HandMade: React.FC = () => {
           <Text style={styles.loadingText}>{translate("loading")}</Text>
         </Animated.View>
       )}
-      {error && (
-        <Text style={styles.errorText}>
-          {translate("fetchError")}
-        </Text>
-      )}
+      {error && <Text style={styles.errorText}>{translate("fetchError")}</Text>}
       {data && (
         <FlatList
           showsVerticalScrollIndicator={false}
@@ -189,9 +228,13 @@ const HandMade: React.FC = () => {
           onEndReachedThreshold={0.5}
           ListFooterComponent={
             isFetching ? (
-              <Animated.View style={[styles.loadingContainer, loadingAnimatedStyle]}>
+              <Animated.View
+                style={[styles.loadingContainer, loadingAnimatedStyle]}
+              >
                 <Ionicons name="reload" size={48} color={colors.primary} />
-                <Text style={styles.loadingText}>{translate("loadingMore")}</Text>
+                <Text style={styles.loadingText}>
+                  {translate("loadingMore")}
+                </Text>
               </Animated.View>
             ) : null
           }
@@ -203,7 +246,5 @@ const HandMade: React.FC = () => {
     </SafeAreaView>
   );
 };
-
-
 
 export default HandMade;

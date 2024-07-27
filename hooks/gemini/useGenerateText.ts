@@ -6,8 +6,9 @@ import {
   Functions,
   HttpsCallable,
 } from "firebase/functions";
-import { convertMarkdownToPlainText } from '../../app/helpers/markdown';
-import { Toast } from 'react-native-ui-lib'; // Importing Toast component
+import { convertMarkdownToPlainText } from "../../app/helpers/markdown";
+import { Toast } from "react-native-ui-lib"; // Importing Toast component
+import { useTranslations } from "@/hooks/ui/useTranslations";
 
 const IMAGE_RESIZE_WIDTH = 512;
 
@@ -46,30 +47,36 @@ const manipulateImage = async (imageUri: string): Promise<string> => {
   }
 };
 
-// Function to generate text using Firebase function
-const generateText = async (input: GenerateTextInput): Promise<string> => {
-  const functions: Functions = getFunctions();
-  const generateTextFunction: HttpsCallable<
-    GenerateTextInput,
-    GenerateTextOutput
-  > = httpsCallable(functions, "generateText");
-
-  try {
-    const result = await generateTextFunction({
-      ...input,
-      ...(input.image && { base64Image: await manipulateImage(input.image) }),
-    });
-    return convertMarkdownToPlainText(result.data.result);
-  } catch (error) {
-    console.error("Error generating text:", error);
-    throw error;
-  }
-};
-
 // React hook to use the generateText function with useMutation
 export const useGenerateTextMutation = (
   options: UseGenerateTextOptions = {}
 ): UseMutationResult<string, Error, GenerateTextInput, unknown> => {
+  const { currentLanguage } = useTranslations();
+
+  // Function to generate text using Firebase function
+  const generateText = async (input: GenerateTextInput): Promise<string> => {
+    const functions: Functions = getFunctions();
+    const generateTextFunction: HttpsCallable<
+      GenerateTextInput,
+      GenerateTextOutput
+    > = httpsCallable(functions, "generateText");
+
+    try {
+      const result = await generateTextFunction({
+        ...input,
+        inputData: {
+          ...input.inputData,
+          currentLanguage,
+        },
+        ...(input.image && { base64Image: await manipulateImage(input.image) }),
+      });
+      return convertMarkdownToPlainText(result.data.result);
+    } catch (error) {
+      console.error("Error generating text:", error);
+      throw error;
+    }
+  };
+
   return useMutation<string, Error, GenerateTextInput, unknown>(generateText, {
     onSuccess: options.onSuccess,
     onError: (error) => {
@@ -78,9 +85,9 @@ export const useGenerateTextMutation = (
       // Display a toast on error
       Toast.show({
         text: error.message,
-        position: 'bottom',
-        backgroundColor: 'red',
-        color: 'white',
+        position: "bottom",
+        backgroundColor: "red",
+        color: "white",
         duration: 3000, // Duration the toast is visible
       });
     },

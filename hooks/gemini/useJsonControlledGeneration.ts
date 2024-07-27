@@ -1,23 +1,26 @@
 import { useMutation } from "react-query";
 import { httpsCallable } from "firebase/functions";
 import { functions } from "@/app/helpers/firebaseConfig";
+import { useTranslations } from "@/hooks/ui/useTranslations";
 
 export const useJsonControlledGeneration = ({
   promptType,
-  inputData,
   onSuccess,
 }: {
   promptType: string;
-  inputData?: object;
   onSuccess?: (input: any) => void;
 }) => {
   
   const generateJsonContent = httpsCallable(functions, "generateJsonContent");
+  const {currentLanguage} = useTranslations();
 
-  const fetchJsonControlledGeneration = async () => {
+  const fetchJsonControlledGeneration = async (inputData?: object) => {
     const result = (await generateJsonContent({
       promptType,
-      inputData,
+      inputData: {
+        ...inputData,
+        currentLanguage 
+      },
     })) as any;
     if (__DEV__) console.log("jsonResult ", result.data);
     return result.data?.result?.[0]
@@ -33,7 +36,7 @@ export const useJsonControlledGeneration = ({
   );
 
   return {
-    generate: mutate,
+    generate: (inputData?: object) => mutate(inputData),
     result: data,
     isLoading,
     isError,

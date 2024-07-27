@@ -1,4 +1,3 @@
-import { noop } from "react-query/types/core/utils";
 
 // translations.js
 export const translations = {

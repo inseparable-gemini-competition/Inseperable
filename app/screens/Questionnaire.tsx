@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { View, Text, Button } from "react-native-ui-lib";
 import { colors } from "../theme";
 import Question from "@/app/components/Question/Question";
@@ -8,8 +8,10 @@ import {
   convertJSONToObject,
   defaultQuestions,
 } from "@/app/helpers/questionnaireHelpers";
-import { userDataType } from "../store";
+import useStore, { userDataType } from "../store";
 import { useGenerateContent } from "@/hooks/gemini/useGeminiStream";
+import { useTranslations } from "@/hooks/ui/useTranslations";
+import { translations } from "@/app/helpers/translations";
 
 type Props = {
   onFinish: (userData: {
@@ -22,19 +24,18 @@ const Questionnaire = ({ onFinish }: Props) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<string[]>([]);
 
+  const { translate, setTranslations, setCurrentLanguage } = useTranslations();
   const [localLoading, setLocalLoading] = useState(false);
 
   const [questions, setQuestions] = useState(defaultQuestions);
+  const { userData, setUserData } = useStore();
+
   const {
     generate: generateCountryRecommendation,
     isLoading,
     result,
   } = useJsonControlledGeneration({
     promptType: "countryRecommendation",
-    inputData: {
-      questions,
-      answers,
-    },
   });
   const { sendMessage: sendAnswer, isLoading: isLoadingNextQuestion } =
     useGenerateContent({
@@ -50,23 +51,73 @@ const Questionnaire = ({ onFinish }: Props) => {
       },
     });
 
+  const onTranslationSuccess = useCallback(
+    (data: any) => {
+      console.log("data", data);
+      const updatedUserData = {
+        ...userData,
+        baseLanguage: data.baseLanguage,
+      };
+      setUserData(updatedUserData);
+
+      // Directly set translations without using a function
+      setTranslations({
+        en: translations.en,
+        [data.baseLanguage]: data.translations,
+      });
+
+      setCurrentLanguage(data.baseLanguage);
+      setAnswers((currentAnswers) => {
+        if (currentAnswers.length > 0) {
+          sendAnswer(currentAnswers[0]);
+        }
+        return currentAnswers;
+      });
+    },
+    [
+      sendAnswer,
+      answers,
+      userData,
+      setUserData,
+      setTranslations,
+      setCurrentLanguage,
+      setAnswers,
+      translations,
+    ]
+  );
+
+  const { generate: generateTranslations, isLoading: isLoadingTranslations } =
+    useJsonControlledGeneration({
+      promptType: "translateApp",
+      onSuccess: onTranslationSuccess,
+    });
+
   const [question, setQuestion] = useState(questions[0]);
 
   const handleAnswer = (answer: string) => {
     const updatedAnswers = [...answers];
     updatedAnswers[currentQuestionIndex] = answer;
+    console.log(updatedAnswers);
     setAnswers(updatedAnswers);
   };
 
   const handleNext = async (option: string) => {
     if (option.length === 0) return;
-    handleAnswer(option);
+    const updatedAnswers = [...answers, option];
+    setAnswers(updatedAnswers);
 
-    if (currentQuestionIndex < 7) {
+    if (currentQuestionIndex === 0) {
+      generateTranslations({
+        country: option,
+      });
+    } else if (currentQuestionIndex < 7) {
       sendAnswer(option);
     } else {
       setCurrentQuestionIndex((i) => i + 1);
-      generateCountryRecommendation();
+      generateCountryRecommendation({
+        questions,
+        answers: updatedAnswers,
+      });
     }
   };
 
@@ -77,7 +128,7 @@ const Questionnaire = ({ onFinish }: Props) => {
     }
   };
 
-  if (isLoadingNextQuestion) {
+  if (isLoadingNextQuestion || isLoadingTranslations) {
     return (
       <View
         style={{
@@ -89,7 +140,9 @@ const Questionnaire = ({ onFinish }: Props) => {
       >
         <ActivityIndicator size="large" color={colors.primary} />
         <Text style={{ fontFamily: "marcellus" }}>
-          Fetching next question..
+          {isLoadingTranslations
+            ? translate("DetectingYourNativeLanguage")
+            : translate("fetchingNextQuestion")}
         </Text>
       </View>
     );
@@ -104,7 +157,9 @@ const Questionnaire = ({ onFinish }: Props) => {
         }}
       >
         <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={{ fontFamily: "marcellus" }}>Recommending..</Text>
+        <Text style={{ fontFamily: "marcellus" }}>
+          {translate("recommending")}
+        </Text>
       </View>
     );
   }
@@ -161,7 +216,7 @@ const Questionnaire = ({ onFinish }: Props) => {
 
             <Button
               style={{ width: 300, alignSelf: "center" }}
-              label="Finish"
+              label={translate("finish")}
               backgroundColor={colors.primary}
               onPress={() =>
                 onFinish({

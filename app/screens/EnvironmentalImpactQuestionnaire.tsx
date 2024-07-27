@@ -10,6 +10,7 @@ import {
 } from "@/app/helpers/environmentalQuestionnaireHelpers";
 import { userDataType } from "../store";
 import { useGenerateContent } from "@/hooks/gemini/useGeminiStream";
+import { useTranslations } from "@/hooks/ui/useTranslations";
 
 type Props = {
   onFinish: (userData: {
@@ -21,6 +22,7 @@ type Props = {
 const EnvironmentalImpactQuestionnaire = ({ onFinish }: Props) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<string[]>([]);
+  const { translate } = useTranslations();
 
   const [questions, setQuestions] = useState(defaultQuestions);
 
@@ -30,10 +32,6 @@ const EnvironmentalImpactQuestionnaire = ({ onFinish }: Props) => {
     result,
   } = useJsonControlledGeneration({
     promptType: "environmentalImpact",
-    inputData: {
-      questions,
-      answers,
-    },
   });
   const [localLoading, setLocalLoading] = useState(false);
 
@@ -64,7 +62,7 @@ const EnvironmentalImpactQuestionnaire = ({ onFinish }: Props) => {
       sendAnswer(option);
     } else {
       setCurrentQuestionIndex((i) => i + 1);
-      generateEnvironmentalImpact();
+      generateEnvironmentalImpact({ questions, answers });
     }
   };
 
@@ -87,7 +85,7 @@ const EnvironmentalImpactQuestionnaire = ({ onFinish }: Props) => {
       >
         <ActivityIndicator size="large" color={colors.primary} />
         <Text style={{ fontFamily: "marcellus" }}>
-          Fetching next question..
+          {translate("fetchingNextQuestion")}
         </Text>
       </View>
     );
@@ -102,7 +100,9 @@ const EnvironmentalImpactQuestionnaire = ({ onFinish }: Props) => {
         }}
       >
         <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={{ fontFamily: "marcellus" }}>Calculating impact..</Text>
+        <Text style={{ fontFamily: "marcellus" }}>
+          {translate("calculatingImpact")}
+        </Text>
       </View>
     );
   }
@@ -140,7 +140,7 @@ const EnvironmentalImpactQuestionnaire = ({ onFinish }: Props) => {
                 fontFamily: "marcellus",
               }}
             >
-              Your Environmental Impact Score: {result?.impactScore}
+              {translate("yourEnvironmentalImactScore")} {result?.impactScore}
             </Text>
             <Text
               style={{
@@ -157,7 +157,7 @@ const EnvironmentalImpactQuestionnaire = ({ onFinish }: Props) => {
 
             <Button
               style={{ width: 300, alignSelf: "center" }}
-              label="Finish"
+              label={translate("finish")}
               backgroundColor={colors.primary}
               onPress={() =>
                 onFinish({

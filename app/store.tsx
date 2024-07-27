@@ -1,8 +1,9 @@
+// store.ts
 import { create } from 'zustand';
 import { persist, PersistOptions } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { translations as initialTranslations} from '@/app/helpers/translations';
 
-// Define the user data type
 type userDataType = {
   country: string;
   flag: string;
@@ -11,28 +12,33 @@ type userDataType = {
   mostFamousLandmark: string;
 };
 
-// Define the store state and actions
 interface StoreState {
   userData: userDataType;
   setUserData: (data: userDataType) => void;
+  translations: typeof initialTranslations;
+  setTranslations: (newTranslations: typeof initialTranslations) => void;
+  currentLanguage: string;
+  setCurrentLanguage: (lang: string) => void;
 }
 
-// Custom persist options to type the `persist` configuration
 type MyPersist = (
   config: (set: any, get: any, api: any) => StoreState,
   options: PersistOptions<StoreState>
 ) => (set: any, get: any, api: any) => StoreState;
 
-// Create the Zustand store with persistence
 const useStore = create<StoreState>(
   (persist as MyPersist)(
     (set) => ({
       userData: { country: "", flag: "", description: "", mostFamousLandmark: "", baseLanguage: "" },
       setUserData: (data: userDataType) => set({ userData: data }),
+      translations: initialTranslations,
+      setTranslations: (newTranslations) => set({ translations: newTranslations }),
+      currentLanguage: 'en',
+      setCurrentLanguage: (lang) => set({ currentLanguage: lang }),
     }),
     {
-      name: "user-data-storage", // unique name
-      getStorage: () => AsyncStorage, // use AsyncStorage for persistence
+      name: "app-storage",
+      getStorage: () => AsyncStorage,
     }
   )
 );

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { View, Text, TextField, Button } from "react-native-ui-lib";
 import Option from "./Option/Option";
 import { colors } from "@/app/theme";
+import { useTranslations } from "@/hooks/ui/useTranslations";
 
 type Props = {
   question: {
@@ -29,6 +30,8 @@ const Question = ({
   showNext,
   currentAnswer,
 }: Props) => {
+  const { translate } = useTranslations();
+
   const handleOptionSelect = (option: string) => {
     onNext(option);
   };
@@ -114,14 +117,14 @@ const Question = ({
       >
         {showPrevious && (
           <Button
-            label="Previous"
+          label={translate("previous")}
             backgroundColor={colors.primary}
             onPress={onPrevious}
           />
         )}
         {showNext && (
           <Button
-            label="Next"
+            label={translate("next")}
             backgroundColor={colors.primary}
             onPress={() => {
               onNext(currentText);

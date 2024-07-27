@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import { CameraView as ExpoCameraView } from 'expo-camera';
 import { Ionicons } from '@expo/vector-icons';
 import {styles} from '@/app/screens/MainStyles';
-import { translate } from '@/app/helpers/i18n';
+import { useTranslations } from '@/hooks/ui/useTranslations';
 
 interface CameraViewProps {
   facing: 'front' | 'back';
@@ -20,6 +20,7 @@ const CameraView: React.FC<CameraViewProps> = ({
   onManualCapture,
   onCancelCountdown,
 }) => {
+  const { translate } = useTranslations();
   return (
     <View style={{ flex: 1 }}>
       {countdown !== null && (

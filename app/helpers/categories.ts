@@ -1,28 +1,27 @@
-import { translate } from "@/app/helpers/i18n";  // Import translate function
 export type Category = {
   id: string;
   title: string;
   imageUrl: any;
   openCamera: boolean;
 };
-export const categories: Category[] = [
+export const categories = (translate : Function) => [
   {
     id: "1",
     title: translate("identify"),
     imageUrl: require("../../assets/images/marks.png"),
-    openCamera: true
+    openCamera: true,
   },
   {
     id: "2",
     title: translate("fairPrice"),
     imageUrl: require("../../assets/images/fair-pricee.png"),
-    openCamera: true
+    openCamera: true,
   },
   {
     id: "3",
     title: translate("read"),
     imageUrl: require("../../assets/images/menu.png"),
-    openCamera: true
+    openCamera: true,
   },
   {
     id: "4",

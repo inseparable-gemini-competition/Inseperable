@@ -1,13 +1,14 @@
 import { useState, useRef, useEffect } from "react";
 import Voice from "@react-native-voice/voice";
 import * as Speech from "expo-speech";
-import { translate } from "@/app/helpers/i18n";
+import { useTranslations } from "@/hooks/ui/useTranslations";
 
 export const useVoiceCommands = (handleCommand: (command: string) => void) => {
   const [listening, setListening] = useState<boolean>(false);
   const [voiceCountdown, setVoiceCountdown] = useState<number | null>(null);
   const voiceCountdownRef = useRef<NodeJS.Timeout | null>(null);
   const [command, setCommand] = useState<string>("");
+  const { translate } = useTranslations();
 
   const startVoiceCountdown = () => {
     clearVoiceCountdown();

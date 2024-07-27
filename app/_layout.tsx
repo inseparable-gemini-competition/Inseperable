@@ -1,3 +1,4 @@
+// RootLayout.tsx
 import {
   DarkTheme,
   DefaultTheme,
@@ -10,6 +11,8 @@ import { useEffect } from "react";
 import "react-native-reanimated";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import useStore from './store';
+import { translations as initialTranslations } from "@/app/helpers/translations";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -21,11 +24,18 @@ export default function RootLayout() {
     marcellus: require("../assets/fonts/Marcellus-Regular.ttf"),
   });
 
+  const { setTranslations } = useStore();
+
   useEffect(() => {
     if (loaded) {
       SplashScreen.hideAsync();
     }
   }, [loaded]);
+
+  useEffect(() => {
+    // Initialize translations
+    setTranslations(initialTranslations);
+  }, []);
 
   if (!loaded) {
     return null;

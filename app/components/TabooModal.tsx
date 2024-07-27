@@ -1,8 +1,8 @@
 import React from "react";
 import { View, Text, ActivityIndicator } from "react-native";
 import { modalStyles, styles } from "@/app/screens/MainStyles";
-import { translate } from "@/app/helpers/i18n";
 import GenericBottomSheet from "./GenericBottomSheet"; // Adjust the import path as needed
+import { useTranslations } from "@/hooks/ui/useTranslations";
 
 interface TabooModalProps {
   visible: boolean;
@@ -17,6 +17,7 @@ const TabooModal: React.FC<TabooModalProps> = ({
   result,
   onClose,
 }) => {
+  const { translate } = useTranslations();
   return (
     <GenericBottomSheet visible={visible} onClose={onClose} enableScroll={true}>
         {isLoading ? (

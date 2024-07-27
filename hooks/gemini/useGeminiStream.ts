@@ -1,3 +1,4 @@
+import { useTranslations } from "./../ui/useTranslations";
 import { useState, useCallback } from "react";
 import { useMutation } from "react-query";
 import { getFunctions, httpsCallable } from "firebase/functions";
@@ -41,8 +42,14 @@ export const useGenerateContent = (
   const { promptType, onSuccess, inputData } = options;
   const [aiResponse, setAiResponse] = useState<string>("");
 
+  const { currentLanguage } = useTranslations();
   const mutation = useMutation(
-    (message: string) => fetchContent({ promptType, inputData, message }),
+    (message: string) =>
+      fetchContent({
+        promptType,
+        inputData: { ...inputData, currentLanguage },
+        message,
+      }),
     {
       onSuccess: (data) => {
         setAiResponse(data);

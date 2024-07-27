@@ -2,7 +2,6 @@ import React from "react";
 import { View } from "react-native";
 import { LongPressGestureHandler, State } from "react-native-gesture-handler";
 import { Button, Text } from "react-native-ui-lib";
-import { translate } from "@/app/helpers/i18n";
 import { styles } from "@/app/screens/MainStyles";
 import MainLayout from "@/app/components/MainLayout";
 import CameraScreen from "@/app/screens/CamerScreen";
@@ -12,18 +11,19 @@ import { categories } from "@/app/helpers/categories";
 import CategoryScreen from "@/app/screens/CategoryScreen";
 import { useModals } from "@/hooks/ui/useModals";
 import { useTextFeedback } from "@/hooks/ui/useTextFeedback";
-import { useImageCapture } from "@/hooks/ui/useImageCapture";
+import { useCamera } from "@/hooks/ui/useCamera";
 import { useNavigationAndUser } from "@/hooks/authentication/useNavigationAndUser";
 import { useSituationAndTaboo } from "@/hooks/ui/useSituationAndTaboo";
 import { useDonation } from "@/hooks/ui/useDonation";
 import { useTipSelection } from "@/hooks/ui/useTipsSelection";
 import { useVoiceActivation } from "@/hooks/ui/useVoiceActivation";
+import { useTranslations } from "@/hooks/ui/useTranslations";
 
 interface MainPresentationProps {
   modals: ReturnType<typeof useModals>;
   tipSelection: ReturnType<typeof useTipSelection>;
   textFeedBack: ReturnType<typeof useTextFeedback>;
-  imageCapture: ReturnType<typeof useImageCapture>;
+  imageCapture: ReturnType<typeof useCamera>;
   navigationAndUser: ReturnType<typeof useNavigationAndUser>;
   situationAndTaboo: ReturnType<typeof useSituationAndTaboo>;
   donation: ReturnType<typeof useDonation>;
@@ -42,6 +42,7 @@ const MainPresentation: React.FC<MainPresentationProps> = ({
   voiceActivation,
   handleCommand,
 }) => {
+  const { translate } = useTranslations();
   if (imageCapture.showCamera && !imageCapture.permission?.granted) {
     return (
       <View style={styles.permissionContainer}>

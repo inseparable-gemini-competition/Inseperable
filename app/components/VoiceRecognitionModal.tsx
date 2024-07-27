@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, Modal } from 'react-native';
 import {modalStyles} from '@/app/screens/MainStyles';
-import { translate } from '@/app/helpers/i18n';
+import { useTranslations } from '@/hooks/ui/useTranslations';
 
 interface VoiceRecognitionModalProps {
   visible: boolean;
@@ -16,6 +16,7 @@ const VoiceRecognitionModal: React.FC<VoiceRecognitionModalProps> = ({
   command,
   onCancel,
 }) => {
+  const { translate } = useTranslations();
   return (
     <Modal
       visible={visible}
