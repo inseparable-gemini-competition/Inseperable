@@ -13,12 +13,13 @@ interface CommandHandlerDependencies {
   donation: {
     handleDonate: () => Promise<void>;
   };
-  situationAndTaboo: {
+  modalHandlers: {
     handleTabooSubmit: () => void;
   };
   modals: {
     setWhatToSayModalVisible: (visible: boolean) => void;
     setTipsModalVisible: (visible: boolean) => void;
+    setUberModalVisible: (visible: boolean) => void;
   };
   textFeedBack: {
     setCurrentPromptType: (type: string) => void;
@@ -33,7 +34,8 @@ export const useCommandHandler = (deps: CommandHandlerDependencies) => {
     identify: () => deps.imageCapture.handleShowCamera({ autoCapture: true }),
     price: () => deps.imageCapture.handleShowCamera({ autoCapture: true }),
     donate: deps.donation.handleDonate,
-    taboo: deps.situationAndTaboo.handleTabooSubmit,
+    taboo: deps.modalHandlers.handleTabooSubmit,
+    uber: ()=> deps.modals.setUberModalVisible(true),
     whattosay: () => deps.modals.setWhatToSayModalVisible(true),
     plan: () => navigation.navigate("Plan"),
     shop: () => navigation.navigate("Shopping"),

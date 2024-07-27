@@ -5,6 +5,7 @@ export const useModals = () => {
   const [whatToSayModalVisible, setWhatToSayModalVisible] = useState(false);
   const [tipsModalVisible, setTipsModalVisible] = useState(false);
   const [donationModalVisible, setDonationModalVisible] = useState(false);
+  const [uberModalVisible, setUberModalVisible] = useState(false);
 
 
   return {
@@ -16,5 +17,7 @@ export const useModals = () => {
     setTipsModalVisible,
     donationModalVisible,
     setDonationModalVisible,
+    uberModalVisible,
+    setUberModalVisible
   };
 };

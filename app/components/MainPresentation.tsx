@@ -13,7 +13,7 @@ import { useModals } from "@/hooks/ui/useModals";
 import { useTextFeedback } from "@/hooks/ui/useTextFeedback";
 import { useCamera } from "@/hooks/ui/useCamera";
 import { useNavigationAndUser } from "@/hooks/authentication/useNavigationAndUser";
-import { useSituationAndTaboo } from "@/hooks/ui/useSituationAndTaboo";
+import { useModalHandlers } from "@/hooks/ui/useModalHandlers";
 import { useDonation } from "@/hooks/ui/useDonation";
 import { useTipSelection } from "@/hooks/ui/useTipsSelection";
 import { useVoiceActivation } from "@/hooks/ui/useVoiceActivation";
@@ -25,7 +25,7 @@ interface MainPresentationProps {
   textFeedBack: ReturnType<typeof useTextFeedback>;
   imageCapture: ReturnType<typeof useCamera>;
   navigationAndUser: ReturnType<typeof useNavigationAndUser>;
-  situationAndTaboo: ReturnType<typeof useSituationAndTaboo>;
+  modalHandlers: ReturnType<typeof useModalHandlers>;
   donation: ReturnType<typeof useDonation>;
   voiceActivation: ReturnType<typeof useVoiceActivation>;
   handleCommand: (command: string) => Promise<void>;
@@ -37,7 +37,7 @@ const MainPresentation: React.FC<MainPresentationProps> = ({
   textFeedBack,
   imageCapture,
   navigationAndUser,
-  situationAndTaboo,
+  modalHandlers,
   donation,
   voiceActivation,
   handleCommand,
@@ -105,7 +105,7 @@ const MainPresentation: React.FC<MainPresentationProps> = ({
             modals={modals}
             donation={donation}
             feedback={textFeedBack}
-            situationAndTaboo={situationAndTaboo}
+            modalHandlers={modalHandlers}
             tipSelection={tipSelection}
             voiceActivation={voiceActivation}
             userData={navigationAndUser.userData}

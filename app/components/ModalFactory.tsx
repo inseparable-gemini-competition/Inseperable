@@ -8,16 +8,17 @@ import {
   useModals,
   useDonation,
   useTextFeedback,
-  useSituationAndTaboo,
+  useModalHandlers,
   useTipSelection,
   useVoiceActivation,
 } from "@/hooks";
+import UberModal from "@/app/components/uberModal";
 
 interface ModalFactoryProps {
   modals: ReturnType<typeof useModals>;
   donation: ReturnType<typeof useDonation>;
   feedback: ReturnType<typeof useTextFeedback>;
-  situationAndTaboo: ReturnType<typeof useSituationAndTaboo>;
+  modalHandlers: ReturnType<typeof useModalHandlers>;
   tipSelection: ReturnType<typeof useTipSelection>;
   voiceActivation: ReturnType<typeof useVoiceActivation>;
   userData: any;
@@ -27,7 +28,7 @@ export const ModalFactory: React.FC<ModalFactoryProps> = ({
   modals,
   donation,
   feedback,
-  situationAndTaboo,
+  modalHandlers,
   tipSelection,
   voiceActivation,
   userData,
@@ -70,9 +71,19 @@ export const ModalFactory: React.FC<ModalFactoryProps> = ({
         feedback.stop();
         feedback.reset();
       }}
-      onSubmit={situationAndTaboo.handleSituationSubmit}
-      userSituation={situationAndTaboo.userSituation}
-      setUserSituation={situationAndTaboo.setUserSituation}
+      onSubmit={modalHandlers.handleSituationSubmit}
+      userSituation={modalHandlers.userSituation}
+      setUserSituation={modalHandlers.setUserSituation}
+    />
+    <UberModal
+      visible={modals.uberModalVisible}
+      isLoading={feedback.isLoadingFromGemini}
+      onClose={() => {
+        modals.setUberModalVisible(false);
+      }}
+      onSubmit={modalHandlers.handleUberSubmit}
+      userUberRequest={modalHandlers.userUberText}
+      setUserUberRequest={modalHandlers.setUserUberText}
     />
     <TipsModal
       visible={modals.tipsModalVisible}

@@ -65,4 +65,10 @@ export const categories = (translate : Function) => [
     imageUrl: require("../../assets/images/tips.png"),
     openCamera: false,
   },
+  {
+    id: "10",
+    title: translate("uber"),
+    imageUrl: require("../../assets/images/tips.png"),
+    openCamera: false,
+  },
 ];

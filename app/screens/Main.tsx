@@ -3,10 +3,10 @@ import {
   useModals,
   useTipSelection,
   useNavigationAndUser,
-  useSituationAndTaboo,
   useDonation,
   useTextFeedback,
   useCamera,
+  useModalHandlers,
 } from "@/hooks";
 import MainPresentation from "@/app/components/MainPresentation";
 import { useCommandHandler } from "@/hooks/ui/useCommandHandler";
@@ -21,7 +21,7 @@ const MainContainer: React.FC = () => {
     textFeedBack.currentPromptType
   );
   const navigationAndUser = useNavigationAndUser();
-  const situationAndTaboo = useSituationAndTaboo(
+  const modalHandlers = useModalHandlers(
     textFeedBack.mutateAsync,
     modals.setTabooModalVisible
   );
@@ -33,7 +33,7 @@ const MainContainer: React.FC = () => {
   const { handleCommand, voiceActivation } = useCommandHandler({
     imageCapture,
     donation,
-    situationAndTaboo,
+    modalHandlers,
     modals,
     textFeedBack,
   });
@@ -45,7 +45,7 @@ const MainContainer: React.FC = () => {
       textFeedBack={textFeedBack}
       imageCapture={imageCapture}
       navigationAndUser={navigationAndUser}
-      situationAndTaboo={situationAndTaboo}
+      modalHandlers={modalHandlers}
       donation={donation}
       voiceActivation={voiceActivation}
       handleCommand={handleCommand}

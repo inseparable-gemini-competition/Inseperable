@@ -4,7 +4,7 @@ export * from './useDonation';
 export * from './useTextFeedback';
 export * from './useGoogleImageSearch';
 export * from './useModals';
-export * from './useSituationAndTaboo';
+export * from './useModalHandlers';
 export * from './useTextToSpeech';
 export * from './useTipsSelection';
 export * from './useVoiceActivation';
