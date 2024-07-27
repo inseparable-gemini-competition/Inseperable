@@ -15,7 +15,6 @@ import { useCommandHandler } from "@/hooks/ui/useCommandHandler";
 
 const MainContainer: React.FC = () => {
   const modals = useModals();
-  const tipSelection = useTipSelection();
   const textFeedBack = useTextFeedback();
   const imageCapture = useImageCapture(
     textFeedBack.mutateAsync,
@@ -26,7 +25,10 @@ const MainContainer: React.FC = () => {
     textFeedBack.mutateAsync,
     modals.setTabooModalVisible
   );
-  const donation = useDonation();
+  const tipSelection = useTipSelection(textFeedBack.mutateAsync);
+  const donation = useDonation(
+    modals.setDonationModalVisible
+  );
 
   const { handleCommand, voiceActivation } = useCommandHandler({
     imageCapture,

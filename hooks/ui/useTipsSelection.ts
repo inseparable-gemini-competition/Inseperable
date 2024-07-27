@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { useGenerateTextMutation } from "@/hooks/gemini/useGenerateText";
 
-export const useTipSelection = () => {
+export const useTipSelection = (
+ mutateAsync: Function
+) => {
   const [selectedTipType, setSelectedTipType] = useState("");
 
-  const { mutateAsync } = useGenerateTextMutation();
 
   const handleSelectTipType = async (selectedType: string) => {
     setSelectedTipType(selectedType);

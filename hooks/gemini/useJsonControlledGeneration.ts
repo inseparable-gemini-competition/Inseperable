@@ -9,7 +9,7 @@ export const useJsonControlledGeneration = ({
 }: {
   promptType: string;
   inputData?: object;
-  onSuccess?: () => void;
+  onSuccess?: (input: any) => void;
 }) => {
   
   const generateJsonContent = httpsCallable(functions, "generateJsonContent");

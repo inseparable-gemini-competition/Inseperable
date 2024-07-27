@@ -3,8 +3,9 @@ import { useJsonControlledGeneration } from "@/hooks/gemini/useJsonControlledGen
 import { useNavigationAndUser } from "@/hooks/authentication/useNavigationAndUser";
 import { useTextToSpeech } from "@/hooks/ui/useTextToSpeech";
 
-export const useDonation = () => {
-  const [donationModalVisible, setDonationModalVisible] = useState(false);
+export const useDonation = (
+  setDonationModalVisible: (visible: boolean) => void
+) => {
 
   const { userData } = useNavigationAndUser();
 
@@ -19,8 +20,8 @@ export const useDonation = () => {
     inputData: {
       country: userData?.country,
     },
-    onSuccess: ()=>{
-       speak(donationResult?.description)
+    onSuccess: (data)=>{
+       speak(data?.description)
     }
   });
 
@@ -34,8 +35,6 @@ export const useDonation = () => {
   };
 
   return {
-    donationModalVisible,
-    setDonationModalVisible,
     isDonationLoading,
     donationResult,
     handleDonate,

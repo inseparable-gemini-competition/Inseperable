@@ -42,11 +42,11 @@ export const ModalFactory: React.FC<ModalFactoryProps> = ({
       onCancel={voiceActivation.onVoiceRecognitionClosed}
     />
     <DonationModal
-      visible={donation.donationModalVisible}
+      visible={modals.donationModalVisible}
       isLoading={donation.isDonationLoading}
       result={donation.donationResult}
       onClose={() => {
-        donation.setDonationModalVisible(false);
+        modals.setDonationModalVisible(false);
         donation.stop();
       }}
       userLanguage={userData?.baseLanguage || ""}
