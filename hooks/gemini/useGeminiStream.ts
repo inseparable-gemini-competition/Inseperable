@@ -10,11 +10,29 @@ interface CloudFunctionResponse {
   result: string;
 }
 
+interface UseGenerateContentOptions {
+  promptType: string;
+  onSuccess?: (data: string) => void;
+  inputData?: object;
+  message?: string;
+  audioData?: {
+    data: string;
+    mimeType: string;
+  };
+}
+
 const fetchContent = async (
   data: UseGenerateContentOptions
 ): Promise<string> => {
   try {
-    const result = await generateStreamContent(data);
+    const { audioData, ...restData } = data;
+    const result = await generateStreamContent({
+      ...restData,
+      ...(audioData && {
+        audioBase64: audioData.data,
+        audioMimeType: audioData.mimeType,
+      }),
+    });
     return (result.data as CloudFunctionResponse).result;
   } catch (error) {
     console.error("Error calling Cloud Function:", error);
@@ -23,17 +41,16 @@ const fetchContent = async (
 };
 
 interface UseGenerateContentResult {
-  sendMessage: (userText: string) => void;
+  sendMessage: (
+    userText: string,
+    audioData?: {
+      data: string;
+      mimeType: string;
+    }
+  ) => void;
   isLoading: boolean;
   error: unknown;
   aiResponse: string;
-}
-
-interface UseGenerateContentOptions {
-  promptType: string;
-  onSuccess?: (data: string) => void;
-  inputData?: object;
-  message?: string;
 }
 
 export const useGenerateContent = (
@@ -44,11 +61,21 @@ export const useGenerateContent = (
 
   const { currentLanguage } = useTranslations();
   const mutation = useMutation(
-    (message: string) =>
+    async ({
+      message,
+      audioData,
+    }: {
+      message: string;
+      audioData?: {
+        data: string;
+        mimeType: string;
+      };
+    }) =>
       fetchContent({
         promptType,
         inputData: { ...inputData, currentLanguage },
         message,
+        audioData,
       }),
     {
       onSuccess: (data) => {
@@ -62,8 +89,14 @@ export const useGenerateContent = (
   );
 
   const sendMessage = useCallback(
-    (userText: string) => {
-      mutation.mutate(userText);
+    (
+      userText: string,
+      audioData?: {
+        data: string;
+        mimeType: string;
+      }
+    ) => {
+      mutation.mutate({ message: userText, audioData });
     },
     [mutation]
   );

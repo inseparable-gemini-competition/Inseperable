@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Modal } from 'react-native';
+import { View, Text, TouchableOpacity, Modal, ActivityIndicator } from 'react-native';
 import {modalStyles} from '@/app/screens/MainStyles';
 import { useTranslations } from '@/hooks/ui/useTranslations';
 
@@ -30,9 +30,9 @@ const VoiceRecognitionModal: React.FC<VoiceRecognitionModalProps> = ({
             {countdown} seconds
           </Text>
           <Text style={modalStyles.modalRecognizing}>
-            {translate('recognizing')}
+            {translate('recognizing') + '...'}
           </Text>
-          <Text style={modalStyles.modalCommandText}>{command}</Text>
+          <ActivityIndicator size="large" color="#0000ff" />
           <TouchableOpacity
             style={modalStyles.modalCancelButton}
             onPress={onCancel}

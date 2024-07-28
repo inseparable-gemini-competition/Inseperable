@@ -3,9 +3,8 @@ import { useVoiceCommands } from "@/hooks/ui/useVoiceCommand";
 import { State } from "react-native-gesture-handler";
 
 export const useVoiceActivation = (
-  handleCommand: (command: string) => void,
   showCamera: boolean,
-  capturedImage: string | null
+  capturedImage: string | null,
 ) => {
   const {
     listening,
@@ -13,7 +12,7 @@ export const useVoiceActivation = (
     activateVoiceCommand,
     onVoiceRecognitionClosed,
     command,
-  } = useVoiceCommands(handleCommand);
+  } = useVoiceCommands();
 
   const handleLongPress = (event: any) => {
     if (event.nativeEvent.state === State.ACTIVE) {
