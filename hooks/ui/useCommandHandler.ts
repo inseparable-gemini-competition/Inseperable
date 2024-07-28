@@ -19,7 +19,7 @@ interface CommandHandlerDependencies {
   modals: {
     setWhatToSayModalVisible: (visible: boolean) => void;
     setTipsModalVisible: (visible: boolean) => void;
-    setUberModalVisible: (visible: boolean) => void;
+    setUserMoodModalVisible: (visible: boolean) => void;
   };
   textFeedBack: {
     setCurrentPromptType: (type: string) => void;
@@ -35,7 +35,7 @@ export const useCommandHandler = (deps: CommandHandlerDependencies) => {
     price: () => deps.imageCapture.handleShowCamera({ autoCapture: true }),
     donate: deps.donation.handleDonate,
     taboo: deps.modalHandlers.handleTabooSubmit,
-    uber: ()=> deps.modals.setUberModalVisible(true),
+    mood: ()=> deps.modals.setUserMoodModalVisible(true),
     whattosay: () => deps.modals.setWhatToSayModalVisible(true),
     plan: () => navigation.navigate("Plan"),
     shop: () => navigation.navigate("Shopping"),

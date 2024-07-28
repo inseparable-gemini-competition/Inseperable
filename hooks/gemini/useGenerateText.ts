@@ -87,7 +87,7 @@ export const useGenerateTextMutation = (
         text: error.message,
         position: "bottom",
         backgroundColor: "red",
-        color: "white",
+
         duration: 3000, // Duration the toast is visible
       });
     },

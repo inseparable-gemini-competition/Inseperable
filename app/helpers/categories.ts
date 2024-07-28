@@ -67,7 +67,7 @@ export const categories = (translate : Function) => [
   },
   {
     id: "10",
-    title: translate("uber"),
+    title: translate("mood"),
     imageUrl: require("../../assets/images/tips.png"),
     openCamera: false,
   },

@@ -2,15 +2,18 @@
 import { useNavigationAndUser } from "@/hooks/authentication";
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { useState } from "react";
-import { Alert, Linking } from "react-native";
+import { Linking, Alert } from "react-native";
+import { useTranslations } from "@/hooks/ui/useTranslations";
 
 export const useModalHandlers = (
   mutateAsync: any,
   setTabooModalVisible: (visible: boolean) => void
 ) => {
   const [userSituation, setUserSituation] = useState<string>("");
-  const [userUberText, setUserUberText] = useState<string>("");
+  const [userMoodAndDesires, setUserMoodAndDesires] = useState<string>("");
+  const [userMoodModalLoading, setUserMoodModalLoading] = useState<boolean>(false);
   const { userData } = useNavigationAndUser();
+  const { translate } = useTranslations();
 
   const handleSituationSubmit = async () => {
     await mutateAsync({
@@ -29,46 +32,82 @@ export const useModalHandlers = (
       inputData: { country: userData?.country },
     });
   };
-  const [uberModalLoading, setUberModalLoading] = useState(false);
 
-  const openuber = async (latitude: string, longitude: string) => {
-    const uberUrl = `uber://?action=setPickup&pickup=my_location&dropoff[latitude]=${latitude}&dropoff[longitude]=${longitude}`;
+  const openMapWithLocation = async (
+    latitude: string,
+    longitude: string,
+    name: string
+  ) => {
+    const encodedName = encodeURIComponent(name);
+    const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}&query_place_id=${encodedName}`;
 
-    Linking.canOpenURL(uberUrl)
-      .then((supported) => {
-        if (supported) {
-          return Linking.openURL(uberUrl);
-        } else {
-          // Fallback to a web URL if Uber app is not installed
-          const uberWebUrl = `https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[latitude]=${latitude}&dropoff[longitude]=${longitude}`;
-          return Linking.openURL(uberWebUrl);
-        }
-      })
-      .catch((err) => {
-        Alert.alert("An error occurred", err.message);
-      });
+    try {
+      const supported = await Linking.canOpenURL(mapsUrl);
+      if (supported) {
+        await Linking.openURL(mapsUrl);
+      } else {
+        Alert.alert(translate("unableToOpenMaps"));
+      }
+    } catch (err) {
+      Alert.alert(err instanceof Error ? err.message : translate("unknownError"));
+    }
   };
 
-  const handleUberSubmit = async () => {
-    setUberModalLoading(true);
+  const openUber = async (latitude: string, longitude: string) => {
+    const uberUrl = `uber://?action=setPickup&pickup=my_location&dropoff[latitude]=${latitude}&dropoff[longitude]=${longitude}`;
+
     try {
+      const supported = await Linking.canOpenURL(uberUrl);
+      if (supported) {
+        await Linking.openURL(uberUrl);
+      } else {
+        // Fallback to Uber website if the app is not installed
+        const uberWebUrl = `https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[latitude]=${latitude}&dropoff[longitude]=${longitude}`;
+        await Linking.openURL(uberWebUrl);
+      }
+    } catch (err) {
+      Alert.alert(err instanceof Error ? err.message : translate("unableToOpenUber"));
+    }
+  };
+
+  const handleTripRecommendationSubmit = async () => {
+    try {
+      setUserMoodModalLoading(true);
       const functions = getFunctions();
       const result = (await httpsCallable(
         functions,
         "scheduleTrip"
-      )({ userInput: userUberText })) as any;
+      )({ userInput: {userMoodAndDesires, country: userData?.country} })) as any;
 
-      openuber(
-        result.data.destination.latitude,
-        result.data.destination.longitude
+      const { name, description, latitude, longitude } = result.data;
+
+      setUserMoodModalLoading(false);
+
+      Alert.alert(
+        translate("weRecommend"),
+        `${name}\n\n${description}`,
+        [
+          {
+            text: translate("viewOnMap"),
+            onPress: () => openMapWithLocation(latitude, longitude, name),
+          },
+          {
+            text: translate("openInUber"),
+            onPress: () => openUber(latitude, longitude),
+          },
+          {
+            text: translate("close"),
+            onPress: () => {},
+          },
+        ]
       );
     } catch (error) {
-      console.error("Error:", error);
-      alert(
-        error instanceof Error ? error.message : "An unexpected error occurred"
+      setUserMoodModalLoading(false);
+
+      Alert.alert(
+        translate("unexpectedError"),
+        error instanceof Error ? error.message : translate("unexpectedError")
       );
-    } finally {
-      setUberModalLoading(false);
     }
   };
 
@@ -77,9 +116,9 @@ export const useModalHandlers = (
     setUserSituation,
     handleSituationSubmit,
     handleTabooSubmit,
-    userUberText,
-    setUserUberText,
-    handleUberSubmit,
-    uberModalLoading,
+    userMoodAndDesires,
+    setUserMoodAndDesires,
+    handleTripRecommendationSubmit,
+    userMoodModalLoading,
   };
 };

@@ -7,41 +7,41 @@ import GenericBottomSheet, {
 } from "./GenericBottomSheet"; // Adjust the import path as needed
 import { useTranslations } from "@/hooks/ui/useTranslations";
 
-interface WhatToSayModalProps {
+interface TripRecommendationModalProps {
   visible: boolean;
   isLoading: boolean;
   onClose: () => void;
   onSubmit: () => void;
-  userUberRequest: string;
-  setUserUberRequest: (request: string) => void;
+  userMoodAndDesires: string;
+  setUserMoodAndDesires: (input: string) => void;
 }
 
-const UberModal: React.FC<WhatToSayModalProps> = ({
+const TripRecommendationModal: React.FC<TripRecommendationModalProps> = ({
   visible,
   isLoading,
   onClose,
   onSubmit,
-  userUberRequest,
-  setUserUberRequest,
+  userMoodAndDesires,
+  setUserMoodAndDesires,
 }) => {
   const { translate } = useTranslations();
   
   return (
     <GenericBottomSheet visible={visible} onClose={onClose} enableScroll={true}>
-      <Text style={modalStyles.modalTitle}>{translate("whatToSay")}</Text>
+      <Text style={modalStyles.modalTitle}>{translate("tellUsYourMood")}</Text>
       {isLoading ? (
         <View style={[globalStyles.loadingContainer, { height: 100 }]}>
           <ActivityIndicator />
           <Text style={{ textAlign: "center", fontFamily: "marcellus" }}>
-            {translate("fetchingResponse")}
+            {translate("findingPerfectPlace")}
           </Text>
         </View>
       ) : (
         <>
           <GenericBottomSheetTextInput
-            placeholder={translate("enterSituation")}
-            value={userUberRequest}
-            onChangeText={setUserUberRequest}
+            placeholder={translate("enterMoodAndDesires")}
+            value={userMoodAndDesires}
+            onChangeText={setUserMoodAndDesires}
             multiline
             keyboardType="default"
             style={modalStyles.textInput}
@@ -49,7 +49,7 @@ const UberModal: React.FC<WhatToSayModalProps> = ({
           <Button
             style={{ marginVertical: 8, maxWidth: "80%", alignSelf: "center" }}
             onPress={onSubmit}
-            label={isLoading ?  translate('loading'): translate("submit")}
+            label={isLoading ? translate('finding') : translate("findPlace")}
           />
         </>
       )}
@@ -57,4 +57,4 @@ const UberModal: React.FC<WhatToSayModalProps> = ({
   );
 };
 
-export default UberModal;
+export default TripRecommendationModal;

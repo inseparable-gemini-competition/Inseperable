@@ -12,7 +12,7 @@ import {
   useTipSelection,
   useVoiceActivation,
 } from "@/hooks";
-import UberModal from "@/app/components/uberModal";
+import TripRecommendationModal from "@/app/components/TripRecommendationModal";
 
 interface ModalFactoryProps {
   modals: ReturnType<typeof useModals>;
@@ -75,15 +75,15 @@ export const ModalFactory: React.FC<ModalFactoryProps> = ({
       userSituation={modalHandlers.userSituation}
       setUserSituation={modalHandlers.setUserSituation}
     />
-    <UberModal
-      visible={modals.uberModalVisible}
-      isLoading={feedback.isLoadingFromGemini}
+    <TripRecommendationModal
+      visible={modals.userMoodModalVisible}
+      isLoading={modalHandlers.userMoodModalLoading}
       onClose={() => {
-        modals.setUberModalVisible(false);
+        modals.setUserMoodModalVisible(false);
       }}
-      onSubmit={modalHandlers.handleUberSubmit}
-      userUberRequest={modalHandlers.userUberText}
-      setUserUberRequest={modalHandlers.setUserUberText}
+      onSubmit={modalHandlers.handleTripRecommendationSubmit}
+      userMoodAndDesires={modalHandlers.userMoodAndDesires}
+      setUserMoodAndDesires={modalHandlers.setUserMoodAndDesires}
     />
     <TipsModal
       visible={modals.tipsModalVisible}
