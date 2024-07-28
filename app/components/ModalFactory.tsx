@@ -36,11 +36,14 @@ export const ModalFactory: React.FC<ModalFactoryProps> = ({
   <>
     <VoiceRecognitionModal
       visible={
-        voiceActivation.listening && voiceActivation.voiceCountdown !== null
+        !!voiceActivation.isListening ||
+        !!voiceActivation.isProcessing
       }
-      countdown={voiceActivation.voiceCountdown || 0}
+      isListening={!!voiceActivation.isListening}
+      isProcessing={!!voiceActivation.isProcessing}
       command={voiceActivation.command}
-      onCancel={voiceActivation.onVoiceRecognitionClosed}
+      onCancel={voiceActivation.cancelVoiceCommand}
+      onDone={voiceActivation.stopListening}
     />
     <DonationModal
       visible={modals.donationModalVisible}

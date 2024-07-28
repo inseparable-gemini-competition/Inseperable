@@ -1,49 +1,50 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, Modal, ActivityIndicator } from 'react-native';
-import {modalStyles} from '@/app/screens/MainStyles';
-import { useTranslations } from '@/hooks/ui/useTranslations';
+import React from "react";
+import { View, Text, ActivityIndicator } from "react-native";
+import { modalStyles } from "@/app/screens/MainStyles";
+import { useTranslations } from "@/hooks/ui/useTranslations";
+import { Button } from "react-native-ui-lib";
+import GenericBottomSheet from './GenericBottomSheet'; // Adjust the import path as needed
 
 interface VoiceRecognitionModalProps {
   visible: boolean;
-  countdown: number | null;
-  command: string;
+  isListening: boolean;
+  isProcessing: boolean;
+  command: string | null;
   onCancel: () => void;
+  onDone: () => void;
 }
 
 const VoiceRecognitionModal: React.FC<VoiceRecognitionModalProps> = ({
   visible,
-  countdown,
-  command,
+  isListening,
+  isProcessing,
   onCancel,
+  onDone,
 }) => {
   const { translate } = useTranslations();
+
   return (
-    <Modal
-      visible={visible}
-      transparent={true}
-      animationType="slide"
-      onRequestClose={onCancel}
-    >
-      <View style={modalStyles.modalContainer}>
-        <View style={modalStyles.modalContent}>
-          <Text style={modalStyles.modalCountdownText}>
-            {countdown} seconds
-          </Text>
-          <Text style={modalStyles.modalRecognizing}>
-            {translate('recognizing') + '...'}
-          </Text>
-          <ActivityIndicator size="large" color="#0000ff" />
-          <TouchableOpacity
-            style={modalStyles.modalCancelButton}
-            onPress={onCancel}
-          >
-            <Text style={modalStyles.modalCancelText}>
-              {translate('cancel')}
+    <GenericBottomSheet visible={visible} onClose={onDone} enableScroll={false}>
+      <View style={modalStyles.modalContent}>
+        {isListening && (
+          <>
+            <Text style={modalStyles.modalRecognizing}>
+              {translate("listening" + "...")}
             </Text>
-          </TouchableOpacity>
-        </View>
+          </>
+        )}
+
+        {isProcessing && (
+          <>
+            <Text style={modalStyles.modalRecognizing}>
+              {translate("processing")}
+            </Text>
+            <ActivityIndicator size="large" color="#0000ff" />
+          </>
+        )}
+        <Button onPress={onCancel} label={translate("dismiss")}/>
       </View>
-    </Modal>
+    </GenericBottomSheet>
   );
 };
 

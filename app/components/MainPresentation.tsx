@@ -99,7 +99,7 @@ const MainPresentation: React.FC<MainPresentationProps> = ({
                 nativeEvent: { state: State.ACTIVE },
               })
             }
-            isListening={voiceActivation.listening}
+            isListening={!!voiceActivation.isListening}
           />
           <ModalFactory
             modals={modals}

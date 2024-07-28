@@ -7,11 +7,12 @@ export const useVoiceActivation = (
   capturedImage: string | null,
 ) => {
   const {
-    listening,
-    voiceCountdown,
+    isListening,
     activateVoiceCommand,
-    onVoiceRecognitionClosed,
-    command,
+    stopListening,
+    cancelVoiceCommand,
+    command: aiResponse,
+    isProcessing: isLoading,
   } = useVoiceCommands();
 
   const handleLongPress = (event: any) => {
@@ -23,11 +24,12 @@ export const useVoiceActivation = (
   };
 
   return {
-    listening,
-    voiceCountdown,
+    isListening,
     activateVoiceCommand,
-    onVoiceRecognitionClosed,
-    command,
+    stopListening,
+    cancelVoiceCommand,
+    command: aiResponse,
+    isProcessing: isLoading,
     handleLongPress,
   };
 };

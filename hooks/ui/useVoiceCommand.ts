@@ -1,15 +1,12 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import Voice from "@react-native-voice/voice";
 import * as Speech from "expo-speech";
+import { Audio } from "expo-av";
 import { useTranslations } from "@/hooks/ui/useTranslations";
 import { useGenerateContent } from "@/hooks/gemini";
 import * as FileSystem from "expo-file-system";
-import { Audio } from "expo-av";
 
 export const useVoiceCommands = () => {
-  const [listening, setListening] = useState<boolean>(false);
-  const [voiceCountdown, setVoiceCountdown] = useState<number | null>(null);
-  const voiceCountdownRef = useRef<NodeJS.Timeout | null>(null);
+  const [isListening, setIsListening] = useState<boolean>(false);
   const { translate } = useTranslations();
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
   const recordingRef = useRef<Audio.Recording | null>(null);
@@ -19,7 +16,7 @@ export const useVoiceCommands = () => {
     inputData: { fromLanguage: "arabic", toLanguage: "english" },
     onSuccess: (data) => {
       setRecording(null);
-      console.log("AI response received:", data);
+      setIsListening(false);
     },
   });
 
@@ -67,17 +64,17 @@ export const useVoiceCommands = () => {
       );
       setRecording(recording);
       recordingRef.current = recording;
+      setIsListening(true);
       console.log("Recording started:", recording);
     } catch (err) {
       console.error("Failed to start recording", err);
-      setListening(false);
+      setIsListening(false);
       setRecording(null);
       recordingRef.current = null;
     }
   };
 
-  const stopRecording = useCallback(async () => {
-    console.log("Attempting to stop recording. Current recording state:", recordingRef.current);
+  const stopListening = useCallback(async () => {
     if (recordingRef.current) {
       try {
         await recordingRef.current.stopAndUnloadAsync();
@@ -97,66 +94,32 @@ export const useVoiceCommands = () => {
     } else {
       console.warn("No active recording to stop");
     }
-    setListening(false);
+    setIsListening(false);
   }, []);
-
-  const startVoiceCountdown = useCallback(() => {
-    console.log("Starting voice countdown");
-    voiceCountdownRef.current = setInterval(() => {
-      setVoiceCountdown((prev) => {
-        const next = prev !== null ? prev - 1 : null;
-        console.log("Countdown:", next);
-        if (next !== null && next <= 0) {
-          clearInterval(voiceCountdownRef.current!);
-          voiceCountdownRef.current = null;
-          console.log("Countdown finished, stopping recording");
-          stopRecording();
-          return null;
-        }
-        return next;
-      });
-    }, 1000);
-  }, [stopRecording]);
-
-  const clearVoiceCountdown = useCallback(() => {
-    if (voiceCountdownRef.current) {
-      clearInterval(voiceCountdownRef.current);
-      voiceCountdownRef.current = null;
-      setVoiceCountdown(null);
-      console.log("Voice countdown cleared");
-    }
-  }, []);
-
-  const onVoiceRecognitionClosed = useCallback(() => {
-    setListening(false);
-    clearVoiceCountdown();
-    if (recordingRef.current) {
-      stopRecording();
-    }
-    Voice.stop();
-    console.log("Voice recognition closed");
-  }, [clearVoiceCountdown, stopRecording]);
 
   const activateVoiceCommand = useCallback(() => {
     console.log("Activating voice command");
-    setListening(true);
-    setVoiceCountdown(10);
-    Speech.speak(translate("youHave10Seconds"), {
+    Speech.speak(translate("pleaseStartSpeaking"), {
       onDone: () => {
-        console.log("Speech completed, starting countdown and recording");
-        startVoiceCountdown();
         startRecording();
       },
     });
-  }, [translate, startVoiceCountdown]);
+  }, [translate]);
 
-  console.log("Current state:", { listening, isLoading, aiResponse, voiceCountdown });
+  const cancelVoiceCommand = useCallback(() => {
+    if (recordingRef.current) {
+      stopListening();
+    }
+    setIsListening(false);
+    console.log("Voice command cancelled");
+  }, [stopListening]);
 
   return {
-    listening,
-    voiceCountdown,
+    isListening,
     activateVoiceCommand,
-    onVoiceRecognitionClosed,
+    stopListening,
+    cancelVoiceCommand,
     command: aiResponse,
+    isProcessing: isLoading,
   };
 };
