@@ -71,7 +71,6 @@ export const useCommandHandler = (deps: CommandHandlerDependencies) => {
         if (handler) {
           deps.textFeedBack.setCurrentPromptType(lowerCommand);
           await handler();
-          console.log(`Command '${lowerCommand}' executed successfully`);
         } else {
           console.warn(`Unknown command: ${lowerCommand}`);
         }

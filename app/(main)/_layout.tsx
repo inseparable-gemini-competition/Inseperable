@@ -21,14 +21,14 @@ polyfillReadableStream();
 
 const Stack = createStackNavigator();
 
-function NavigationWrapper({onFinish}: any) {
+function NavigationWrapper({ onFinish }: any) {
   const { userData } = useStore();
   const { goBack } = useNavigation();
-  
+
   if (!userData?.country) {
     return <Questionnaire onFinish={onFinish} />;
   }
-  
+
   return (
     <Stack.Navigator
       screenOptions={{ headerShown: false }}
@@ -38,7 +38,9 @@ function NavigationWrapper({onFinish}: any) {
       <Stack.Screen name="Plan" component={Plan} />
       <Stack.Screen name="Shopping" component={HandmadeItems} />
       <Stack.Screen name="EnvImpact">
-        {(props) => <EnvironmentalImpactQuestionnaire {...props} onFinish={goBack} />}
+        {(props) => (
+          <EnvironmentalImpactQuestionnaire {...props} onFinish={goBack} />
+        )}
       </Stack.Screen>
       <Stack.Screen name="Chat" component={Chat} />
       <Stack.Screen name="Questionnaire">
@@ -75,9 +77,6 @@ export default function TabLayout() {
       try {
         if (userId) {
           await setDoc(doc(db, "users", userId), updatedUserData);
-          console.log("User data saved successfully!");
-        } else {
-          console.error("User ID is not available.");
         }
       } catch (error) {
         console.error("Error saving user data: ", error);
@@ -93,4 +92,3 @@ export default function TabLayout() {
     </QueryClientProvider>
   );
 }
-

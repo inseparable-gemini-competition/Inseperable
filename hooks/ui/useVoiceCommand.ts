@@ -21,14 +21,12 @@ export const useVoiceCommands = () => {
   });
 
   useEffect(() => {
-    console.log("Recording state changed:", recording);
     recordingRef.current = recording;
   }, [recording]);
 
   useEffect(() => {
     return () => {
       if (recordingRef.current) {
-        console.log("Cleaning up recording");
         recordingRef.current.stopAndUnloadAsync().catch(console.error);
       }
     };
@@ -39,7 +37,6 @@ export const useVoiceCommands = () => {
       const base64Audio = await FileSystem.readAsStringAsync(uri, {
         encoding: FileSystem.EncodingType.Base64,
       });
-      console.log("Sending audio to Gemini");
       sendMessage("extract the command out of this audio file", {
         data: base64Audio,
         mimeType: "audio/mp4",
@@ -51,21 +48,18 @@ export const useVoiceCommands = () => {
 
   const startRecording = async () => {
     try {
-      console.log("Requesting audio permissions");
       await Audio.requestPermissionsAsync();
       await Audio.setAudioModeAsync({
         allowsRecordingIOS: true,
         playsInSilentModeIOS: true,
       });
 
-      console.log("Creating new recording");
       const { recording } = await Audio.Recording.createAsync(
         Audio.RecordingOptionsPresets.HIGH_QUALITY
       );
       setRecording(recording);
       recordingRef.current = recording;
       setIsListening(true);
-      console.log("Recording started:", recording);
     } catch (err) {
       console.error("Failed to start recording", err);
       setIsListening(false);
@@ -79,7 +73,6 @@ export const useVoiceCommands = () => {
       try {
         await recordingRef.current.stopAndUnloadAsync();
         const uri = recordingRef.current.getURI();
-        console.log("Recording stopped, URI:", uri);
         if (uri) {
           await sendAudioToGemini(uri);
         } else {
@@ -98,7 +91,6 @@ export const useVoiceCommands = () => {
   }, []);
 
   const activateVoiceCommand = useCallback(() => {
-    console.log("Activating voice command");
     Speech.speak(translate("pleaseStartSpeaking"), {
       onDone: () => {
         startRecording();
@@ -111,7 +103,6 @@ export const useVoiceCommands = () => {
       stopListening();
     }
     setIsListening(false);
-    console.log("Voice command cancelled");
   }, [stopListening]);
 
   return {

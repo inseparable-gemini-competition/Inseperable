@@ -101,7 +101,6 @@ const Questionnaire = ({ onFinish }: Props) => {
   const handleAnswer = (answer: string) => {
     const updatedAnswers = [...answers];
     updatedAnswers[currentQuestionIndex] = answer;
-    console.log(updatedAnswers);
     setAnswers(updatedAnswers);
   };
 

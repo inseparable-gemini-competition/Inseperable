@@ -22,7 +22,6 @@ export const useJsonControlledGeneration = ({
         currentLanguage 
       },
     })) as any;
-    if (__DEV__) console.log("jsonResult ", result.data);
     return result.data?.result?.[0]
       ? result.data?.result?.[0]
       : result.data?.result;
