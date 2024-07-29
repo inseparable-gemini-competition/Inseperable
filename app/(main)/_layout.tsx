@@ -1,10 +1,10 @@
 import React from "react";
 import { QueryClient, QueryClientProvider } from "react-query";
-import useStore, { userDataType } from "../store";
+import useStore from "../store";
 import { polyfill as polyfillEncoding } from "react-native-polyfill-globals/src/encoding";
 import { polyfill as polyfillReadableStream } from "react-native-polyfill-globals/src/readable-stream";
 import useGoogleImageSearch from "@/hooks/ui/useGoogleImageSearch";
-import { db } from "../helpers/firebaseConfig"; // Import the Firestore instance
+import { db } from "../helpers/firebaseConfig";
 import { doc, setDoc } from "firebase/firestore";
 import { useSignIn } from "@/hooks/authentication/useSignIn";
 import { createStackNavigator } from "@react-navigation/stack";
@@ -12,7 +12,6 @@ import Main from "@/app/screens/Main";
 import Chat from "@/app/screens/Chat";
 import Plan from "@/app/screens/Plan";
 import HandmadeItems from "@/app/screens/HandmadeItems";
-
 import Questionnaire from "../screens/Questionnaire";
 import EnvironmentalImpactQuestionnaire from "@/app/screens/EnvironmentalImpactQuestionnaire";
 import { useNavigation } from "expo-router";
@@ -20,18 +19,46 @@ import { useNavigation } from "expo-router";
 polyfillEncoding();
 polyfillReadableStream();
 
+const Stack = createStackNavigator();
+
+function NavigationWrapper({onFinish}: any) {
+  const { userData } = useStore();
+  const { goBack } = useNavigation();
+  
+  if (!userData?.country) {
+    return <Questionnaire onFinish={onFinish} />;
+  }
+  
+  return (
+    <Stack.Navigator
+      screenOptions={{ headerShown: false }}
+      initialRouteName="Main"
+    >
+      <Stack.Screen name="Main" component={Main} />
+      <Stack.Screen name="Plan" component={Plan} />
+      <Stack.Screen name="Shopping" component={HandmadeItems} />
+      <Stack.Screen name="EnvImpact">
+        {(props) => <EnvironmentalImpactQuestionnaire {...props} onFinish={goBack} />}
+      </Stack.Screen>
+      <Stack.Screen name="Chat" component={Chat} />
+      <Stack.Screen name="Questionnaire">
+        {(props) => <Questionnaire {...props} onFinish={onFinish} />}
+      </Stack.Screen>
+    </Stack.Navigator>
+  );
+}
+
 export default function TabLayout() {
-  const { userData, setUserData } = useStore();
   const queryClient = new QueryClient();
   const { fetchPhotos, setLoading, loading } = useGoogleImageSearch();
-  const { authenticateUser } = useSignIn(); // Assuming this hook provides the userId correctly
-  const Stack = createStackNavigator();
-  const { goBack } = useNavigation();
+  const { authenticateUser } = useSignIn();
+  const { setUserData } = useStore();
+
   const onFinish = async ({
     userData,
     setLocalLoading,
   }: {
-    userData: userDataType;
+    userData: any;
     setLocalLoading: (loading: boolean) => void;
   }) => {
     if (userData?.country) {
@@ -62,27 +89,8 @@ export default function TabLayout() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {userData ? (
-        <Stack.Navigator
-          screenOptions={{ headerShown: false }}
-          initialRouteName={userData?.country ? "Main" : "Questionnaire"}
-        >
-          <Stack.Screen name="Main" component={Main} />
-          <Stack.Screen name="Plan" component={Plan} />
-          <Stack.Screen name="Shopping" component={HandmadeItems} />
-          <Stack.Screen name="EnvImpact">
-            {(props) => <EnvironmentalImpactQuestionnaire {...props} onFinish={goBack} />}
-          </Stack.Screen>
-          <Stack.Screen name="Chat" component={Chat} />
-          <Stack.Screen name="Questionnaire">
-            {(props) => <Questionnaire {...props} onFinish={onFinish} />}
-          </Stack.Screen>
-        </Stack.Navigator>
-      ) : (
-        <Questionnaire onFinish={onFinish} />
-      )}
+      <NavigationWrapper onFinish={onFinish} />
     </QueryClientProvider>
   );
 }
 
-export { userDataType };
