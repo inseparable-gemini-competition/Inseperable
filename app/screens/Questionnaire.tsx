@@ -29,7 +29,6 @@ const Questionnaire = ({ onFinish }: Props) => {
   const [localLoading, setLocalLoading] = useState(false);
 
   const [questions, setQuestions] = useState(defaultQuestions);
-  const { userData, setUserData } = useStore();
 
   const {
     generate: generateCountryRecommendation,
@@ -41,6 +40,7 @@ const Questionnaire = ({ onFinish }: Props) => {
   const { sendMessage: sendAnswer, isLoading: isLoadingNextQuestion } =
     useGenerateContent({
       promptType: "nextQuestionCountry",
+      inputData: {questions, answers},
       onSuccess: (nextQuestion) => {
         const updatedQuestions = [
           ...questions,
@@ -60,7 +60,7 @@ const Questionnaire = ({ onFinish }: Props) => {
       });
       setCurrentLanguage(data.baseLanguage);
     },
-    [answers, userData, translations]
+    [answers, translations]
   );
 
   const onPriorityTranslationSuccess = useCallback(
@@ -80,7 +80,7 @@ const Questionnaire = ({ onFinish }: Props) => {
         return latestUserCountry; // Return the current value to not change the state
       });
     },
-    [answers, userData, translations]
+    [answers, translations]
   );
 
   const { generate: generateTranslations } = useJsonControlledGeneration({
