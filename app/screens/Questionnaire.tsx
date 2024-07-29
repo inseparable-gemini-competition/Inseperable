@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { View, Text, Button } from "react-native-ui-lib";
 import { colors } from "../theme";
 import Question from "@/app/components/Question/Question";
@@ -8,13 +8,13 @@ import {
   convertJSONToObject,
   defaultQuestions,
 } from "@/app/helpers/questionnaireHelpers";
-import useStore, { userDataType } from "../store";
+import useStore from "../store";
 import { useGenerateContent } from "@/hooks/gemini/useGeminiStream";
 import { useTranslations } from "@/hooks/ui/useTranslations";
 
 type Props = {
   onFinish: (userData: {
-    userData: userDataType;
+    userData: any;
     setLocalLoading: (loading: boolean) => void;
   }) => void;
 };
@@ -22,6 +22,7 @@ type Props = {
 const Questionnaire = ({ onFinish }: Props) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<string[]>([]);
+  const [userCountry, setUserCountry] = useState("");
 
   const { translate, setTranslations, setCurrentLanguage, translations } =
     useTranslations();
@@ -53,43 +54,47 @@ const Questionnaire = ({ onFinish }: Props) => {
 
   const onTranslationSuccess = useCallback(
     (data: any) => {
-      console.log("data", data);
-      const updatedUserData = {
-        ...userData,
-        baseLanguage: data.baseLanguage,
-      };
-      setUserData(updatedUserData as userDataType);
-
       setTranslations({
         en: translations.en,
         [data.baseLanguage]: data.translations,
       });
-
       setCurrentLanguage(data.baseLanguage);
+    },
+    [answers, userData, translations]
+  );
+
+  const onPriorityTranslationSuccess = useCallback(
+    (data: any) => {
+      onTranslationSuccess(data);
       setAnswers((currentAnswers) => {
         if (currentAnswers.length > 0) {
           sendAnswer(currentAnswers[0]);
         }
         return currentAnswers;
       });
+      // Use setUserCountry to get the latest value
+      setUserCountry((latestUserCountry) => {
+        generateTranslations({
+          country: latestUserCountry,
+        });
+        return latestUserCountry; // Return the current value to not change the state
+      });
     },
-    [
-      sendAnswer,
-      answers,
-      userData,
-      setUserData,
-      setTranslations,
-      setCurrentLanguage,
-      setAnswers,
-      translations,
-    ]
+    [answers, userData, translations]
   );
 
-  const { generate: generateTranslations, isLoading: isLoadingTranslations } =
-    useJsonControlledGeneration({
-      promptType: "translateApp",
-      onSuccess: onTranslationSuccess,
-    });
+  const { generate: generateTranslations } = useJsonControlledGeneration({
+    promptType: "translateApp",
+    onSuccess: onTranslationSuccess,
+  });
+
+  const {
+    generate: generatePriorityTranslations,
+    isLoading: isLoadingPriorityTranslation,
+  } = useJsonControlledGeneration({
+    promptType: "translatePriority",
+    onSuccess: onPriorityTranslationSuccess,
+  });
 
   const [question, setQuestion] = useState(questions[0]);
 
@@ -101,12 +106,13 @@ const Questionnaire = ({ onFinish }: Props) => {
   };
 
   const handleNext = async (option: string) => {
+    setUserCountry(option);
     if (option.length === 0) return;
     const updatedAnswers = [...answers, option];
     setAnswers(updatedAnswers);
 
     if (currentQuestionIndex === 0) {
-      generateTranslations({
+      generatePriorityTranslations({
         country: option,
       });
     } else if (currentQuestionIndex < 7) {
@@ -127,7 +133,7 @@ const Questionnaire = ({ onFinish }: Props) => {
     }
   };
 
-  if (isLoadingNextQuestion || isLoadingTranslations) {
+  if (isLoadingNextQuestion || isLoadingPriorityTranslation) {
     return (
       <View
         style={{
@@ -139,7 +145,7 @@ const Questionnaire = ({ onFinish }: Props) => {
       >
         <ActivityIndicator size="large" color={colors.primary} />
         <Text style={{ fontFamily: "marcellus" }}>
-          {isLoadingTranslations
+          {isLoadingPriorityTranslation
             ? translate("DetectingYourNativeLanguage")
             : translate("fetchingNextQuestion")}
         </Text>
