@@ -254,9 +254,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   backButton: {
-    paddingLeft: 5,
+    paddingStart: 5,
     marginTop: 40,
-    marginRight: 10,
+    marginEnd: 10,
   },
   translatedText: {
     fontSize: 12,

@@ -23,7 +23,7 @@ const styles = StyleSheet.create({
       borderRadius: 10,
     },
     backButton: {
-      marginRight: 10,
+      marginEnd: 10,
     },
     itemContainer: {
       marginBottom: 20,

@@ -1,47 +1,83 @@
 // store.ts
-import { create } from 'zustand';
-import { persist, PersistOptions } from "zustand/middleware";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { translations as initialTranslations} from '@/app/helpers/translations';
 
-type userDataType = {
-  country: string;
-  flag: string;
-  description: string;
-  baseLanguage: string;
-  mostFamousLandmark: string;
+import { create } from 'zustand';
+import { persist, createJSONStorage } from "zustand/middleware";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { translations as initialTranslations } from '@/app/helpers/translations';
+import { userDataType } from '@/app/(main)/_layout';
+
+export type TranslationsType = {
+  [key: string]: {
+    [key: string]: string;
+  };
 };
 
 interface StoreState {
-  userData: userDataType;
-  setUserData: (data: userDataType) => void;
-  translations: typeof initialTranslations;
-  setTranslations: (newTranslations: typeof initialTranslations) => void;
+  userData: userDataType | null;
+  setUserData: (data: userDataType | null) => void;
+  translations: TranslationsType;
+  setTranslations: (newTranslations: Partial<TranslationsType>) => void;
   currentLanguage: string;
   setCurrentLanguage: (lang: string) => void;
 }
 
-type MyPersist = (
-  config: (set: any, get: any, api: any) => StoreState,
-  options: PersistOptions<StoreState>
-) => (set: any, get: any, api: any) => StoreState;
-
-const useStore = create<StoreState>(
-  (persist as MyPersist)(
-    (set) => ({
-      userData: { country: "", flag: "", description: "", mostFamousLandmark: "", baseLanguage: "" },
-      setUserData: (data: userDataType) => set({ userData: data }),
-      translations: initialTranslations,
-      setTranslations: (newTranslations) => set({ translations: newTranslations }),
+const useStore = create<StoreState>()(
+  persist(
+    (set, get) => ({
+      userData: null,
+      setUserData: (data) => set(() => {
+        console.log('userData updated:', data);
+        return { userData: data ? { ...data } : null };
+      }),
+      translations: {},  // Start with an empty object
+      setTranslations: (newTranslations) => set((state) => {
+        const updatedTranslations = {
+          ...state.translations,
+          ...newTranslations
+        };
+        console.log('translations updated:', updatedTranslations);
+        return { translations: updatedTranslations };
+      }),
       currentLanguage: 'en',
-      setCurrentLanguage: (lang) => set({ currentLanguage: lang }),
+      setCurrentLanguage: (lang) => set(() => {
+        console.log('currentLanguage updated:', lang);
+        return { currentLanguage: lang };
+      }),
+      logEntireState: () => {
+        const state = get();
+        console.log('Entire Zustand State:', state);
+      },
     }),
     {
       name: "app-storage",
-      getStorage: () => AsyncStorage,
+      storage: createJSONStorage(() => AsyncStorage),
+      partialize: (state) => ({ 
+        userData: state.userData, 
+        translations: state.translations, 
+        currentLanguage: state.currentLanguage 
+      }),
+      onRehydrateStorage: () => (state) => {
+        console.log('State after rehydration:', state);
+        if (state) {
+          // If no translations were persisted, use the initial translations
+          if (Object.keys(state.translations).length === 0) {
+            console.log('No persisted translations found, using initial translations');
+            useStore.setState({ translations: initialTranslations });
+          } else {
+            console.log('Rehydrated translations:', state.translations);
+          }
+        }
+      },
     }
   )
 );
 
+// Log initial state
+console.log('Initial Zustand State:', useStore.getState());
+
+// Subscribe to state changes
+useStore.subscribe((state) => {
+  console.log('Zustand State Updated:', state);
+});
+
 export default useStore;
-export type { userDataType };

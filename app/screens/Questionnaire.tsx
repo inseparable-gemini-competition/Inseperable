@@ -11,7 +11,6 @@ import {
 import useStore, { userDataType } from "../store";
 import { useGenerateContent } from "@/hooks/gemini/useGeminiStream";
 import { useTranslations } from "@/hooks/ui/useTranslations";
-import { translations } from "@/app/helpers/translations";
 
 type Props = {
   onFinish: (userData: {
@@ -24,7 +23,8 @@ const Questionnaire = ({ onFinish }: Props) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<string[]>([]);
 
-  const { translate, setTranslations, setCurrentLanguage } = useTranslations();
+  const { translate, setTranslations, setCurrentLanguage, translations } =
+    useTranslations();
   const [localLoading, setLocalLoading] = useState(false);
 
   const [questions, setQuestions] = useState(defaultQuestions);
@@ -58,9 +58,8 @@ const Questionnaire = ({ onFinish }: Props) => {
         ...userData,
         baseLanguage: data.baseLanguage,
       };
-      setUserData(updatedUserData);
+      setUserData(updatedUserData as userDataType);
 
-      // Directly set translations without using a function
       setTranslations({
         en: translations.en,
         [data.baseLanguage]: data.translations,

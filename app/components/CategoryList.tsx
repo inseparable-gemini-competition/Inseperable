@@ -40,17 +40,7 @@ const CategoryList: React.FC<CategoryListProps> = ({
     <CategoryCard
       title={translate(item.title)}
       imageUrl={item.imageUrl}
-      onPress={() =>
-        onCategoryPress(
-          item.title?.toLowerCase() === "fair price"
-            ? "price"
-            : item.title?.toLocaleLowerCase() === "what to say?"
-            ? "whatToSay"
-            : item.title?.toLocaleLowerCase() === "env impact"
-            ? "impact"
-            : item.title?.toLowerCase()
-        )
-      }
+      onPress={() => onCategoryPress(item.command)}
     />
   );
 

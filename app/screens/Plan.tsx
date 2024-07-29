@@ -371,7 +371,7 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   backButton: {
-    marginLeft: 5,
+    marginStart: 5,
     marginTop: 20,
     width: 50,
     height: 50,

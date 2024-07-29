@@ -8,7 +8,7 @@ export type CommandType =
   | "price"
   | "donate"
   | "taboo"
-  | "whattosay"
+  | "say"
   | "plan"
   | "shop"
   | "impact"
@@ -49,7 +49,7 @@ export const useCommandHandler = (deps: CommandHandlerDependencies) => {
       donate: deps.donation.handleDonate,
       taboo: deps.modalHandlers.handleTabooSubmit,
       mood: () => deps.modals.setUserMoodModalVisible(true),
-      whattosay: () => deps.modals.setWhatToSayModalVisible(true),
+      say: () => deps.modals.setWhatToSayModalVisible(true),
       plan: () => navigation.navigate("Plan"),
       shop: () => navigation.navigate("Shopping"),
       impact: () => navigation.navigate("EnvImpact"),
