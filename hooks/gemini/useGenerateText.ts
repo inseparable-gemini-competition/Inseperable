@@ -9,6 +9,7 @@ import {
 import { convertMarkdownToPlainText } from "../../app/helpers/markdown";
 import { Toast } from "react-native-ui-lib"; // Importing Toast component
 import { useTranslations } from "@/hooks/ui/useTranslations";
+import { Alert } from "react-native";
 
 const IMAGE_RESIZE_WIDTH = 512;
 
@@ -51,7 +52,7 @@ const manipulateImage = async (imageUri: string): Promise<string> => {
 export const useGenerateTextMutation = (
   options: UseGenerateTextOptions = {}
 ): UseMutationResult<string, Error, GenerateTextInput, unknown> => {
-  const { currentLanguage } = useTranslations();
+  const { currentLanguage, translate } = useTranslations();
 
   // Function to generate text using Firebase function
   const generateText = async (input: GenerateTextInput): Promise<string> => {
@@ -80,16 +81,11 @@ export const useGenerateTextMutation = (
   return useMutation<string, Error, GenerateTextInput, unknown>(generateText, {
     onSuccess: options.onSuccess,
     onError: (error) => {
-      console.error("Mutation error:", error);
 
-      // Display a toast on error
-      Toast.show({
-        text: error.message,
-        position: "bottom",
-        backgroundColor: "red",
-
-        duration: 3000, // Duration the toast is visible
-      });
+      Alert.alert(
+        translate("unexpectedError"),
+        error instanceof Error ? error.message : translate("unexpectedError")
+      );
     },
   });
 };

@@ -27,8 +27,8 @@ const TipsModal: React.FC<TipsModalProps> = ({
   const tipTypes = [
     { label: translate("ecofriendly"), value: "ecoFriendly" },
     { label: translate("cultural"), value: "cultural" },
-    { label: translate("Cuisine"), value: "cuisine" },
-    { label: translate("Safety"), value: "safety" },
+    { label: translate("cuisine"), value: "cuisine" },
+    { label: translate("safety"), value: "safety" },
   ];
   useEffect(() => {
     setIsVisible(visible);

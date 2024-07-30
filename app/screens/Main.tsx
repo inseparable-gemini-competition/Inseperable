@@ -15,7 +15,7 @@ import { useCommandHandler } from "@/hooks/ui/useCommandHandler";
 
 const MainContainer: React.FC = () => {
   const modals = useModals();
-  const textFeedBack = useTextFeedback();
+  const textFeedBack = useTextFeedback({noModalVisible: modals.noModalVisible});
   const imageCapture = useCamera(
     textFeedBack.mutateAsync,
     textFeedBack.setCurrentPromptType

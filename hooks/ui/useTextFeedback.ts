@@ -2,10 +2,12 @@
 import { useState } from "react";
 import { useGenerateTextMutation } from "@/hooks/gemini/useGenerateText";
 import { useTextToSpeech } from "@/hooks/ui/useTextToSpeech";
+import { useTranslations } from "@/hooks/ui/useTranslations";
 
-export const useTextFeedback = () => {
+export const useTextFeedback = ({noModalVisible} : {noModalVisible: boolean}) => {
   const [currentPromptType, setCurrentPromptType] = useState<string>("");
   const { speak, stop } = useTextToSpeech();
+  const {currentLanguage} = useTranslations();
 
   const {
     mutateAsync,
@@ -14,8 +16,10 @@ export const useTextFeedback = () => {
     reset,
   } = useGenerateTextMutation({
     onSuccess: (data) => {
-      if (data && typeof data === "string") {
-        speak(data);
+      if (data && typeof data === "string" && !noModalVisible) {
+        speak(data,{
+          language: currentLanguage || "en",
+        });
       }
     },
   });

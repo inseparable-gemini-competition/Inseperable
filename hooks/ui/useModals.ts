@@ -7,6 +7,7 @@ export const useModals = () => {
   const [donationModalVisible, setDonationModalVisible] = useState(false);
   const [userMoodModalVisible, setUserMoodModalVisible] = useState(false);
 
+  const noModalVisible = !tabooModalVisible && !whatToSayModalVisible && !tipsModalVisible && !donationModalVisible && !userMoodModalVisible
 
   return {
     tabooModalVisible,
@@ -18,6 +19,7 @@ export const useModals = () => {
     donationModalVisible,
     setDonationModalVisible,
     userMoodModalVisible,
-    setUserMoodModalVisible
+    setUserMoodModalVisible,
+    noModalVisible,
   };
 };

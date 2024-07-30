@@ -1,5 +1,4 @@
 import React from "react";
-import VoiceRecognitionModal from "@/app/components/VoiceRecognitionModal";
 import DonationModal from "@/app/components/DonationModal";
 import TabooModal from "@/app/components/TabooModal";
 import WhatToSayModal from "@/app/components/WhatToSayModal";
