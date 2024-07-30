@@ -23,7 +23,7 @@ const CameraView: React.FC<CameraViewProps> = ({
   const { translate } = useTranslations();
   return (
     <View style={{ flex: 1 }}>
-      {countdown !== null && (
+      {countdown !== 0 && (
         <View style={styles.countdownContainer}>
           <Text style={styles.countdownText}>{countdown}</Text>
           <TouchableOpacity

@@ -18,7 +18,7 @@ const MainContainer: React.FC = () => {
   const textFeedBack = useTextFeedback();
   const imageCapture = useCamera(
     textFeedBack.mutateAsync,
-    textFeedBack.currentPromptType
+    textFeedBack.setCurrentPromptType
   );
   const navigationAndUser = useNavigationAndUser();
   const modalHandlers = useModalHandlers(

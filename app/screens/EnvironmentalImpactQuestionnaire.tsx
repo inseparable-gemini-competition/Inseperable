@@ -8,13 +8,12 @@ import {
   convertJSONToObject,
   defaultQuestions,
 } from "@/app/helpers/environmentalQuestionnaireHelpers";
-import { userDataType } from "../store";
 import { useGenerateContent } from "@/hooks/gemini/useGeminiStream";
 import { useTranslations } from "@/hooks/ui/useTranslations";
 
 type Props = {
   onFinish: (userData: {
-    userData: userDataType;
+    userData: any;
     setLocalLoading: (loading: boolean) => void;
   }) => void;
 };
@@ -32,12 +31,14 @@ const EnvironmentalImpactQuestionnaire = ({ onFinish }: Props) => {
     result,
   } = useJsonControlledGeneration({
     promptType: "environmentalImpact",
+  
   });
   const [localLoading, setLocalLoading] = useState(false);
 
   const { sendMessage: sendAnswer, isLoading: isLoadingNextQuestion } =
     useGenerateContent({
       promptType: "nextQuestionEnvironment",
+      inputData: {questions, answers},
       onSuccess: (result) => {
         const updatedQuestions = [...questions, convertJSONToObject(result)];
         setQuestions(updatedQuestions);

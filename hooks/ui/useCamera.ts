@@ -13,7 +13,7 @@ import { useNavigationAndUser } from "@/hooks/authentication/useNavigationAndUse
 
 export const useCamera = (
   mutateAsync: (variables: GenerateTextInput) => Promise<string>,
-  currentPromptType: string
+  setCurrentPromptType: React.Dispatch<React.SetStateAction<string>>
 ) => {
   const [showCamera, setShowCamera] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
@@ -41,16 +41,21 @@ export const useCamera = (
         duration: 700,
         easing: Easing.inOut(Easing.ease),
       });
+      let promptType = "";
+      setCurrentPromptType((currentPromptType: string) => {
+        promptType = currentPromptType;
+        return currentPromptType;
+      });
       await mutateAsync({
         image: photo.uri,
-        promptType: currentPromptType,
+        promptType,
         inputData: {
           country: userData?.country,
           language: userData?.baseLanguage,
         },
       });
     }
-  }, [currentPromptType, mutateAsync]);
+  }, [mutateAsync]);
 
   const handleAutoCapture = useCallback(() => {
     const captureInterval = setInterval(() => {

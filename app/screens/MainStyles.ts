@@ -192,7 +192,7 @@ export const styles = StyleSheet.create({
   resetButton: {
     position: "absolute",
     top: 28,
-    start: 20,
+    end: 20,
     backgroundColor: "#f44336",
     padding: 10,
     borderRadius: 20,
