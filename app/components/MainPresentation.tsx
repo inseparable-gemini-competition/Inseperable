@@ -107,7 +107,6 @@ const MainPresentation: React.FC<MainPresentationProps> = ({
             feedback={textFeedBack}
             modalHandlers={modalHandlers}
             tipSelection={tipSelection}
-            voiceActivation={voiceActivation}
             userData={navigationAndUser.userData}
           />
         </View>

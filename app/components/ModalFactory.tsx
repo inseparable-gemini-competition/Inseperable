@@ -20,7 +20,6 @@ interface ModalFactoryProps {
   feedback: ReturnType<typeof useTextFeedback>;
   modalHandlers: ReturnType<typeof useModalHandlers>;
   tipSelection: ReturnType<typeof useTipSelection>;
-  voiceActivation: ReturnType<typeof useVoiceActivation>;
   userData: any;
 }
 
@@ -30,21 +29,9 @@ export const ModalFactory: React.FC<ModalFactoryProps> = ({
   feedback,
   modalHandlers,
   tipSelection,
-  voiceActivation,
   userData,
 }) => (
   <>
-    <VoiceRecognitionModal
-      visible={
-        !!voiceActivation.isListening ||
-        !!voiceActivation.isProcessing
-      }
-      isListening={!!voiceActivation.isListening}
-      isProcessing={!!voiceActivation.isProcessing}
-      command={voiceActivation.command}
-      onCancel={voiceActivation.cancelVoiceCommand}
-      onDone={voiceActivation.stopListening}
-    />
     <DonationModal
       visible={modals.donationModalVisible}
       isLoading={donation.isDonationLoading}

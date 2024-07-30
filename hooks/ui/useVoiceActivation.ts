@@ -4,7 +4,7 @@ import { State } from "react-native-gesture-handler";
 
 export const useVoiceActivation = (
   showCamera: boolean,
-  capturedImage: string | null,
+  capturedImage: string | null
 ) => {
   const {
     isListening,
@@ -16,10 +16,11 @@ export const useVoiceActivation = (
   } = useVoiceCommands();
 
   const handleLongPress = (event: any) => {
-    if (event.nativeEvent.state === State.ACTIVE) {
-      if (!showCamera || !capturedImage) {
-        activateVoiceCommand();
-      }
+    const isActiveState = event.nativeEvent.state === State.ACTIVE;
+    const canToggleVoiceCommand = !showCamera && !capturedImage;
+
+    if (isActiveState && canToggleVoiceCommand) {
+      !isListening ? activateVoiceCommand() : cancelVoiceCommand();
     }
   };
 
