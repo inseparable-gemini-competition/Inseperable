@@ -1,4 +1,5 @@
 import React from "react";
+import * as Updates from "expo-updates";
 import { QueryClient, QueryClientProvider } from "react-query";
 import useStore from "../store";
 import { polyfill as polyfillEncoding } from "react-native-polyfill-globals/src/encoding";
@@ -15,6 +16,7 @@ import HandmadeItems from "@/app/screens/HandmadeItems";
 import Questionnaire from "../screens/Questionnaire";
 import EnvironmentalImpactQuestionnaire from "@/app/screens/EnvironmentalImpactQuestionnaire";
 import { useNavigation } from "expo-router";
+import { I18nManager } from "react-native";
 
 polyfillEncoding();
 polyfillReadableStream();
@@ -22,8 +24,10 @@ polyfillReadableStream();
 const Stack = createStackNavigator();
 
 function NavigationWrapper({ onFinish }: any) {
-  const { userData } = useStore();
+  const { userData, translations } = useStore();
   const { goBack } = useNavigation();
+
+  I18nManager.forceRTL(translations.isRTL === true);
 
   if (!userData?.country) {
     return <Questionnaire onFinish={onFinish} />;
@@ -52,25 +56,25 @@ function NavigationWrapper({ onFinish }: any) {
 
 export default function TabLayout() {
   const queryClient = new QueryClient();
-  const { fetchPhotos, setLoading, loading } = useGoogleImageSearch();
+  const { fetchPhotos } = useGoogleImageSearch();
   const { authenticateUser } = useSignIn();
-  const { setUserData } = useStore();
+  const { setUserData, translations, userData } = useStore();
 
   const onFinish = async ({
-    userData,
     setLocalLoading,
+    result
   }: {
-    userData: any;
     setLocalLoading: (loading: boolean) => void;
+    result: any;
   }) => {
-    if (userData?.country) {
-      setLocalLoading(loading);
-      const landmarkUri = await fetchPhotos(userData?.mostFamousLandmark);
+    console.log('here', result)
+    if (result?.country) {
+      setLocalLoading(true);
+      const landmarkUri = await fetchPhotos(result?.mostFamousLandmark);
       const updatedUserData = {
-        ...userData,
+        ...result,
         mostFamousLandmark: landmarkUri || "",
       };
-      setUserData(updatedUserData);
 
       // Save updated user data to Firestore
       const userId = await authenticateUser();
@@ -82,7 +86,13 @@ export default function TabLayout() {
         console.error("Error saving user data: ", error);
       }
 
-      setLoading(false);
+      setLocalLoading(false);
+      console.log(translations.isRTL, userId);
+      if (translations.isRTL === true) {
+        I18nManager.forceRTL(true);
+        setUserData(updatedUserData);
+        Updates.reloadAsync();
+      }
     }
   };
 

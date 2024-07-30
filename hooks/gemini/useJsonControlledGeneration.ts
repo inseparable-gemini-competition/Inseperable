@@ -27,7 +27,7 @@ export const useJsonControlledGeneration = ({
       : result.data?.result;
   };
 
-  const { mutate, data, isLoading, isError } = useMutation(
+  const { mutate, data, isLoading, isError, reset } = useMutation(
     fetchJsonControlledGeneration,
     {
       onSuccess,
@@ -39,5 +39,6 @@ export const useJsonControlledGeneration = ({
     result: data,
     isLoading,
     isError,
+    reset,
   };
 };

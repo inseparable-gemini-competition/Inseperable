@@ -82,7 +82,7 @@ const HandMade: React.FC = () => {
       getNextPageParam: (lastPage) => lastPage.lastVisible,
       staleTime: 1000,
     });
-  const { translate } = useTranslations();
+  const { translate, isRTL } = useTranslations();
 
   const purchaseItem = (item: HandmadeItem) => {
     navigation.navigate("Chat", {
@@ -203,7 +203,11 @@ const HandMade: React.FC = () => {
           onPress={() => navigation.goBack()}
           style={styles.backButton}
         >
-          <Ionicons name="arrow-back" size={24} color={colors.white} />
+          <Ionicons
+            name={isRTL ? "arrow-forward" : "arrow-back"}
+            size={24}
+            color={colors.white}
+          />
         </TouchableOpacity>
         <Text style={styles.title}>{translate("handmadeItems")}</Text>
       </Animated.View>

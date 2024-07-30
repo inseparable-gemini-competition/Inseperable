@@ -12,16 +12,28 @@ import { useGenerateContent } from "@/hooks/gemini/useGeminiStream";
 import { useTranslations } from "@/hooks/ui/useTranslations";
 
 type Props = {
-  onFinish: (userData: {
-    userData: any;
-    setLocalLoading: (loading: boolean) => void;
-  }) => void;
+  onFinish: (params?: { setLocalLoading: (loading: boolean) => void }) => void;
 };
 
 const EnvironmentalImpactQuestionnaire = ({ onFinish }: Props) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<string[]>([]);
   const { translate } = useTranslations();
+  const defaultQuestions = [
+    {
+      id: 1,
+      question: translate("Whattransportationdidyouusetoday"),
+      options: [
+        { id: 1, option: translate("airplane") },
+        { id: 2, option: translate("car") },
+        // { id: 3, option: translate("train") },
+        { id: 4, option: translate("bicycle") },
+        { id: 5, option: translate("walking") },
+        { id: 6, option: translate("nothing") },
+      ],
+      isOpenEnded: false,
+    },
+  ];
 
   const [questions, setQuestions] = useState(defaultQuestions);
 
@@ -31,14 +43,13 @@ const EnvironmentalImpactQuestionnaire = ({ onFinish }: Props) => {
     result,
   } = useJsonControlledGeneration({
     promptType: "environmentalImpact",
-  
   });
   const [localLoading, setLocalLoading] = useState(false);
 
   const { sendMessage: sendAnswer, isLoading: isLoadingNextQuestion } =
     useGenerateContent({
       promptType: "nextQuestionEnvironment",
-      inputData: {questions, answers},
+      inputData: { questions, answers },
       onSuccess: (result) => {
         const updatedQuestions = [...questions, convertJSONToObject(result)];
         setQuestions(updatedQuestions);
@@ -142,6 +153,7 @@ const EnvironmentalImpactQuestionnaire = ({ onFinish }: Props) => {
               }}
             >
               {translate("yourEnvironmentalImactScore")} {result?.impactScore}
+              /10
             </Text>
             <Text
               style={{
@@ -153,7 +165,7 @@ const EnvironmentalImpactQuestionnaire = ({ onFinish }: Props) => {
                 paddingHorizontal: 30,
               }}
             >
-              Recommendations to reduce your impact: {result?.recommendations}
+              {result?.recommendations}
             </Text>
 
             <Button
@@ -162,7 +174,6 @@ const EnvironmentalImpactQuestionnaire = ({ onFinish }: Props) => {
               backgroundColor={colors.primary}
               onPress={() =>
                 onFinish({
-                  userData: result,
                   setLocalLoading,
                 })
               }

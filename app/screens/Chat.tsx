@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { View, StyleSheet, SafeAreaView, TouchableOpacity } from "react-native";
-import { GiftedChat, IMessage, MessageText, Bubble } from "react-native-gifted-chat";
+import {
+  GiftedChat,
+  IMessage,
+  MessageText,
+  Bubble,
+} from "react-native-gifted-chat";
 import {
   collection,
   addDoc,
@@ -20,10 +25,10 @@ import {
   View as UILibView,
   Text as UILibText,
   LoaderScreen,
-  Typography,
 } from "react-native-ui-lib";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "@/app/theme";
+import { useTranslations } from "@/hooks/ui/useTranslations";
 
 type RootStackParamList = {
   ChatScreen: { recipientId: string };
@@ -45,6 +50,8 @@ const ChatScreen: React.FC = () => {
   const [lastVisible, setLastVisible] =
     useState<QueryDocumentSnapshot<DocumentData> | null>(null);
   const PAGE_SIZE = 10;
+
+  const { isRTL } = useTranslations();
 
   const getChatRoomId = (userId1: string, userId2: string) => {
     return [userId1, userId2].sort().join("_");
@@ -171,7 +178,6 @@ const ChatScreen: React.FC = () => {
     );
   }
 
-  
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -179,9 +185,15 @@ const ChatScreen: React.FC = () => {
           onPress={() => navigation.goBack()}
           style={styles.backButton}
         >
-          <Ionicons name="arrow-back" size={24} color={colors.primary} />
+          <Ionicons
+            name={isRTL ? "arrow-forward" : "arrow-back"}
+            size={24}
+            color={colors.primary}
+          />
         </TouchableOpacity>
-        <UILibText style={{top: 38, fontFamily: 'marcellus', fontSize: 22}}>Chat about {itemName}</UILibText>
+        <UILibText style={{ top: 38, fontFamily: "marcellus", fontSize: 22 }}>
+          Chat about {itemName}
+        </UILibText>
       </View>
       <UILibView flex>
         <GiftedChat
@@ -207,7 +219,10 @@ const ChatScreen: React.FC = () => {
             />
           )}
           renderMessageText={(props) => (
-            <CustomMessageText {...props as any} currentUserId={userId || ""} />
+            <CustomMessageText
+              {...(props as any)}
+              currentUserId={userId || ""}
+            />
           )}
           onSend={handleSend}
           user={{
@@ -222,7 +237,10 @@ const ChatScreen: React.FC = () => {
   );
 };
 
-const CustomMessageText = (props: { currentMessage: ChatMessage; currentUserId: string }) => {
+const CustomMessageText = (props: {
+  currentMessage: ChatMessage;
+  currentUserId: string;
+}) => {
   const { currentMessage, currentUserId } = props;
   const isRightBubble = currentMessage.user._id === currentUserId;
   const textColor = isRightBubble ? "white" : colors.translatedTextLight;
@@ -261,7 +279,7 @@ const styles = StyleSheet.create({
   translatedText: {
     fontSize: 12,
     marginTop: 5,
-    marginLeft: 10,
+    marginStart: 10,
     fontFamily: "marcellus",
   },
 });

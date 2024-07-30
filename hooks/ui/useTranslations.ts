@@ -37,5 +37,6 @@ export const useTranslations = () => {
     translations,
     currentLanguage,
     setCurrentLanguage,
+    isRTL: translations.isRTL,
   };
 };

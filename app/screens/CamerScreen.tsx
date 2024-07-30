@@ -29,12 +29,16 @@ const CameraScreen: React.FC<CameraScreenProps> = ({
   onDismissFeedback,
   onCloseFeedback,
 }) => {
-  const { translate } = useTranslations();
+  const { translate, isRTL } = useTranslations();
   return (
     <View style={{ flex: 1 }}>
       <View style={styles.header}>
         <TouchableOpacity onPress={onBackPress}>
-          <Ionicons name="arrow-back" size={24} color="black" />
+          <Ionicons
+            name={isRTL ? "arrow-forward" : "arrow-back"}
+            size={24}
+            color="black"
+          />
         </TouchableOpacity>
       </View>
       {showCamera ? (

@@ -8,7 +8,7 @@ import { translations as initialTranslations } from '@/app/helpers/translations'
 export type TranslationsType = {
   [key: string]: {
     [key: string]: string;
-  };
+  } | boolean
 };
 
 interface StoreState {

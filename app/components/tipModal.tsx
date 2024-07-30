@@ -13,13 +13,6 @@ interface TipsModalProps {
   onSelectTipType: (tipType: string) => void;
 }
 
-const tipTypes = [
-  { label: "Eco-Friendly", value: "ecoFriendly" },
-  { label: "Cultural", value: "cultural" },
-  { label: "Cuisine", value: "cuisine" },
-  { label: "Safety", value: "safety" },
-];
-
 const TipsModal: React.FC<TipsModalProps> = ({
   visible,
   isLoading,
@@ -31,6 +24,12 @@ const TipsModal: React.FC<TipsModalProps> = ({
   const [isVisible, setIsVisible] = useState(false);
   const { translate } = useTranslations();
 
+  const tipTypes = [
+    { label: translate("ecofriendly"), value: "ecoFriendly" },
+    { label: translate("cultural"), value: "cultural" },
+    { label: translate("Cuisine"), value: "cuisine" },
+    { label: translate("Safety"), value: "safety" },
+  ];
   useEffect(() => {
     setIsVisible(visible);
   }, [visible]);

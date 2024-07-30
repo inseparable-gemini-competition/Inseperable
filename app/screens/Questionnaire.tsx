@@ -8,22 +8,17 @@ import {
   convertJSONToObject,
   defaultQuestions,
 } from "@/app/helpers/questionnaireHelpers";
-import useStore from "../store";
 import { useGenerateContent } from "@/hooks/gemini/useGeminiStream";
 import { useTranslations } from "@/hooks/ui/useTranslations";
 
 type Props = {
-  onFinish: (userData: {
-    userData: any;
-    setLocalLoading: (loading: boolean) => void;
-  }) => void;
+  onFinish: (params?: { setLocalLoading: (loading: boolean) => void, result: object }) => void;
 };
 
 const Questionnaire = ({ onFinish }: Props) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<string[]>([]);
   const [_, setUserCountry] = useState("");
-
   const { translate, setTranslations, setCurrentLanguage, translations } =
     useTranslations();
   const [localLoading, setLocalLoading] = useState(false);
@@ -40,7 +35,7 @@ const Questionnaire = ({ onFinish }: Props) => {
   const { sendMessage: sendAnswer, isLoading: isLoadingNextQuestion } =
     useGenerateContent({
       promptType: "nextQuestionCountry",
-      inputData: {questions, answers},
+      inputData: { questions, answers },
       onSuccess: (nextQuestion) => {
         const updatedQuestions = [
           ...questions,
@@ -57,6 +52,7 @@ const Questionnaire = ({ onFinish }: Props) => {
       setTranslations({
         en: translations.en,
         [data.baseLanguage]: data.translations,
+        isRTL: data.isRTl,
       });
       setCurrentLanguage(data.baseLanguage);
     },
@@ -222,12 +218,12 @@ const Questionnaire = ({ onFinish }: Props) => {
               style={{ width: 300, alignSelf: "center" }}
               label={translate("finish")}
               backgroundColor={colors.primary}
-              onPress={() =>
+              onPress={() => {
                 onFinish({
-                  userData: result,
+                  result,
                   setLocalLoading,
-                })
-              }
+                });
+              }}
             />
             {localLoading && (
               <ActivityIndicator

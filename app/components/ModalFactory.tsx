@@ -10,7 +10,6 @@ import {
   useTextFeedback,
   useModalHandlers,
   useTipSelection,
-  useVoiceActivation,
 } from "@/hooks";
 import TripRecommendationModal from "@/app/components/TripRecommendationModal";
 
@@ -39,6 +38,7 @@ export const ModalFactory: React.FC<ModalFactoryProps> = ({
       onClose={() => {
         modals.setDonationModalVisible(false);
         donation.stop();
+        donation.reset();
       }}
       userLanguage={userData?.baseLanguage || ""}
     />

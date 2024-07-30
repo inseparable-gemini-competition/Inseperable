@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
       marginBottom: 5,
     },
     icon: {
-      marginRight: 5,
+      marginEnd: 5,
     },
     itemPrice: {
       fontSize: 18,

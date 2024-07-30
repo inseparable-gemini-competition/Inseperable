@@ -126,7 +126,6 @@ const openGoogleMaps = (latitude: number, longitude: number) => {
 };
 
 const Plan: React.FC = () => {
-
   const [categoryData, setCategoryData] = useState<any[]>([]);
   const { reset } = useNavigation();
   const [loading, setLoading] = useState<boolean>(true);
@@ -142,7 +141,7 @@ const Plan: React.FC = () => {
   const visitingOpacity = useRef(new Animated.Value(0)).current;
   const notVisitingOpacity = useRef(new Animated.Value(0)).current;
 
-  const { translate } = useTranslations();
+  const { translate, isRTL } = useTranslations();
 
   const categories = [
     { name: translate("adventure"), icon: "hiking" },
@@ -282,7 +281,11 @@ const Plan: React.FC = () => {
           style={styles.backButton}
           onPress={() => reset({ index: 0, routes: [{ name: "Main" }] })}
         >
-          <MaterialIcons name="arrow-back" size={28} color="white" />
+          <MaterialIcons
+            name={isRTL ? "arrow-forward" : "arrow-back"}
+            size={28}
+            color="white"
+          />
         </TouchableOpacity>
       </Animated.View>
       <View style={styles.menu}>
@@ -378,7 +381,7 @@ const styles = StyleSheet.create({
   },
   menu: {
     position: "absolute",
-    left: 10,
+    start: 10,
     top: 100,
     zIndex: 1,
   },
@@ -417,7 +420,7 @@ const styles = StyleSheet.create({
   infoContainer: {
     position: "absolute",
     bottom: 0,
-    left: 0,
+    start: 0,
     right: 0,
     padding: 20,
     backgroundColor: "rgba(0, 0, 0, 0.5)",
@@ -434,7 +437,7 @@ const styles = StyleSheet.create({
   footer: {
     position: "absolute",
     bottom: 10,
-    left: 0,
+    start: 0,
     right: 0,
     alignItems: "center",
   },

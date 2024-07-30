@@ -89,7 +89,7 @@ export const styles = StyleSheet.create({
   countdownContainer: {
     position: "absolute",
     top: "40%",
-    left: "40%",
+    end: "44%",
     transform: [{ translateX: -50 }, { translateY: -50 }],
     alignItems: "center",
     zIndex: 1,
@@ -97,7 +97,7 @@ export const styles = StyleSheet.create({
   voicedownContainer: {
     position: "absolute",
     top: "40%",
-    left: "50%",
+    end: "50%",
     transform: [{ translateX: -50 }, { translateY: -50 }],
     alignItems: "center",
     zIndex: 1,
@@ -164,7 +164,7 @@ export const styles = StyleSheet.create({
   loadingText: {
     color: "#ffffff",
     fontSize: 24,
-    marginLeft: 10,
+    marginStart: 10,
     fontFamily: "marcellus",
   },
   feedbackText: {
