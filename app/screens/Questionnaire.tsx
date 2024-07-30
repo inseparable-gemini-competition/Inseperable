@@ -22,7 +22,7 @@ type Props = {
 const Questionnaire = ({ onFinish }: Props) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<string[]>([]);
-  const [userCountry, setUserCountry] = useState("");
+  const [_, setUserCountry] = useState("");
 
   const { translate, setTranslations, setCurrentLanguage, translations } =
     useTranslations();
