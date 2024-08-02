@@ -80,7 +80,7 @@ export const categories = (translate : Function) => [
     id: "10",
     title: translate("mood"),
     command: "mood",
-    imageUrl: require("../../assets/images/tips.png"),
+    imageUrl: require("../../assets/images/mood.png"),
     openCamera: false,
   },
 ];

@@ -41,7 +41,7 @@ export const styles = StyleSheet.create({
   },
   headerContainer: {
     paddingHorizontal: 16,
-    backgroundColor: "rgba(255, 255, 255, 0.75)", // Match container background
+    alignSelf: "flex-start"
   },
   title: {
     fontSize: 48,
@@ -52,6 +52,7 @@ export const styles = StyleSheet.create({
     fontSize: 18,
     fontFamily: "marcellus",
     marginVertical: 16,
+    textAlign: 'left',
   },
   seeMoreText: {
     fontSize: 16,
@@ -341,5 +342,18 @@ export const modalStyles = StyleSheet.create({
     fontSize: 16,
     color: "#333",
     fontFamily: "marcellus",
+  },
+  dialogContainer: {
+    backgroundColor: 'white',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    maxHeight: '80%', 
+  },
+  dialogContent: {
+    padding: 20,
+  },
+  feedbackText: {
+    fontSize: 16,
+    lineHeight: 24,
   },
 });

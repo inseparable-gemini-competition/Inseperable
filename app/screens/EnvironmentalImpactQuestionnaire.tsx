@@ -4,12 +4,10 @@ import { colors } from "../theme";
 import Question from "@/app/components/Question/Question";
 import { ActivityIndicator, ScrollView } from "react-native";
 import { useJsonControlledGeneration } from "@/hooks/gemini/useJsonControlledGeneration";
-import {
-  convertJSONToObject,
-  defaultQuestions,
-} from "@/app/helpers/environmentalQuestionnaireHelpers";
+import { convertJSONToObject } from "@/app/helpers/environmentalQuestionnaireHelpers";
 import { useGenerateContent } from "@/hooks/gemini/useGeminiStream";
 import { useTranslations } from "@/hooks/ui/useTranslations";
+import useStore from "@/app/store";
 
 type Props = {
   onFinish: (params?: { setLocalLoading: (loading: boolean) => void }) => void;
@@ -26,7 +24,6 @@ const EnvironmentalImpactQuestionnaire = ({ onFinish }: Props) => {
       options: [
         { id: 1, option: translate("airplane") },
         { id: 2, option: translate("car") },
-        // { id: 3, option: translate("train") },
         { id: 4, option: translate("bicycle") },
         { id: 5, option: translate("walking") },
         { id: 6, option: translate("nothing") },
@@ -46,10 +43,12 @@ const EnvironmentalImpactQuestionnaire = ({ onFinish }: Props) => {
   });
   const [localLoading, setLocalLoading] = useState(false);
 
+  const { userData} = useStore();
+
   const { sendMessage: sendAnswer, isLoading: isLoadingNextQuestion } =
     useGenerateContent({
       promptType: "nextQuestionEnvironment",
-      inputData: { questions, answers },
+      inputData: { questions, answers, country: userData?.country },
       onSuccess: (result) => {
         const updatedQuestions = [...questions, convertJSONToObject(result)];
         setQuestions(updatedQuestions);

@@ -67,7 +67,6 @@ export default function TabLayout() {
     setLocalLoading: (loading: boolean) => void;
     result: any;
   }) => {
-    console.log('here', result)
     if (result?.country) {
       setLocalLoading(true);
       const landmarkUri = await fetchPhotos(result?.mostFamousLandmark);

@@ -26,6 +26,7 @@ import Animated, {
 import { colors } from "@/app/theme";
 import styles from "./HandMadeStyles";
 import { useTranslations } from "@/hooks/ui/useTranslations";
+import { convertMarkdownToPlainText } from "@/app/helpers/markdown";
 
 interface HandmadeItem {
   id: string;
@@ -121,7 +122,7 @@ const HandMade: React.FC = () => {
                 {translate("carbonFootprint")}
               </Text>
               <Text style={styles.itemCarbonFootprintValue}>
-                {item.carbonFootprint}
+                {convertMarkdownToPlainText(item.carbonFootprint)}
               </Text>
             </View>
           </View>

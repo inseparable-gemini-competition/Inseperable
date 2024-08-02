@@ -29,7 +29,7 @@ export const useModalHandlers = (
     setTabooModalVisible(true);
     await mutateAsync({
       promptType: "taboo",
-      inputData: { country: userData?.country },
+      inputData: { country: userData?.country, currentLanguage: userData?.currentLanguage },
     });
   };
 

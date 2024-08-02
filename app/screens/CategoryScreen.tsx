@@ -18,7 +18,6 @@ const CategoryScreen: React.FC<CategoryScreenProps> = ({
       <CategoryList
         categories={categories}
         onCategoryPress={onCategoryPress}
-        country={country}
         description={description}
       />
     </Animated.View>

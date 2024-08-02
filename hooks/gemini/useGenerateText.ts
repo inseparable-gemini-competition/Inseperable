@@ -7,7 +7,6 @@ import {
   HttpsCallable,
 } from "firebase/functions";
 import { convertMarkdownToPlainText } from "../../app/helpers/markdown";
-import { Toast } from "react-native-ui-lib"; // Importing Toast component
 import { useTranslations } from "@/hooks/ui/useTranslations";
 import { Alert } from "react-native";
 

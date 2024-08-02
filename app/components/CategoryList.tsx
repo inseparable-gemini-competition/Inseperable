@@ -9,7 +9,6 @@ import { useTranslations } from "@/hooks/ui/useTranslations";
 interface CategoryListProps {
   categories: (translate: Function) => Category[];
   onCategoryPress: (category: string) => void;
-  country: string;
   description: string;
 }
 

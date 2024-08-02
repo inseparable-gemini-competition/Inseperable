@@ -22,7 +22,7 @@ export const useVoiceCommands = () => {
           language: currentLanguage || "en",
         });
       } else {
-        Speech.speak(translate("unidentifedCategory"), {
+        Speech.speak(translate("unidentifiedCategory"), {
           language: currentLanguage || "en",
         });
       }
