@@ -38,7 +38,6 @@ export const useDonation = (
         country: userData?.country,
       });
       updateUserScore({
-        userId: userData?.id,
         social: 10,
       });
       setDonationModalVisible(true);

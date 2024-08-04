@@ -13,7 +13,7 @@ export const translations = {
       seeMore: "See More",
       seeLess: "See Less",
       analyzing: "Analyzing...",
-      survey: "Survey",
+      travelAgain: "Travel again?",
       donationInfo: "Donation Info",
       viewInGoogleTranslate: "View in Google Translate",
       close: "Close",

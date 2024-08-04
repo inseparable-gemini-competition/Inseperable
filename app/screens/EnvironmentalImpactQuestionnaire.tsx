@@ -44,7 +44,6 @@ const EnvironmentalImpactQuestionnaire = ({ onFinish }: Props) => {
     promptType: "environmentalImpact",
     onSuccess: (data) => {
       updateUserScore({
-        userId: userData?.id,
         environmental: data?.impactScore,
       })
     }

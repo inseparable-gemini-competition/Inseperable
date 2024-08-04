@@ -16,7 +16,6 @@ export const useModalHandlers = (
   const { userData } = useStore();
   const { translate } = useTranslations();
   const { mutateAsync: updateUserScore } = useUpdateUserScore();
-  console.log('userData', userData);
 
 
   const handleSituationSubmit = async () => {
@@ -27,9 +26,7 @@ export const useModalHandlers = (
         country: userData.country,
       },
     });
-    console.log("userSituation", userData?.id);
     updateUserScore({
-      userId: userData?.id,
       cultural: 10,
     })
   };
@@ -41,7 +38,6 @@ export const useModalHandlers = (
       inputData: { country: userData?.country, currentLanguage: userData?.currentLanguage },
     });
     updateUserScore({
-      userId: userData?.id,
       cultural: 10,
     })
   };

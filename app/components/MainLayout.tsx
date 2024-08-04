@@ -20,7 +20,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
       >
         <View style={styles.container}>{children}</View>
         <TouchableOpacity style={styles.resetButton} onPress={onResetPress}>
-          <Text style={styles.resetButtonText}>{translate("survey")}</Text>
+          <Text style={styles.resetButtonText}>{translate("travelAgain")}</Text>
         </TouchableOpacity>
       </ImageBackground>
     </SafeAreaView>

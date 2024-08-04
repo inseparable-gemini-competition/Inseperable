@@ -1,6 +1,12 @@
 // CategoryList.tsx
 import React, { useState, memo } from "react";
-import { FlatList, View, Text, TouchableOpacity } from "react-native";
+import {
+  FlatList,
+  View,
+  Text,
+  TouchableOpacity,
+  ActivityIndicator,
+} from "react-native";
 import { Category } from "@/app/helpers/categories";
 import CategoryCard from "@/app/components/CategoryCard";
 import { styles } from "@/app/screens/MainStyles";
@@ -21,9 +27,8 @@ const CategoryList: React.FC<CategoryListProps> = ({
   description,
 }) => {
   const [showFullDescription, setShowFullDescription] = useState(false);
-  const {userData} = useStore();
   const { translate } = useTranslations();
-  const {data} =  useGetUserScore(userData?.id);
+  const { data, isLoading } = useGetUserScore();
 
   const renderHeader = () => (
     <View style={styles.headerContainer}>
@@ -31,9 +36,13 @@ const CategoryList: React.FC<CategoryListProps> = ({
         <Text style={styles.environmentalScoreLabel}>
           {translate("impactScore")}:
         </Text>
-        <Text style={styles.environmentalScoreValue}>
-          {data?.overallScore?.toFixed(2) || 0}/10
-        </Text>
+        {!isLoading ? (
+          <Text style={styles.environmentalScoreValue}>
+            {data?.overallScore?.toFixed(2) || 0}/10
+          </Text>
+        ) : (
+          <ActivityIndicator />
+        )}
       </View>
       <Text style={styles.subtitle}>
         {showFullDescription ? description : description.slice(0, 160) + "..."}
