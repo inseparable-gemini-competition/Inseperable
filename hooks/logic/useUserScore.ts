@@ -4,11 +4,13 @@ import { useMutation, useQuery, useQueryClient } from "react-query";
 import { httpsCallable } from "firebase/functions";
 import Toast from "react-native-toast-message";
 import useStore from "@/app/store";
+import { useTranslations } from "@/hooks/ui/useTranslations";
 
 interface UserScore {
   cultural?: number;
   social?: number;
   environmental?: number;
+  userId?: number;
 }
 
 interface UserScoreResult {
@@ -54,14 +56,15 @@ export const useGetUserScore = () => {
 export const useUpdateUserScore = () => {
   const queryClient = useQueryClient();
   const { userData } = useStore();
+  const {translate} = useTranslations();
 
   return useMutation<void, Error, UserScore>(
-    (data) => updateUserScoreFunction(data).then(() => {}),
+    (data) => updateUserScoreFunction({...data, userId: userData?.id}).then(() => {}),
     {
       onSuccess: (_, variables) => {
         Toast.show({
           type: "success",
-          text1: "User score updated",
+          text1: translate("userScoreUpdated"),
         });
         queryClient.invalidateQueries(["userScore", userData?.id]);
         queryClient.refetchQueries(["userScore", userData?.id]);
@@ -69,7 +72,7 @@ export const useUpdateUserScore = () => {
       onError: (error) => {
         Toast.show({
           type: "error",
-          text1: "Failed to update user score",
+          text1: translate("failedToUpdateUserScore"),
           text2: error.message,
         });
       },

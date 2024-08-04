@@ -6,6 +6,13 @@ import { useTranslations } from "@/hooks/ui/useTranslations";
 import { useUpdateUserScore } from "@/hooks/logic/useUserScore";
 import useStore from "@/app/store";
 
+interface RecommendedTrip {
+  name: string;
+  description: string;
+  latitude: string;
+  longitude: string;
+}
+
 export const useModalHandlers = (
   mutateAsync: any,
   setTabooModalVisible: (visible: boolean) => void
@@ -13,10 +20,10 @@ export const useModalHandlers = (
   const [userSituation, setUserSituation] = useState<string>("");
   const [userMoodAndDesires, setUserMoodAndDesires] = useState<string>("");
   const [userMoodModalLoading, setUserMoodModalLoading] = useState<boolean>(false);
+  const [recommendedTrip, setRecommendedTrip] = useState<RecommendedTrip | null>(null);
   const { userData } = useStore();
   const { translate } = useTranslations();
   const { mutateAsync: updateUserScore } = useUpdateUserScore();
-
 
   const handleSituationSubmit = async () => {
     await mutateAsync({
@@ -83,7 +90,6 @@ export const useModalHandlers = (
     try {
       setUserMoodModalLoading(true);
       updateUserScore({
-        userId: userData?.id,
         cultural: 10,
       })
       const functions = getFunctions();
@@ -94,29 +100,11 @@ export const useModalHandlers = (
 
       const { name, description, latitude, longitude } = result.data;
 
+      setRecommendedTrip({ name, description, latitude, longitude });
       setUserMoodModalLoading(false);
-
-      Alert.alert(
-        translate("weRecommend"),
-        `${name}\n\n${description}`,
-        [
-          {
-            text: translate("viewOnMap"),
-            onPress: () => openMapWithLocation(latitude, longitude, name),
-          },
-          {
-            text: translate("openInUber"),
-            onPress: () => openUber(latitude, longitude),
-          },
-          {
-            text: translate("close"),
-            onPress: () => {},
-          },
-        ]
-      );
     } catch (error) {
       setUserMoodModalLoading(false);
-
+      setRecommendedTrip(null);
       Alert.alert(
         translate("unexpectedError"),
         error instanceof Error ? error.message : translate("unexpectedError")
@@ -133,5 +121,8 @@ export const useModalHandlers = (
     setUserMoodAndDesires,
     handleTripRecommendationSubmit,
     userMoodModalLoading,
+    recommendedTrip,
+    openMapWithLocation,
+    openUber,
   };
 };

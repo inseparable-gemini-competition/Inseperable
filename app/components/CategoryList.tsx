@@ -28,7 +28,7 @@ const CategoryList: React.FC<CategoryListProps> = ({
 }) => {
   const [showFullDescription, setShowFullDescription] = useState(false);
   const { translate } = useTranslations();
-  const { data, isLoading } = useGetUserScore();
+  const { data, isRefetching,isLoading } = useGetUserScore();
 
   const renderHeader = () => (
     <View style={styles.headerContainer}>
@@ -36,7 +36,7 @@ const CategoryList: React.FC<CategoryListProps> = ({
         <Text style={styles.environmentalScoreLabel}>
           {translate("impactScore")}:
         </Text>
-        {!isLoading ? (
+        {!isRefetching || isLoading ? (
           <Text style={styles.environmentalScoreValue}>
             {data?.overallScore?.toFixed(2) || 0}/10
           </Text>

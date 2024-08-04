@@ -171,6 +171,8 @@ const EnvironmentalImpactQuestionnaire = ({ onFinish }: Props) => {
                 paddingHorizontal: 30,
               }}
             >
+              {result?.scoreExplanation}
+              {"\n"}
               {result?.recommendations}
             </Text>
 
