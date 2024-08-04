@@ -26,8 +26,8 @@ export const useTranslations = () => {
       .replace(/^./, str => str.toUpperCase()); // Capitalize the first letter
   };
 
-  const translate = (key: string): string => {
-    const translation = translations[currentLanguage]?.[key] || formatKey(key);
+  const translate = (key: string, language?: string): string => {
+    const translation = translations[language || currentLanguage]?.[key] || formatKey(key);
     return capitalizeIfApplicable(translation);
   };
 

@@ -8,6 +8,7 @@ import { convertJSONToObject } from "@/app/helpers/environmentalQuestionnaireHel
 import { useGenerateContent } from "@/hooks/gemini/useGeminiStream";
 import { useTranslations } from "@/hooks/ui/useTranslations";
 import useStore from "@/app/store";
+import { useUpdateUserScore } from "@/hooks/logic/useUserScore";
 
 type Props = {
   onFinish: (params?: { setLocalLoading: (loading: boolean) => void }) => void;
@@ -33,6 +34,7 @@ const EnvironmentalImpactQuestionnaire = ({ onFinish }: Props) => {
   ];
 
   const [questions, setQuestions] = useState(defaultQuestions);
+  const {mutateAsync: updateUserScore} = useUpdateUserScore();
 
   const {
     generate: generateEnvironmentalImpact,
@@ -40,6 +42,12 @@ const EnvironmentalImpactQuestionnaire = ({ onFinish }: Props) => {
     result,
   } = useJsonControlledGeneration({
     promptType: "environmentalImpact",
+    onSuccess: (data) => {
+      updateUserScore({
+        userId: userData?.id,
+        environmental: data?.impactScore,
+      })
+    }
   });
   const [localLoading, setLocalLoading] = useState(false);
 

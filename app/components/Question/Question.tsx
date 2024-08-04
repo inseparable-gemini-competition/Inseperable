@@ -69,7 +69,7 @@ const Question = ({
         ))}
         {question?.isOpenEnded && !question?.options?.length && (
           <TextField
-            placeholder={"Enter your answer here..."}
+            placeholder={translate("enterYourAnswerHere")}
             floatingPlaceholder
             onChangeText={setCurrentText}
             enableErrors

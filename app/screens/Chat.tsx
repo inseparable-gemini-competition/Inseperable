@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from "react";
-import { View, StyleSheet, SafeAreaView, TouchableOpacity } from "react-native";
+import React, { useState, useEffect, useCallback } from "react";
+import { View, StyleSheet, SafeAreaView, TouchableOpacity, Image } from "react-native";
 import {
   GiftedChat,
   IMessage,
   MessageText,
   Bubble,
+  InputToolbar,
+  Actions,
 } from "react-native-gifted-chat";
 import {
   collection,
@@ -18,7 +20,8 @@ import {
   QueryDocumentSnapshot,
   DocumentData,
 } from "firebase/firestore";
-import { db } from "@/app/helpers/firebaseConfig";
+import { storage, db } from "@/app/helpers/firebaseConfig";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useRoute, RouteProp, useNavigation } from "@react-navigation/native";
 import { useSignIn } from "@/hooks/authentication/useSignIn";
 import {
@@ -29,21 +32,27 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "@/app/theme";
 import { useTranslations } from "@/hooks/ui/useTranslations";
+import * as ImagePicker from 'expo-image-picker';
+import { Audio } from 'expo-av';
 
 type RootStackParamList = {
-  ChatScreen: { recipientId: string };
+  ChatScreen: { recipientId: string; itemName: string };
 };
 
 type ChatScreenRouteProp = RouteProp<RootStackParamList, "ChatScreen">;
 
 interface ChatMessage extends IMessage {
   translatedText?: string;
+  audio?: string;
+  image?: string;
+  video?: string;
 }
 
-const ChatScreen: React.FC = () => {
+const Chat: React.FC = () => {
   const route = useRoute<ChatScreenRouteProp>();
   const { recipientId, itemName } = route.params || {
     recipientId: "2iecagcxcgYrnOj8AaiZEYZfvrf2",
+    itemName: "Default Item",
   };
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -52,6 +61,9 @@ const ChatScreen: React.FC = () => {
   const PAGE_SIZE = 10;
 
   const { isRTL } = useTranslations();
+
+  const [isRecording, setIsRecording] = useState(false);
+  const [recording, setRecording] = useState<Audio.Recording | null>(null);
 
   const getChatRoomId = (userId1: string, userId2: string) => {
     return [userId1, userId2].sort().join("_");
@@ -82,6 +94,9 @@ const ChatScreen: React.FC = () => {
             _id: firebaseData.userId,
             name: firebaseData.userName,
           },
+          audio: firebaseData.audio,
+          image: firebaseData.image,
+          video: firebaseData.video,
         };
         return data;
       });
@@ -102,6 +117,9 @@ const ChatScreen: React.FC = () => {
               _id: firebaseData.userId,
               name: firebaseData.userName,
             },
+            audio: firebaseData.audio,
+            image: firebaseData.image,
+            video: firebaseData.video,
           };
           return data;
         });
@@ -114,6 +132,17 @@ const ChatScreen: React.FC = () => {
     if (userId) {
       fetchInitialMessages();
     }
+
+    // // Request permissions for audio recording, camera, and media library
+    // (async () => {
+    //   const { status: audioStatus } = await Permissions.askAsync(Permissions.AUDIO_RECORDING);
+    //   const { status: cameraStatus } = await Permissions.askAsync(Permissions.CAMERA);
+    //   const { status: mediaLibraryStatus } = await Permissions.askAsync(Permissions.MEDIA_LIBRARY);
+      
+    //   if (audioStatus !== 'granted' || cameraStatus !== 'granted' || mediaLibraryStatus !== 'granted') {
+    //     console.error('Necessary permissions not granted');
+    //   }
+    // })();
   }, [userId]);
 
   const fetchMoreMessages = async () => {
@@ -141,6 +170,9 @@ const ChatScreen: React.FC = () => {
           _id: firebaseData.userId,
           name: firebaseData.userName,
         },
+        audio: firebaseData.audio,
+        image: firebaseData.image,
+        video: firebaseData.video,
       };
       return data;
     });
@@ -154,6 +186,7 @@ const ChatScreen: React.FC = () => {
 
   const handleSend = async (newMessages: IMessage[] = []) => {
     const newMessage = newMessages[0];
+    console.log("newMessage", newMessage);
     if (newMessage && userId) {
       try {
         const chatRoomId = getChatRoomId(userId, recipientId);
@@ -163,11 +196,149 @@ const ChatScreen: React.FC = () => {
           createdAt: new Date(),
           userId: userId,
           userName: `User-${userId.substring(0, 6)}`,
+          audio: newMessage.audio,
+          image: newMessage.image,
+          video: newMessage.video,
         });
       } catch (error) {
         console.error("Error sending message:", error);
       }
     }
+  };
+
+  const startRecording = async () => {
+    try {
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+        playsInSilentModeIOS: true,
+      });
+      const { recording } = await Audio.Recording.createAsync(
+        Audio.RECORDING_OPTIONS_PRESET_HIGH_QUALITY
+      );
+      setRecording(recording);
+      setIsRecording(true);
+    } catch (err) {
+      console.error('Failed to start recording', err);
+    }
+  };
+
+  const stopRecording = async () => {
+    if (!recording) return;
+
+    setIsRecording(false);
+    await recording.stopAndUnloadAsync();
+    const uri = recording.getURI();
+    setRecording(null);
+    
+
+    if (uri) {
+      const audioBlob = await fetch(uri).then(r => r.blob());
+      const audioRef = ref(storage, `audios/${Date.now()}.m4a`);
+      await uploadBytes(audioRef, audioBlob);
+      const audioUrl = await getDownloadURL(audioRef);
+
+      const newAudioMessage: ChatMessage = {
+        _id: Date.now().toString(),
+        createdAt: new Date(),
+        user: {
+          _id: userId || "",
+          name: `User-${userId?.substring(0, 6)}`,
+        },
+        audio: audioUrl,
+      };
+
+      handleSend([newAudioMessage]);
+    }
+  };
+
+  const pickImage = async () => {
+    console.log('here')
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+
+    console.log('result ', result)
+    if (!result.cancelled) {
+      const { uri } = result as { uri: string };
+      console.log('fuck')
+      const response = await fetch(uri);
+      console.log('there 1')
+      const blob = await response.blob();
+      const fileRef = ref(storage, `media/${Date.now()}_${uri.split('/').pop()}`);
+      await uploadBytes(fileRef, blob);
+      console.log('there')
+      const downloadURL = await getDownloadURL(fileRef);
+
+      console.log('ddd ', downloadURL)
+
+      const newMediaMessage: ChatMessage = {
+        _id: Date.now().toString(),
+        createdAt: new Date(),
+        user: {
+          _id: userId || "",
+          name: `User-${userId?.substring(0, 6)}`,
+        },
+        image: downloadURL,
+      };
+
+      handleSend([newMediaMessage]);
+    }
+  };
+
+  const renderInputToolbar = (props: any) => (
+    <InputToolbar
+      {...props}
+      containerStyle={styles.inputToolbar}
+      renderActions={() => (
+        <Actions
+          {...props}
+          containerStyle={styles.actions}
+          icon={() => (
+            <UILibView row>
+              <TouchableOpacity onPress={pickImage} style={styles.actionButton}>
+                <Ionicons name="image" size={24} color={colors.primary} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={isRecording ? stopRecording : startRecording}
+                style={styles.actionButton}
+              >
+                <Ionicons
+                  name={isRecording ? "stop-circle" : "mic"}
+                  size={24}
+                  color={isRecording ? colors.error : colors.primary}
+                />
+              </TouchableOpacity>
+            </UILibView>
+          )}
+        />
+      )}
+    />
+  );
+
+  const renderMessageAudio = (props: any) => {
+    return (
+      <UILibView style={styles.audioContainer}>
+        <TouchableOpacity onPress={() => {}/* Play audio logic */}>
+          <Ionicons name="play" size={24} color={colors.primary} />
+        </TouchableOpacity>
+        <UILibText style={styles.audioText}>Audio message</UILibText>
+      </UILibView>
+    );
+  };
+
+  const renderMessageVideo = (props: any) => {
+    return (
+      <UILibView style={styles.videoContainer}>
+        <TouchableOpacity onPress={() => {}/* Play video logic */}>
+          <Image source={{ uri: props.currentMessage.video }} style={styles.videoThumbnail} />
+          <Ionicons name="play-circle" size={48} color={colors.primary} style={styles.playIcon} />
+        </TouchableOpacity>
+      </UILibView>
+    );
   };
 
   if (loading) {
@@ -191,7 +362,7 @@ const ChatScreen: React.FC = () => {
             color={colors.primary}
           />
         </TouchableOpacity>
-        <UILibText style={{ top: 38, fontFamily: "marcellus", fontSize: 22 }}>
+        <UILibText style={styles.headerText}>
           Chat about {itemName}
         </UILibText>
       </View>
@@ -224,6 +395,8 @@ const ChatScreen: React.FC = () => {
               currentUserId={userId || ""}
             />
           )}
+          renderMessageAudio={renderMessageAudio}
+          renderMessageVideo={renderMessageVideo}
           onSend={handleSend}
           user={{
             _id: userId || "",
@@ -231,6 +404,7 @@ const ChatScreen: React.FC = () => {
           loadEarlier={!loadingMore && !!lastVisible}
           onLoadEarlier={fetchMoreMessages}
           isLoadingEarlier={loadingMore}
+          renderInputToolbar={renderInputToolbar}
         />
       </UILibView>
     </SafeAreaView>
@@ -270,11 +444,15 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     paddingVertical: 10,
     paddingHorizontal: 20,
+    alignItems: 'center',
   },
   backButton: {
     paddingStart: 5,
-    marginTop: 40,
     marginEnd: 10,
+  },
+  headerText: {
+    fontFamily: "marcellus",
+    fontSize: 22,
   },
   translatedText: {
     fontSize: 12,
@@ -282,6 +460,50 @@ const styles = StyleSheet.create({
     marginStart: 10,
     fontFamily: "marcellus",
   },
+  inputToolbar: {
+    backgroundColor: colors.background,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+  actions: {
+    width: 80,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  actionButton: {
+    marginHorizontal: 5,
+  },
+  audioContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.bubbleLeft,
+    borderRadius: 20,
+    padding: 10,
+    marginVertical: 5,
+  },
+  audioText: {
+    marginLeft: 10,
+    fontFamily: 'marcellus',
+    fontSize: 14,
+    color: colors.text,
+  },
+  videoContainer: {
+    width: 200,
+    height: 150,
+    borderRadius: 10,
+    overflow: 'hidden',
+    marginVertical: 5,
+  },
+  videoThumbnail: {
+    width: '100%',
+    height: '100%',
+  },
+  playIcon: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: [{ translateX: -24 }, { translateY: -24 }],
+  },
 });
 
-export default ChatScreen;
+export default Chat

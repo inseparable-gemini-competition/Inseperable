@@ -1,22 +1,16 @@
 // RootLayout.tsx
-import {
-  DarkTheme,
-  DefaultTheme,
-  ThemeProvider,
-} from "@react-navigation/native";
+import { DefaultTheme, ThemeProvider } from "@react-navigation/native";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import "react-native-reanimated";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import useStore from './store';
+import useStore from "./store";
 import { translations as initialTranslations } from "@/app/helpers/translations";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
-const queryClient = new QueryClient();
 
 export default function RootLayout() {
   const [loaded] = useFonts({
@@ -44,11 +38,9 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ThemeProvider value={DefaultTheme}>
-        <QueryClientProvider client={queryClient}>
-          <Stack>
-            <Stack.Screen name="(main)" options={{ headerShown: false }} />
-          </Stack>
-        </QueryClientProvider>
+        <Stack>
+          <Stack.Screen name="(main)" options={{ headerShown: false }} />
+        </Stack>
       </ThemeProvider>
     </GestureHandlerRootView>
   );

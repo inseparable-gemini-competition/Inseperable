@@ -1,9 +1,10 @@
 // hooks/useSituationAndTaboo.ts
-import { useNavigationAndUser } from "@/hooks/authentication";
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { useState } from "react";
 import { Linking, Alert } from "react-native";
 import { useTranslations } from "@/hooks/ui/useTranslations";
+import { useUpdateUserScore } from "@/hooks/logic/useUserScore";
+import useStore from "@/app/store";
 
 export const useModalHandlers = (
   mutateAsync: any,
@@ -12,8 +13,11 @@ export const useModalHandlers = (
   const [userSituation, setUserSituation] = useState<string>("");
   const [userMoodAndDesires, setUserMoodAndDesires] = useState<string>("");
   const [userMoodModalLoading, setUserMoodModalLoading] = useState<boolean>(false);
-  const { userData } = useNavigationAndUser();
+  const { userData } = useStore();
   const { translate } = useTranslations();
+  const { mutateAsync: updateUserScore } = useUpdateUserScore();
+  console.log('userData', userData);
+
 
   const handleSituationSubmit = async () => {
     await mutateAsync({
@@ -23,6 +27,11 @@ export const useModalHandlers = (
         country: userData.country,
       },
     });
+    console.log("userSituation", userData?.id);
+    updateUserScore({
+      userId: userData?.id,
+      cultural: 10,
+    })
   };
 
   const handleTabooSubmit = async () => {
@@ -31,6 +40,10 @@ export const useModalHandlers = (
       promptType: "taboo",
       inputData: { country: userData?.country, currentLanguage: userData?.currentLanguage },
     });
+    updateUserScore({
+      userId: userData?.id,
+      cultural: 10,
+    })
   };
 
   const openMapWithLocation = async (
@@ -73,6 +86,10 @@ export const useModalHandlers = (
   const handleTripRecommendationSubmit = async () => {
     try {
       setUserMoodModalLoading(true);
+      updateUserScore({
+        userId: userData?.id,
+        cultural: 10,
+      })
       const functions = getFunctions();
       const result = (await httpsCallable(
         functions,

@@ -2,7 +2,6 @@ import React, { useEffect } from "react";
 import { FlatList, ListRenderItem, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { View, Text, Card, Button } from "react-native-ui-lib";
-import { useInfiniteQuery } from "@tanstack/react-query";
 import {
   collection,
   query,
@@ -27,6 +26,7 @@ import { colors } from "@/app/theme";
 import styles from "./HandMadeStyles";
 import { useTranslations } from "@/hooks/ui/useTranslations";
 import { convertMarkdownToPlainText } from "@/app/helpers/markdown";
+import { useInfiniteQuery } from "react-query";
 
 interface HandmadeItem {
   id: string;

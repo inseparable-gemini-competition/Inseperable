@@ -9,7 +9,7 @@ import {
   withTiming,
 } from "react-native-reanimated";
 import { useCountdown } from "@/hooks/ui/useCountDown";
-import { useNavigationAndUser } from "@/hooks/authentication/useNavigationAndUser";
+import useStore from "@/app/store";
 
 export const useCamera = (
   mutateAsync: (variables: GenerateTextInput) => Promise<string>,
@@ -29,7 +29,7 @@ export const useCamera = (
     countdownRef.current = countdown;
   }, [countdown]);
 
-  const { userData } = useNavigationAndUser();
+  const { userData } = useStore();
 
   const handleCapture = useCallback(async () => {
     if (cameraRef.current) {

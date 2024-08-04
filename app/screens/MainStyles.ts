@@ -59,6 +59,25 @@ export const styles = StyleSheet.create({
     color: "blue",
     textDecorationLine: "underline",
   },
+  environmentalScoreContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#e6f7ff',
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 16,
+  },
+  environmentalScoreLabel: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginRight: 5,
+  },
+  environmentalScoreValue: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#4caf50',
+  },
   cardContainer: {
     justifyContent: "space-between",
     marginTop: 16,

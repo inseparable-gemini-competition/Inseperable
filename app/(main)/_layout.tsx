@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import * as Updates from "expo-updates";
 import { QueryClient, QueryClientProvider } from "react-query";
 import useStore from "../store";
@@ -17,6 +17,8 @@ import Questionnaire from "../screens/Questionnaire";
 import EnvironmentalImpactQuestionnaire from "@/app/screens/EnvironmentalImpactQuestionnaire";
 import { useNavigation } from "expo-router";
 import { I18nManager } from "react-native";
+import Toast from "react-native-toast-message";
+import ShortQuestionnaire from "@/app/screens/ShortQuestionnaire";
 
 polyfillEncoding();
 polyfillReadableStream();
@@ -30,7 +32,19 @@ function NavigationWrapper({ onFinish }: any) {
   I18nManager.forceRTL(translations.isRTL === true);
 
   if (!userData?.country) {
-    return <Questionnaire onFinish={onFinish} />;
+    return (
+      <Stack.Navigator
+        screenOptions={{ headerShown: false }}
+        initialRouteName="Main"
+      >
+        <Stack.Screen name="Questionnaire">
+          {(props) => <Questionnaire {...props} onFinish={onFinish} />}
+        </Stack.Screen>
+        <Stack.Screen name="ShortQuestionnaire">
+          {(props) => <ShortQuestionnaire {...props} onFinish={onFinish} />}
+        </Stack.Screen>
+      </Stack.Navigator>
+    );
   }
 
   return (
@@ -59,10 +73,21 @@ export default function TabLayout() {
   const { fetchPhotos } = useGoogleImageSearch();
   const { authenticateUser } = useSignIn();
   const { setUserData, translations, userData } = useStore();
+  useEffect(() => {
+    const authenticate = async () => {
+      const userId = await authenticateUser();
+      if (!userData?.id)
+        setUserData({
+          ...userData,
+          id: userId,
+        });
+    };
+    authenticate();
+  }, [userData]);
 
   const onFinish = async ({
     setLocalLoading,
-    result
+    result,
   }: {
     setLocalLoading: (loading: boolean) => void;
     result: any;
@@ -98,6 +123,7 @@ export default function TabLayout() {
   return (
     <QueryClientProvider client={queryClient}>
       <NavigationWrapper onFinish={onFinish} />
+      <Toast />
     </QueryClientProvider>
   );
 }

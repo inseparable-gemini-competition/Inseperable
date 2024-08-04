@@ -1,21 +1,23 @@
 import { useJsonControlledGeneration } from "@/hooks/gemini/useJsonControlledGeneration";
-import { useNavigationAndUser } from "@/hooks/authentication/useNavigationAndUser";
 import { useTextToSpeech } from "@/hooks/ui/useTextToSpeech";
 import { useTranslations } from "@/hooks/ui/useTranslations";
+import { useUpdateUserScore } from "@/hooks/logic/useUserScore";
+import useStore from "@/app/store";
 
 export const useDonation = (
   setDonationModalVisible: React.Dispatch<React.SetStateAction<boolean>>
 ) => {
-  const { userData } = useNavigationAndUser();
+  const { userData } = useStore();
 
   const { speak, stop } = useTextToSpeech();
-  const {currentLanguage} = useTranslations();
+  const { currentLanguage } = useTranslations();
+  const { mutateAsync: updateUserScore } = useUpdateUserScore();
 
   const {
     generate,
     isLoading: isDonationLoading,
     result: donationResult,
-    reset
+    reset,
   } = useJsonControlledGeneration({
     promptType: "donate",
     onSuccess: (data) => {
@@ -25,9 +27,8 @@ export const useDonation = (
             language: currentLanguage || "en",
           });
         }
-        return visible
+        return visible;
       });
-   
     },
   });
 
@@ -35,6 +36,10 @@ export const useDonation = (
     try {
       await generate({
         country: userData?.country,
+      });
+      updateUserScore({
+        userId: userData?.id,
+        social: 10,
       });
       setDonationModalVisible(true);
     } catch (error) {

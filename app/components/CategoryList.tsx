@@ -5,11 +5,14 @@ import { Category } from "@/app/helpers/categories";
 import CategoryCard from "@/app/components/CategoryCard";
 import { styles } from "@/app/screens/MainStyles";
 import { useTranslations } from "@/hooks/ui/useTranslations";
+import { useGetUserScore } from "@/hooks/logic/useUserScore";
+import useStore from "@/app/store";
 
 interface CategoryListProps {
   categories: (translate: Function) => Category[];
   onCategoryPress: (category: string) => void;
   description: string;
+  environmentalImpactScore: number;
 }
 
 const CategoryList: React.FC<CategoryListProps> = ({
@@ -18,10 +21,20 @@ const CategoryList: React.FC<CategoryListProps> = ({
   description,
 }) => {
   const [showFullDescription, setShowFullDescription] = useState(false);
+  const {userData} = useStore();
   const { translate } = useTranslations();
+  const {data} =  useGetUserScore(userData?.id);
 
   const renderHeader = () => (
     <View style={styles.headerContainer}>
+      <View style={styles.environmentalScoreContainer}>
+        <Text style={styles.environmentalScoreLabel}>
+          {translate("impactScore")}:
+        </Text>
+        <Text style={styles.environmentalScoreValue}>
+          {data?.overallScore?.toFixed(2) || 0}/10
+        </Text>
+      </View>
       <Text style={styles.subtitle}>
         {showFullDescription ? description : description.slice(0, 160) + "..."}
       </Text>

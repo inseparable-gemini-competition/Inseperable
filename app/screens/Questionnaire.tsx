@@ -1,18 +1,19 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { View, Text, Button } from "react-native-ui-lib";
 import { colors } from "../theme";
 import Question from "@/app/components/Question/Question";
 import { ActivityIndicator, ScrollView } from "react-native";
 import { useJsonControlledGeneration } from "@/hooks/gemini/useJsonControlledGeneration";
-import {
-  convertJSONToObject,
-  defaultQuestions,
-} from "@/app/helpers/questionnaireHelpers";
+import { convertJSONToObject } from "@/app/helpers/questionnaireHelpers";
 import { useGenerateContent } from "@/hooks/gemini/useGeminiStream";
 import { useTranslations } from "@/hooks/ui/useTranslations";
+import { useNavigation } from "expo-router";
 
 type Props = {
-  onFinish: (params?: { setLocalLoading: (loading: boolean) => void, result: object }) => void;
+  onFinish: (params?: {
+    setLocalLoading: (loading: boolean) => void;
+    result: object;
+  }) => void;
 };
 
 const Questionnaire = ({ onFinish }: Props) => {
@@ -23,7 +24,24 @@ const Questionnaire = ({ onFinish }: Props) => {
     useTranslations();
   const [localLoading, setLocalLoading] = useState(false);
 
-  const [questions, setQuestions] = useState(defaultQuestions);
+  const { navigate } = useNavigation();
+
+  const [questions, setQuestions] = useState([
+    {
+      id: 1,
+      question: translate("whereAreYouBased"),
+      options: [],
+      isOpenEnded: true,
+    },
+    {
+      id: 2,
+      question: translate("areYouCurrentlyTraveling"),
+      options: [
+        { id: 1, option: translate("yes") },
+        { id: 2, option: translate("no") },
+      ],
+    },
+  ]);
 
   const {
     generate: generateCountryRecommendation,
@@ -41,7 +59,22 @@ const Questionnaire = ({ onFinish }: Props) => {
           ...questions,
           convertJSONToObject(nextQuestion),
         ];
-        setQuestions(updatedQuestions);
+        updatedQuestions[0] = {
+          id: 1,
+          question: translate("whereAreYouBased"),
+          options: [],
+          isOpenEnded: true,
+        };
+        updatedQuestions[1] = {
+          id: 2,
+          question: translate("areYouCurrentlyTraveling"),
+          options: [
+            { id: 1, option: translate("yes") },
+            { id: 2, option: translate("no") },
+          ],
+        };
+
+        setQuestions(updatedQuestions as any);
         setCurrentQuestionIndex(currentQuestionIndex + 1);
         setQuestion(updatedQuestions[currentQuestionIndex + 1]);
       },
@@ -68,7 +101,6 @@ const Questionnaire = ({ onFinish }: Props) => {
         }
         return currentAnswers;
       });
-      // Use setUserCountry to get the latest value
       setUserCountry((latestUserCountry) => {
         generateTranslations({
           country: latestUserCountry,
@@ -110,6 +142,8 @@ const Questionnaire = ({ onFinish }: Props) => {
       generatePriorityTranslations({
         country: option,
       });
+    } else if (currentQuestionIndex === 1 && option === translate("yes")) {
+      navigate("ShortQuestionnaire");
     } else if (currentQuestionIndex < 7) {
       sendAnswer(option);
     } else {
