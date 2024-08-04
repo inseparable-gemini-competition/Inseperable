@@ -116,7 +116,7 @@ const TripRecommendationModal: React.FC<TripRecommendationModalProps> = ({
             </TouchableOpacity>
           </View>
           <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <Text style={styles.closeButtonText}>{translate("close")}</Text>
+            <Text style={styles.closeButtonText}>{translate("back")}</Text>
           </TouchableOpacity>
         </View>
       )}

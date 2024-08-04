@@ -124,5 +124,6 @@ export const useModalHandlers = (
     recommendedTrip,
     openMapWithLocation,
     openUber,
+    setRecommendedTrip,
   };
 };
