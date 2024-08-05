@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { View, StyleSheet, SafeAreaView, TouchableOpacity, Image } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, StyleSheet, SafeAreaView, TouchableOpacity, Image, Alert, ActivityIndicator } from "react-native";
 import {
   GiftedChat,
   IMessage,
@@ -61,9 +61,12 @@ const Chat: React.FC = () => {
   const PAGE_SIZE = 10;
 
   const { isRTL } = useTranslations();
-
   const [isRecording, setIsRecording] = useState(false);
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
+  const [playingAudio, setPlayingAudio] = useState<string | null>(null);
+  const [sound, setSound] = useState<Audio.Sound | null>(null);
+  const [imageUploading, setImageUploading] = useState(false);
+  const [audioUploading, setAudioUploading] = useState(false);
 
   const getChatRoomId = (userId1: string, userId2: string) => {
     return [userId1, userId2].sort().join("_");
@@ -133,16 +136,16 @@ const Chat: React.FC = () => {
       fetchInitialMessages();
     }
 
-    // // Request permissions for audio recording, camera, and media library
-    // (async () => {
-    //   const { status: audioStatus } = await Permissions.askAsync(Permissions.AUDIO_RECORDING);
-    //   const { status: cameraStatus } = await Permissions.askAsync(Permissions.CAMERA);
-    //   const { status: mediaLibraryStatus } = await Permissions.askAsync(Permissions.MEDIA_LIBRARY);
-      
-    //   if (audioStatus !== 'granted' || cameraStatus !== 'granted' || mediaLibraryStatus !== 'granted') {
-    //     console.error('Necessary permissions not granted');
-    //   }
-    // })();
+    // Request permissions for audio recording, camera, and media library
+    (async () => {
+      const { status: audioStatus } = await Audio.requestPermissionsAsync();
+      const { status: cameraStatus } = await ImagePicker.requestCameraPermissionsAsync();
+      const { status: mediaLibraryStatus } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+      if (audioStatus !== 'granted' || cameraStatus !== 'granted' || mediaLibraryStatus !== 'granted') {
+        console.error('Necessary permissions not granted');
+      }
+    })();
   }, [userId]);
 
   const fetchMoreMessages = async () => {
@@ -186,23 +189,87 @@ const Chat: React.FC = () => {
 
   const handleSend = async (newMessages: IMessage[] = []) => {
     const newMessage = newMessages[0];
-    console.log("newMessage", newMessage);
     if (newMessage && userId) {
       try {
         const chatRoomId = getChatRoomId(userId, recipientId);
         await addDoc(collection(db, "chatRooms", chatRoomId, "messages"), {
-          text: newMessage.text,
+          text: newMessage?.text || "",
           translatedText: "",
           createdAt: new Date(),
           userId: userId,
           userName: `User-${userId.substring(0, 6)}`,
-          audio: newMessage.audio,
-          image: newMessage.image,
-          video: newMessage.video,
+          audio: newMessage?.audio || null,
+          image: newMessage?.image || null,
+          video: newMessage?.video || null,
         });
+        Alert.alert("Success", "Message sent successfully.");
       } catch (error) {
-        console.error("Error sending message:", error);
+        console.error("Error sending message:", error.message);
+        Alert.alert("Error", "Failed to send message. Please try again.");
       }
+    } else {
+      console.error("Invalid message or user ID");
+      Alert.alert("Error", "Invalid message or user ID.");
+    }
+  };
+
+  const pickImage = async () => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        quality: 1,
+      });
+
+      if (!result.canceled && result.assets && result.assets[0].uri) {
+        const { uri } = result.assets[0];
+
+        // Show confirmation dialog
+        Alert.alert(
+          "Confirm Image",
+          "Do you want to send this image?",
+          [
+            {
+              text: "Cancel",
+              style: "cancel",
+            },
+            {
+              text: "Send",
+              onPress: async () => {
+                try {
+                  setImageUploading(true);
+                  const response = await fetch(uri);
+                  const blob = await response.blob();
+                  const fileRef = ref(storage, `media/${Date.now()}_${uri.split('/').pop()}`);
+                  await uploadBytes(fileRef, blob);
+                  const downloadURL = await getDownloadURL(fileRef);
+
+                  const newMediaMessage: ChatMessage = {
+                    _id: Date.now().toString(),
+                    createdAt: new Date(),
+                    user: {
+                      _id: userId || "",
+                      name: `User-${userId?.substring(0, 6)}`,
+                    },
+                    image: downloadURL,
+                  };
+
+                  handleSend([newMediaMessage]);
+                  Alert.alert("Success", "Image uploaded successfully.");
+                } catch (error) {
+                  console.error("Error picking or uploading image:", error);
+                  Alert.alert("Error", `Failed to upload image: ${error.message}`);
+                } finally {
+                  setImageUploading(false);
+                }
+              },
+            },
+          ],
+          { cancelable: true }
+        );
+      }
+    } catch (error) {
+      console.error("Error picking image:", error);
+      Alert.alert("Error", `Failed to pick image: ${error.message}`);
     }
   };
 
@@ -217,8 +284,10 @@ const Chat: React.FC = () => {
       );
       setRecording(recording);
       setIsRecording(true);
+      Alert.alert("Recording", "Audio recording started.");
     } catch (err) {
       console.error('Failed to start recording', err);
+      Alert.alert("Error", "Failed to start recording. Please try again.");
     }
   };
 
@@ -226,92 +295,97 @@ const Chat: React.FC = () => {
     if (!recording) return;
 
     setIsRecording(false);
-    await recording.stopAndUnloadAsync();
-    const uri = recording.getURI();
-    setRecording(null);
-    
+    setAudioUploading(true);
+    try {
+      await recording.stopAndUnloadAsync();
+      const uri = recording.getURI();
+      setRecording(null);
 
-    if (uri) {
-      const audioBlob = await fetch(uri).then(r => r.blob());
-      const audioRef = ref(storage, `audios/${Date.now()}.m4a`);
-      await uploadBytes(audioRef, audioBlob);
-      const audioUrl = await getDownloadURL(audioRef);
+      if (uri) {
+        const audioBlob = await fetch(uri).then(r => r.blob());
+        const audioRef = ref(storage, `audios/${Date.now()}.m4a`);
+        await uploadBytes(audioRef, audioBlob);
+        const audioUrl = await getDownloadURL(audioRef);
 
-      const newAudioMessage: ChatMessage = {
-        _id: Date.now().toString(),
-        createdAt: new Date(),
-        user: {
-          _id: userId || "",
-          name: `User-${userId?.substring(0, 6)}`,
-        },
-        audio: audioUrl,
-      };
+        const newAudioMessage: ChatMessage = {
+          _id: Date.now().toString(),
+          createdAt: new Date(),
+          user: {
+            _id: userId || "",
+            name: `User-${userId?.substring(0, 6)}`,
+          },
+          audio: audioUrl,
+        };
 
-      handleSend([newAudioMessage]);
+        handleSend([newAudioMessage]);
+        Alert.alert("Success", "Audio uploaded successfully.");
+      }
+    } catch (err) {
+      console.error('Failed to stop recording or upload audio', err);
+      Alert.alert("Error", "Failed to stop recording or upload audio. Please try again.");
+    } finally {
+      setAudioUploading(false);
     }
   };
 
-  const pickImage = async () => {
-    console.log('here')
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.All,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
+  const playAudio = async (audioUrl: string) => {
+    if (sound) {
+      await sound.unloadAsync();
+      setSound(null);
+      setPlayingAudio(null);
+    }
+
+    const { sound: newSound } = await Audio.Sound.createAsync(
+      { uri: audioUrl },
+      { shouldPlay: true }
+    );
+
+    setSound(newSound);
+    setPlayingAudio(audioUrl);
+
+    newSound.setOnPlaybackStatusUpdate((status) => {
+      if (status.isLoaded && status.didJustFinish) {
+        setPlayingAudio(null);
+        newSound.unloadAsync();
+      }
     });
-
-
-    console.log('result ', result)
-    if (!result.cancelled) {
-      const { uri } = result as { uri: string };
-      console.log('fuck')
-      const response = await fetch(uri);
-      console.log('there 1')
-      const blob = await response.blob();
-      const fileRef = ref(storage, `media/${Date.now()}_${uri.split('/').pop()}`);
-      await uploadBytes(fileRef, blob);
-      console.log('there')
-      const downloadURL = await getDownloadURL(fileRef);
-
-      console.log('ddd ', downloadURL)
-
-      const newMediaMessage: ChatMessage = {
-        _id: Date.now().toString(),
-        createdAt: new Date(),
-        user: {
-          _id: userId || "",
-          name: `User-${userId?.substring(0, 6)}`,
-        },
-        image: downloadURL,
-      };
-
-      handleSend([newMediaMessage]);
-    }
   };
 
-  const renderInputToolbar = (props: any) => (
+  const CustomInputToolbar = () => (
     <InputToolbar
-      {...props}
       containerStyle={styles.inputToolbar}
       renderActions={() => (
         <Actions
-          {...props}
           containerStyle={styles.actions}
           icon={() => (
             <UILibView row>
-              <TouchableOpacity onPress={pickImage} style={styles.actionButton}>
-                <Ionicons name="image" size={24} color={colors.primary} />
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={isRecording ? stopRecording : startRecording}
-                style={styles.actionButton}
-              >
-                <Ionicons
-                  name={isRecording ? "stop-circle" : "mic"}
-                  size={24}
-                  color={isRecording ? colors.error : colors.primary}
-                />
-              </TouchableOpacity>
+              {imageUploading ? (
+                <UILibView style={styles.loadingContainer}>
+                  <ActivityIndicator size="small" color={colors.primary} />
+                  <UILibText style={styles.loadingText}>Uploading...</UILibText>
+                </UILibView>
+              ) : (
+                <TouchableOpacity onPress={pickImage} style={styles.actionButton}>
+                  <Ionicons name="image" size={24} color={colors.primary} />
+                  <UILibText style={styles.buttonText}>Image</UILibText>
+                </TouchableOpacity>
+              )}
+              {audioUploading ? (
+                <UILibView style={styles.loadingContainer}>
+                  <ActivityIndicator size="small" color={colors.primary} />
+                  <UILibText style={styles.loadingText}>Uploading audio...</UILibText>
+                </UILibView>
+              ) : isRecording ? (
+                <TouchableOpacity onPress={stopRecording} style={[styles.actionButton, styles.recordingButton]}>
+                  <Ionicons name="stop-circle" size={24} color={colors.error} />
+                  <UILibText style={[styles.buttonText, { color: colors.error }]}>Stop</UILibText>
+                </TouchableOpacity>
+              ) : (
+                <TouchableOpacity onPress={startRecording} style={styles.actionButton}>
+                  <Ionicons name="mic" size={24} color={colors.primary} />
+                  <UILibText style={styles.buttonText}>Record</UILibText>
+                </TouchableOpacity>
+              )}
             </UILibView>
           )}
         />
@@ -320,9 +394,10 @@ const Chat: React.FC = () => {
   );
 
   const renderMessageAudio = (props: any) => {
+    const { currentMessage } = props;
     return (
       <UILibView style={styles.audioContainer}>
-        <TouchableOpacity onPress={() => {}/* Play audio logic */}>
+        <TouchableOpacity onPress={() => playAudio(currentMessage.audio)}>
           <Ionicons name="play" size={24} color={colors.primary} />
         </TouchableOpacity>
         <UILibText style={styles.audioText}>Audio message</UILibText>
@@ -330,10 +405,20 @@ const Chat: React.FC = () => {
     );
   };
 
+  const renderMessageImage = (props: any) => {
+    const { currentMessage } = props;
+    return (
+      <Image
+        source={{ uri: currentMessage.image }}
+        style={styles.imageMessage}
+      />
+    );
+  };
+
   const renderMessageVideo = (props: any) => {
     return (
       <UILibView style={styles.videoContainer}>
-        <TouchableOpacity onPress={() => {}/* Play video logic */}>
+        <TouchableOpacity onPress={() => {}}>
           <Image source={{ uri: props.currentMessage.video }} style={styles.videoThumbnail} />
           <Ionicons name="play-circle" size={48} color={colors.primary} style={styles.playIcon} />
         </TouchableOpacity>
@@ -396,6 +481,7 @@ const Chat: React.FC = () => {
             />
           )}
           renderMessageAudio={renderMessageAudio}
+          renderMessageImage={renderMessageImage}
           renderMessageVideo={renderMessageVideo}
           onSend={handleSend}
           user={{
@@ -404,7 +490,7 @@ const Chat: React.FC = () => {
           loadEarlier={!loadingMore && !!lastVisible}
           onLoadEarlier={fetchMoreMessages}
           isLoadingEarlier={loadingMore}
-          renderInputToolbar={renderInputToolbar}
+          renderInputToolbar={(props) => <CustomInputToolbar {...props} />}
         />
       </UILibView>
     </SafeAreaView>
@@ -466,12 +552,34 @@ const styles = StyleSheet.create({
     borderTopColor: colors.border,
   },
   actions: {
-    width: 80,
+    width: 150,
     justifyContent: 'center',
     alignItems: 'center',
   },
   actionButton: {
-    marginHorizontal: 5,
+    flexDirection: 'column',
+    alignItems: 'center',
+    marginHorizontal: 10,
+    padding: 5,
+  },
+  recordingButton: {
+    backgroundColor: colors.errorLight,
+    borderRadius: 5,
+  },
+  buttonText: {
+    fontSize: 12,
+    marginTop: 2,
+    color: colors.primary,
+  },
+  loadingContainer: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    marginHorizontal: 10,
+  },
+  loadingText: {
+    fontSize: 10,
+    marginTop: 2,
+    color: colors.primary,
   },
   audioContainer: {
     flexDirection: 'row',
@@ -486,6 +594,12 @@ const styles = StyleSheet.create({
     fontFamily: 'marcellus',
     fontSize: 14,
     color: colors.text,
+  },
+  imageMessage: {
+    width: 200,
+    height: 150,
+    borderRadius: 10,
+    marginVertical: 5,
   },
   videoContainer: {
     width: 200,
@@ -506,4 +620,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Chat
+export default Chat;
