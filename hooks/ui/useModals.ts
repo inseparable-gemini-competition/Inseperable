@@ -6,8 +6,17 @@ export const useModals = () => {
   const [tipsModalVisible, setTipsModalVisible] = useState(false);
   const [donationModalVisible, setDonationModalVisible] = useState(false);
   const [userMoodModalVisible, setUserMoodModalVisible] = useState(false);
+  const [
+    youtubeCulturalInsightsModalVisible,
+    setYoutubeCulturalInsightsModalVisible,
+  ] = useState(false);
 
-  const noModalVisible = !tabooModalVisible && !whatToSayModalVisible && !tipsModalVisible && !donationModalVisible && !userMoodModalVisible
+  const noModalVisible =
+    !tabooModalVisible &&
+    !whatToSayModalVisible &&
+    !tipsModalVisible &&
+    !donationModalVisible &&
+    !userMoodModalVisible;
 
   return {
     tabooModalVisible,
@@ -21,5 +30,7 @@ export const useModals = () => {
     userMoodModalVisible,
     setUserMoodModalVisible,
     noModalVisible,
+    youtubeCulturalInsightsModalVisible,
+    setYoutubeCulturalInsightsModalVisible,
   };
 };

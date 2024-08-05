@@ -11,6 +11,7 @@ import {
   useTipSelection,
 } from "@/hooks";
 import TripRecommendationModal from "@/app/components/TripRecommendationModal";
+import YouTubeCulturalInsightsModal from "@/app/components/YouTubeCulturalInsightsModal";
 
 interface ModalFactoryProps {
   modals: ReturnType<typeof useModals>;
@@ -77,7 +78,6 @@ export const ModalFactory: React.FC<ModalFactoryProps> = ({
       recommendedTrip={modalHandlers.recommendedTrip as any}
       onViewMap={modalHandlers.openMapWithLocation}
       onOpenUber={modalHandlers.openUber}
-      
     />
     <TipsModal
       visible={modals.tipsModalVisible}
@@ -89,6 +89,12 @@ export const ModalFactory: React.FC<ModalFactoryProps> = ({
         feedback.reset();
       }}
       onSelectTipType={tipSelection.handleSelectTipType}
+    />
+    <YouTubeCulturalInsightsModal
+      visible={modals.youtubeCulturalInsightsModalVisible}
+      onClose={() => {
+        modals.setYoutubeCulturalInsightsModalVisible(false);
+      }}
     />
   </>
 );

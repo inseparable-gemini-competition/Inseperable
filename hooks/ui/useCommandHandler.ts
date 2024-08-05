@@ -4,6 +4,7 @@ import { useVoiceActivation } from "@/hooks/ui/useVoiceActivation";
 
 export type CommandType =
   | "read"
+  | "video"
   | "identify"
   | "price"
   | "donate"
@@ -32,6 +33,7 @@ interface CommandHandlerDependencies {
     setWhatToSayModalVisible: (visible: boolean) => void;
     setTipsModalVisible: (visible: boolean) => void;
     setUserMoodModalVisible: (visible: boolean) => void;
+    setYoutubeCulturalInsightsModalVisible: (visible: boolean) => void;
   };
   textFeedBack: {
     setCurrentPromptType: (type: string) => void;
@@ -54,6 +56,7 @@ export const useCommandHandler = (deps: CommandHandlerDependencies) => {
       shop: () => navigation.navigate("Shopping"),
       impact: () => navigation.navigate("EnvImpact"),
       tips: () => deps.modals.setTipsModalVisible(true),
+      video: () => deps.modals.setYoutubeCulturalInsightsModalVisible(true),
       takephoto: () =>
         deps.imageCapture.handleShowCamera({ autoCapture: false }),
       goback: () => navigation.goBack(),

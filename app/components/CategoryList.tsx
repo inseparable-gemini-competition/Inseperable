@@ -12,7 +12,6 @@ import CategoryCard from "@/app/components/CategoryCard";
 import { styles } from "@/app/screens/MainStyles";
 import { useTranslations } from "@/hooks/ui/useTranslations";
 import { useGetUserScore } from "@/hooks/logic/useUserScore";
-import useStore from "@/app/store";
 
 interface CategoryListProps {
   categories: (translate: Function) => Category[];

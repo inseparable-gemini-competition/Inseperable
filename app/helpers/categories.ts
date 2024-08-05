@@ -83,4 +83,11 @@ export const categories = (translate : Function) => [
     imageUrl: require("../../assets/images/mood.png"),
     openCamera: false,
   },
+  {
+    id: "11",
+    title: translate("youtubeInsights"),
+    command: "video",
+    imageUrl: require("../../assets/images/youtube.png"),
+    openCamera: false,
+  },
 ];

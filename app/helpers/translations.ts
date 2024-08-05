@@ -48,7 +48,8 @@ export const translations = {
       fetchingTips: "Fetching Tips",
       fetchingResponse: "Fetching Response",
       fetchingDonationInfo: "Fetching Donation Info",
-      fetchingTaboos: "Fetching Taboos"
+      fetchingTaboos: "Fetching Taboos",
+      whereAreYouBased: "Where are you based?",
 
     },
     // Other languages can be added here

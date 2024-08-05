@@ -180,6 +180,7 @@ export const styles = StyleSheet.create({
   loadingContainer: {
     flexDirection: "row",
     alignItems: "center",
+    alignSelf: 'center',
   },
   loadingText: {
     color: "#ffffff",
