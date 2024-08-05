@@ -444,13 +444,20 @@ const Chat: React.FC = () => {
     />
   );
 
-  const renderMessageAudio = (props: any) => {
+  const MessageAudio = (props: any) => {
     const { currentMessage } = props;
-    const isPlaying = audioPlaybackStatus[currentMessage.audio] || false;
+
+    const [audio, setaudio] = useState() as any;
+
+    useEffect(() => {
+      setaudio(currentMessage.audio);
+    }, [currentMessage]);
+
+    const isPlaying = audioPlaybackStatus[audio] || false;
 
     return (
       <UILibView style={styles.audioContainer}>
-        <TouchableOpacity onPress={() => playAudio(currentMessage.audio)}>
+        <TouchableOpacity onPress={() => playAudio(audio)}>
           <Ionicons
             name={isPlaying ? "pause" : "play"}
             size={24}
@@ -474,24 +481,6 @@ const Chat: React.FC = () => {
     );
   };
 
-  const renderMessageVideo = (props: any) => {
-    return (
-      <UILibView style={styles.videoContainer}>
-        <TouchableOpacity onPress={() => {}}>
-          <Image
-            source={{ uri: props.currentMessage.video }}
-            style={styles.videoThumbnail}
-          />
-          <Ionicons
-            name="play-circle"
-            size={48}
-            color={colors.primary}
-            style={styles.playIcon}
-          />
-        </TouchableOpacity>
-      </UILibView>
-    );
-  };
 
   if (loading) {
     return (
@@ -545,9 +534,8 @@ const Chat: React.FC = () => {
               currentUserId={userId || ""}
             />
           )}
-          renderMessageAudio={renderMessageAudio}
+          renderMessageAudio={(props) => <MessageAudio {...props} />}
           renderMessageImage={renderMessageImage}
-          renderMessageVideo={renderMessageVideo}
           onSend={handleSend}
           user={{
             _id: userId || "",
@@ -555,7 +543,7 @@ const Chat: React.FC = () => {
           loadEarlier={!loadingMore && !!lastVisible}
           onLoadEarlier={fetchMoreMessages}
           isLoadingEarlier={loadingMore}
-          renderInputToolbar={(props) => <CustomInputToolbar {...props} />}
+          renderInputToolbar={() => <CustomInputToolbar />}
           inverted={true}
           listViewProps={{
             onEndReached: fetchMoreMessages,
