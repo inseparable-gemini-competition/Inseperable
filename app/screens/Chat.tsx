@@ -1,5 +1,13 @@
-import React, { useState, useEffect } from "react";
-import { View, StyleSheet, SafeAreaView, TouchableOpacity, Image, Alert, ActivityIndicator } from "react-native";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import {
+  View,
+  StyleSheet,
+  SafeAreaView,
+  TouchableOpacity,
+  Image,
+  Alert,
+  ActivityIndicator,
+} from "react-native";
 import {
   GiftedChat,
   IMessage,
@@ -32,8 +40,8 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "@/app/theme";
 import { useTranslations } from "@/hooks/ui/useTranslations";
-import * as ImagePicker from 'expo-image-picker';
-import { Audio } from 'expo-av';
+import * as ImagePicker from "expo-image-picker";
+import { Audio } from "expo-av";
 
 type RootStackParamList = {
   ChatScreen: { recipientId: string; itemName: string };
@@ -63,10 +71,12 @@ const Chat: React.FC = () => {
   const { isRTL } = useTranslations();
   const [isRecording, setIsRecording] = useState(false);
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
-  const [playingAudio, setPlayingAudio] = useState<string | null>(null);
-  const [sound, setSound] = useState<Audio.Sound | null>(null);
   const [imageUploading, setImageUploading] = useState(false);
   const [audioUploading, setAudioUploading] = useState(false);
+  const [audioPlaybackStatus, setAudioPlaybackStatus] = useState<{
+    [key: string]: boolean;
+  }>({});
+  const soundRef = useRef<{ [key: string]: Audio.Sound }>({});
 
   const getChatRoomId = (userId1: string, userId2: string) => {
     return [userId1, userId2].sort().join("_");
@@ -139,13 +149,25 @@ const Chat: React.FC = () => {
     // Request permissions for audio recording, camera, and media library
     (async () => {
       const { status: audioStatus } = await Audio.requestPermissionsAsync();
-      const { status: cameraStatus } = await ImagePicker.requestCameraPermissionsAsync();
-      const { status: mediaLibraryStatus } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      const { status: cameraStatus } =
+        await ImagePicker.requestCameraPermissionsAsync();
+      const { status: mediaLibraryStatus } =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
 
-      if (audioStatus !== 'granted' || cameraStatus !== 'granted' || mediaLibraryStatus !== 'granted') {
-        console.error('Necessary permissions not granted');
+      if (
+        audioStatus !== "granted" ||
+        cameraStatus !== "granted" ||
+        mediaLibraryStatus !== "granted"
+      ) {
+        console.error("Necessary permissions not granted");
       }
     })();
+
+    return () => {
+      Object.values(soundRef.current).forEach((sound) => {
+        sound.unloadAsync();
+      });
+    };
   }, [userId]);
 
   const fetchMoreMessages = async () => {
@@ -181,9 +203,7 @@ const Chat: React.FC = () => {
     });
 
     setLastVisible(snapshot.docs[snapshot.docs.length - 1]);
-    setMessages((prevMessages) =>
-      GiftedChat.append(prevMessages, messagesData)
-    );
+    setMessages((prevMessages) => [...prevMessages, ...messagesData]);
     setLoadingMore(false);
   };
 
@@ -223,7 +243,6 @@ const Chat: React.FC = () => {
       if (!result.canceled && result.assets && result.assets[0].uri) {
         const { uri } = result.assets[0];
 
-        // Show confirmation dialog
         Alert.alert(
           "Confirm Image",
           "Do you want to send this image?",
@@ -239,7 +258,10 @@ const Chat: React.FC = () => {
                   setImageUploading(true);
                   const response = await fetch(uri);
                   const blob = await response.blob();
-                  const fileRef = ref(storage, `media/${Date.now()}_${uri.split('/').pop()}`);
+                  const fileRef = ref(
+                    storage,
+                    `media/${Date.now()}_${uri.split("/").pop()}`
+                  );
                   await uploadBytes(fileRef, blob);
                   const downloadURL = await getDownloadURL(fileRef);
 
@@ -257,7 +279,10 @@ const Chat: React.FC = () => {
                   Alert.alert("Success", "Image uploaded successfully.");
                 } catch (error) {
                   console.error("Error picking or uploading image:", error);
-                  Alert.alert("Error", `Failed to upload image: ${error.message}`);
+                  Alert.alert(
+                    "Error",
+                    `Failed to upload image: ${error.message}`
+                  );
                 } finally {
                   setImageUploading(false);
                 }
@@ -286,7 +311,7 @@ const Chat: React.FC = () => {
       setIsRecording(true);
       Alert.alert("Recording", "Audio recording started.");
     } catch (err) {
-      console.error('Failed to start recording', err);
+      console.error("Failed to start recording", err);
       Alert.alert("Error", "Failed to start recording. Please try again.");
     }
   };
@@ -302,7 +327,7 @@ const Chat: React.FC = () => {
       setRecording(null);
 
       if (uri) {
-        const audioBlob = await fetch(uri).then(r => r.blob());
+        const audioBlob = await fetch(uri).then((r) => r.blob());
         const audioRef = ref(storage, `audios/${Date.now()}.m4a`);
         await uploadBytes(audioRef, audioBlob);
         const audioUrl = await getDownloadURL(audioRef);
@@ -321,34 +346,45 @@ const Chat: React.FC = () => {
         Alert.alert("Success", "Audio uploaded successfully.");
       }
     } catch (err) {
-      console.error('Failed to stop recording or upload audio', err);
-      Alert.alert("Error", "Failed to stop recording or upload audio. Please try again.");
+      console.error("Failed to stop recording or upload audio", err);
+      Alert.alert(
+        "Error",
+        "Failed to stop recording or upload audio. Please try again."
+      );
     } finally {
       setAudioUploading(false);
     }
   };
 
   const playAudio = async (audioUrl: string) => {
-    if (sound) {
-      await sound.unloadAsync();
-      setSound(null);
-      setPlayingAudio(null);
-    }
+    try {
+      if (soundRef.current[audioUrl]) {
+        if (audioPlaybackStatus[audioUrl]) {
+          await soundRef.current[audioUrl].pauseAsync();
+          setAudioPlaybackStatus((prev) => ({ ...prev, [audioUrl]: false }));
+        } else {
+          await soundRef.current[audioUrl].playAsync();
+          setAudioPlaybackStatus((prev) => ({ ...prev, [audioUrl]: true }));
+        }
+      } else {
+        const { sound: newSound } = await Audio.Sound.createAsync(
+          { uri: audioUrl },
+          { shouldPlay: true }
+        );
 
-    const { sound: newSound } = await Audio.Sound.createAsync(
-      { uri: audioUrl },
-      { shouldPlay: true }
-    );
+        soundRef.current[audioUrl] = newSound;
+        setAudioPlaybackStatus((prev) => ({ ...prev, [audioUrl]: true }));
 
-    setSound(newSound);
-    setPlayingAudio(audioUrl);
-
-    newSound.setOnPlaybackStatusUpdate((status) => {
-      if (status.isLoaded && status.didJustFinish) {
-        setPlayingAudio(null);
-        newSound.unloadAsync();
+        newSound.setOnPlaybackStatusUpdate((status) => {
+          if (status.isLoaded && status.didJustFinish) {
+            setAudioPlaybackStatus((prev) => ({ ...prev, [audioUrl]: false }));
+          }
+        });
       }
-    });
+    } catch (error) {
+      console.error("Error playing audio:", error);
+      Alert.alert("Error", "Failed to play audio. Please try again.");
+    }
   };
 
   const CustomInputToolbar = () => (
@@ -365,7 +401,10 @@ const Chat: React.FC = () => {
                   <UILibText style={styles.loadingText}>Uploading...</UILibText>
                 </UILibView>
               ) : (
-                <TouchableOpacity onPress={pickImage} style={styles.actionButton}>
+                <TouchableOpacity
+                  onPress={pickImage}
+                  style={styles.actionButton}
+                >
                   <Ionicons name="image" size={24} color={colors.primary} />
                   <UILibText style={styles.buttonText}>Image</UILibText>
                 </TouchableOpacity>
@@ -373,15 +412,27 @@ const Chat: React.FC = () => {
               {audioUploading ? (
                 <UILibView style={styles.loadingContainer}>
                   <ActivityIndicator size="small" color={colors.primary} />
-                  <UILibText style={styles.loadingText}>Uploading audio...</UILibText>
+                  <UILibText style={styles.loadingText}>
+                    Uploading audio...
+                  </UILibText>
                 </UILibView>
               ) : isRecording ? (
-                <TouchableOpacity onPress={stopRecording} style={[styles.actionButton, styles.recordingButton]}>
+                <TouchableOpacity
+                  onPress={stopRecording}
+                  style={[styles.actionButton, styles.recordingButton]}
+                >
                   <Ionicons name="stop-circle" size={24} color={colors.error} />
-                  <UILibText style={[styles.buttonText, { color: colors.error }]}>Stop</UILibText>
+                  <UILibText
+                    style={[styles.buttonText, { color: colors.error }]}
+                  >
+                    Stop
+                  </UILibText>
                 </TouchableOpacity>
               ) : (
-                <TouchableOpacity onPress={startRecording} style={styles.actionButton}>
+                <TouchableOpacity
+                  onPress={startRecording}
+                  style={styles.actionButton}
+                >
                   <Ionicons name="mic" size={24} color={colors.primary} />
                   <UILibText style={styles.buttonText}>Record</UILibText>
                 </TouchableOpacity>
@@ -395,12 +446,20 @@ const Chat: React.FC = () => {
 
   const renderMessageAudio = (props: any) => {
     const { currentMessage } = props;
+    const isPlaying = audioPlaybackStatus[currentMessage.audio] || false;
+
     return (
       <UILibView style={styles.audioContainer}>
         <TouchableOpacity onPress={() => playAudio(currentMessage.audio)}>
-          <Ionicons name="play" size={24} color={colors.primary} />
+          <Ionicons
+            name={isPlaying ? "pause" : "play"}
+            size={24}
+            color={colors.primary}
+          />
         </TouchableOpacity>
-        <UILibText style={styles.audioText}>Audio message</UILibText>
+        <UILibText style={styles.audioText}>
+          {isPlaying ? "Playing..." : "Audio message"}
+        </UILibText>
       </UILibView>
     );
   };
@@ -419,8 +478,16 @@ const Chat: React.FC = () => {
     return (
       <UILibView style={styles.videoContainer}>
         <TouchableOpacity onPress={() => {}}>
-          <Image source={{ uri: props.currentMessage.video }} style={styles.videoThumbnail} />
-          <Ionicons name="play-circle" size={48} color={colors.primary} style={styles.playIcon} />
+          <Image
+            source={{ uri: props.currentMessage.video }}
+            style={styles.videoThumbnail}
+          />
+          <Ionicons
+            name="play-circle"
+            size={48}
+            color={colors.primary}
+            style={styles.playIcon}
+          />
         </TouchableOpacity>
       </UILibView>
     );
@@ -447,9 +514,7 @@ const Chat: React.FC = () => {
             color={colors.primary}
           />
         </TouchableOpacity>
-        <UILibText style={styles.headerText}>
-          Chat about {itemName}
-        </UILibText>
+        <UILibText style={styles.headerText}>Chat about {itemName}</UILibText>
       </View>
       <UILibView flex>
         <GiftedChat
@@ -491,6 +556,11 @@ const Chat: React.FC = () => {
           onLoadEarlier={fetchMoreMessages}
           isLoadingEarlier={loadingMore}
           renderInputToolbar={(props) => <CustomInputToolbar {...props} />}
+          inverted={true}
+          listViewProps={{
+            onEndReached: fetchMoreMessages,
+            onEndReachedThreshold: 0.1,
+          }}
         />
       </UILibView>
     </SafeAreaView>
@@ -530,7 +600,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     paddingVertical: 10,
     paddingHorizontal: 20,
-    alignItems: 'center',
+    alignItems: "center",
   },
   backButton: {
     paddingStart: 5,
@@ -553,12 +623,12 @@ const styles = StyleSheet.create({
   },
   actions: {
     width: 150,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   actionButton: {
-    flexDirection: 'column',
-    alignItems: 'center',
+    flexDirection: "column",
+    alignItems: "center",
     marginHorizontal: 10,
     padding: 5,
   },
@@ -572,8 +642,8 @@ const styles = StyleSheet.create({
     color: colors.primary,
   },
   loadingContainer: {
-    flexDirection: 'column',
-    alignItems: 'center',
+    flexDirection: "column",
+    alignItems: "center",
     marginHorizontal: 10,
   },
   loadingText: {
@@ -582,8 +652,8 @@ const styles = StyleSheet.create({
     color: colors.primary,
   },
   audioContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: colors.bubbleLeft,
     borderRadius: 20,
     padding: 10,
@@ -591,7 +661,7 @@ const styles = StyleSheet.create({
   },
   audioText: {
     marginLeft: 10,
-    fontFamily: 'marcellus',
+    fontFamily: "marcellus",
     fontSize: 14,
     color: colors.text,
   },
@@ -605,17 +675,17 @@ const styles = StyleSheet.create({
     width: 200,
     height: 150,
     borderRadius: 10,
-    overflow: 'hidden',
+    overflow: "hidden",
     marginVertical: 5,
   },
   videoThumbnail: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
   },
   playIcon: {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
+    position: "absolute",
+    top: "50%",
+    left: "50%",
     transform: [{ translateX: -24 }, { translateY: -24 }],
   },
 });
