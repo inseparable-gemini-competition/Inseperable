@@ -16,7 +16,8 @@ export const useModals = () => {
     !whatToSayModalVisible &&
     !tipsModalVisible &&
     !donationModalVisible &&
-    !userMoodModalVisible;
+    !userMoodModalVisible &&
+    !youtubeCulturalInsightsModalVisible;
 
   return {
     tabooModalVisible,

@@ -1,11 +1,5 @@
 import React, { useState } from "react";
-import {
-  View,
-  Text,
-  ActivityIndicator,
-  StyleSheet,
-  TouchableOpacity,
-} from "react-native";
+import { View, Text, ActivityIndicator, StyleSheet } from "react-native";
 import { Button } from "react-native-ui-lib";
 import { styles as globalStyles, modalStyles } from "@/app/screens/MainStyles";
 import GenericBottomSheet, {
@@ -15,6 +9,7 @@ import { useTranslations } from "@/hooks/ui/useTranslations";
 import { colors } from "@/app/theme";
 import { useExtractCulturalInsights } from "@/hooks/logic/useVideoCulturalinsight";
 import YoutubePlayer from "react-native-youtube-iframe";
+import { convertMarkdownToPlainText } from "@/app/helpers/markdown";
 
 interface YouTubeCulturalInsightsModalProps {
   visible: boolean;
@@ -108,10 +103,9 @@ const YouTubeCulturalInsightsModal: React.FC<
           <Text style={styles.insightsTitle}>
             {translate("culturalInsights")}
           </Text>
-          <Text style={styles.insightsText}>{culturalInsights}</Text>
-          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <Text style={styles.closeButtonText}>{translate("back")}</Text>
-          </TouchableOpacity>
+          <Text style={styles.insightsText}>
+            {convertMarkdownToPlainText(culturalInsights)}
+          </Text>
         </View>
       )}
     </GenericBottomSheet>
