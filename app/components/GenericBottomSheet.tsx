@@ -1,11 +1,17 @@
-import React, { useMemo, useRef, ReactNode } from "react";
-import { StyleSheet, ViewStyle, TextStyle } from "react-native";
+import React, { useMemo, useRef, ReactNode, useState } from "react";
+import {
+  StyleSheet,
+  ViewStyle,
+  TextStyle,
+} from "react-native";
 import BottomSheet, {
   BottomSheetBackdrop,
   BottomSheetScrollView,
   BottomSheetView,
   BottomSheetTextInput,
 } from "@gorhom/bottom-sheet";
+import { useTextToSpeech } from "@/app/context/TextToSpeechContext";
+import SpeechControlIcon from "@/app/components/SpeechControlIcon";
 
 interface GenericBottomSheetProps {
   visible: boolean;
@@ -20,17 +26,16 @@ interface GenericBottomSheetProps {
   inputStyle?: ViewStyle;
   buttonStyle?: ViewStyle;
   textStyle?: TextStyle;
+  textToSpeak?: string;
 }
 
 const defaultRenderBackdrop = (props: any) => (
-  <BottomSheetBackdrop
-    {...props}
-    disappearsOnIndex={-1}
-    appearsOnIndex={0}
-  />
+  <BottomSheetBackdrop {...props} disappearsOnIndex={-1} appearsOnIndex={0} />
 );
 
 export const GenericBottomSheetTextInput = BottomSheetTextInput;
+
+
 
 const GenericBottomSheet: React.FC<GenericBottomSheetProps> = ({
   visible,
@@ -43,12 +48,27 @@ const GenericBottomSheet: React.FC<GenericBottomSheetProps> = ({
   contentContainerStyle,
   inputStyle,
   textStyle,
+  textToSpeak,
 }) => {
   const bottomSheetRef = useRef<BottomSheet>(null);
+  const { speak, stop } = useTextToSpeech();
+  const [isSpeaking, setIsSpeaking] = useState(false);
 
   const memoizedSnapPoints = useMemo(() => snapPoints, [snapPoints]);
 
-  const ContentComponent = enableScroll ? BottomSheetScrollView : BottomSheetView;
+  const ContentComponent = enableScroll
+    ? BottomSheetScrollView
+    : BottomSheetView;
+
+  const handleToggleSpeech = () => {
+    if (isSpeaking) {
+      stop();
+      setIsSpeaking(false);
+    } else if (textToSpeak) {
+      speak(textToSpeak);
+      setIsSpeaking(true);
+    }
+  };
 
   return (
     <BottomSheet
@@ -58,6 +78,10 @@ const GenericBottomSheet: React.FC<GenericBottomSheetProps> = ({
       onChange={(index) => {
         if (index === -1) {
           onClose();
+          if (isSpeaking) {
+            stop();
+            setIsSpeaking(false);
+          }
         }
       }}
       backdropComponent={backdropComponent}
@@ -67,19 +91,28 @@ const GenericBottomSheet: React.FC<GenericBottomSheetProps> = ({
       android_keyboardInputMode="adjustResize"
       enablePanDownToClose
     >
-      <ContentComponent 
+      <ContentComponent
         contentContainerStyle={[styles.contentContainer, contentContainerStyle]}
-        keyboardShouldPersistTaps={'handled'}
+        keyboardShouldPersistTaps={"handled"}
       >
-        {React.Children.map(children, child => 
+        {textToSpeak && (
+          <SpeechControlIcon
+            isSpeaking={isSpeaking}
+            onToggle={handleToggleSpeech}
+            style={styles.speechIcon}
+          />
+        )}
+        {React.Children.map(children, (child) =>
           React.isValidElement(child)
             ? React.cloneElement(child, {
                 style: {
                   ...styles.text,
                   ...textStyle,
                   ...(child.props.style || {}),
-                  ...(child.type === GenericBottomSheetTextInput ? {...styles.input, ...inputStyle} : {}),
-                }
+                  ...(child.type === GenericBottomSheetTextInput
+                    ? { ...styles.input, ...inputStyle }
+                    : {}),
+                },
               })
             : child
         )}
@@ -91,12 +124,12 @@ const GenericBottomSheet: React.FC<GenericBottomSheetProps> = ({
 const styles = StyleSheet.create({
   contentContainer: {
     padding: 16,
-    minHeight: '100%',
+    minHeight: "100%",
   },
   text: {
     fontFamily: "marcellus",
     fontSize: 16,
-    color: '#333',
+    color: "#333",
   },
   input: {
     height: 100,
@@ -117,6 +150,9 @@ const styles = StyleSheet.create({
     fontSize: 18,
     marginBottom: 16,
     textAlign: "center",
+  },
+  speechIcon: {
+    marginBottom: 16,
   },
 });
 

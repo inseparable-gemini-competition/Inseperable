@@ -45,7 +45,12 @@ const TripRecommendationModal: React.FC<TripRecommendationModalProps> = ({
   const { translate } = useTranslations();
 
   return (
-    <GenericBottomSheet visible={visible} onClose={onClose} enableScroll={true}>
+    <GenericBottomSheet
+      visible={visible}
+      onClose={onClose}
+      enableScroll={true}
+      textToSpeak={recommendedTrip?.description}
+    >
       {!recommendedTrip ? (
         <>
           <Text style={modalStyles.modalTitle}>

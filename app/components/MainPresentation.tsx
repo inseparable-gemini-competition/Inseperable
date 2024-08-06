@@ -85,22 +85,25 @@ const MainPresentation: React.FC<MainPresentationProps> = ({
               }}
             />
           ) : (
-            <CategoryScreen
-              categories={categories as any}
-              onCategoryPress={(category) => handleCommand(category)}
-              country={navigationAndUser.userData?.country || ""}
-              description={navigationAndUser.userData?.description || ""}
-              animatedStyle={imageCapture.animatedStyle}
-            />
+            <>
+              <CategoryScreen
+                categories={categories as any}
+                onCategoryPress={(category) => handleCommand(category)}
+                country={navigationAndUser.userData?.country || ""}
+                description={navigationAndUser.userData?.description || ""}
+                animatedStyle={imageCapture.animatedStyle}
+              />
+              <VoiceActivationButton
+                onPress={() =>
+                  voiceActivation.handleLongPress({
+                    nativeEvent: { state: State.ACTIVE },
+                  })
+                }
+                isListening={!!voiceActivation.isListening}
+              />
+            </>
           )}
-          <VoiceActivationButton
-            onPress={() =>
-              voiceActivation.handleLongPress({
-                nativeEvent: { state: State.ACTIVE },
-              })
-            }
-            isListening={!!voiceActivation.isListening}
-          />
+
           <ModalFactory
             modals={modals}
             donation={donation}

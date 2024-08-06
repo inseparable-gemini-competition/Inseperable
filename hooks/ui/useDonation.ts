@@ -1,8 +1,9 @@
 import { useJsonControlledGeneration } from "@/hooks/gemini/useJsonControlledGeneration";
-import { useTextToSpeech } from "@/hooks/ui/useTextToSpeech";
 import { useTranslations } from "@/hooks/ui/useTranslations";
 import { useUpdateUserScore } from "@/hooks/logic/useUserScore";
 import useStore from "@/app/store";
+import { useTextToSpeech } from "@/app/context/TextToSpeechContext";
+
 
 export const useDonation = (
   setDonationModalVisible: React.Dispatch<React.SetStateAction<boolean>>
@@ -21,14 +22,14 @@ export const useDonation = (
   } = useJsonControlledGeneration({
     promptType: "donate",
     onSuccess: (data) => {
-      setDonationModalVisible((visible) => {
-        if (visible) {
-          speak(data?.description, {
-            language: currentLanguage || "en",
-          });
-        }
-        return visible;
-      });
+      // setDonationModalVisible((visible) => {
+      //   if (visible) {
+      //     speak(data?.description, {
+      //       language: currentLanguage || "en",
+      //     });
+      //   }
+      //   return visible;
+      // });
     },
   });
 

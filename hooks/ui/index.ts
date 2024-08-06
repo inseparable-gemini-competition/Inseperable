@@ -5,7 +5,6 @@ export * from './useTextFeedback';
 export * from './useGoogleImageSearch';
 export * from './useModals';
 export * from './useModalHandlers';
-export * from './useTextToSpeech';
 export * from './useTipsSelection';
 export * from './useVoiceActivation';
 export * from './useVoiceCommand';

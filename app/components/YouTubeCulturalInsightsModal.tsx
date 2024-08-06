@@ -61,11 +61,12 @@ const YouTubeCulturalInsightsModal: React.FC<
         setVideoId(null);
       }}
       enableScroll={true}
+      textToSpeak={culturalInsights}
     >
       {!culturalInsights ? (
         <>
           <Text style={modalStyles.modalTitle}>
-            {translate("enterYouTubeDetails")}
+            {translate("getCulturalContext")}
           </Text>
           {isLoading ? (
             <View style={[globalStyles.loadingContainer, { height: 100 }]}>
@@ -82,7 +83,7 @@ const YouTubeCulturalInsightsModal: React.FC<
                 </View>
               )}
               <GenericBottomSheetTextInput
-                placeholder={translate("enterYouTubeUrl")}
+                placeholder={translate("enterYoutubeUrl")}
                 value={youtubeUrl}
                 onChangeText={setYoutubeUrl}
                 keyboardType="url"

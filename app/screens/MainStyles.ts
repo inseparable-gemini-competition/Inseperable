@@ -47,6 +47,7 @@ export const styles = StyleSheet.create({
     fontSize: 48,
     fontFamily: "marcellus",
     marginTop: 16,
+    textAlign: 'left',
   },
   subtitle: {
     fontSize: 18,

@@ -8,6 +8,7 @@ import "react-native-reanimated";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import useStore from "./store";
 import { translations as initialTranslations } from "@/app/helpers/translations";
+import { TextToSpeechProvider } from "@/app/context/TextToSpeechContext";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -37,11 +38,13 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <ThemeProvider value={DefaultTheme}>
-        <Stack>
-          <Stack.Screen name="(main)" options={{ headerShown: false }} />
-        </Stack>
-      </ThemeProvider>
+      <TextToSpeechProvider>
+        <ThemeProvider value={DefaultTheme}>
+          <Stack>
+            <Stack.Screen name="(main)" options={{ headerShown: false }} />
+          </Stack>
+        </ThemeProvider>
+      </TextToSpeechProvider>
     </GestureHandlerRootView>
   );
 }

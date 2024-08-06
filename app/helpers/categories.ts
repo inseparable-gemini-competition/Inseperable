@@ -85,7 +85,7 @@ export const categories = (translate : Function) => [
   },
   {
     id: "11",
-    title: translate("youtubeInsights"),
+    title: translate("culturalVideoAnalyzer"),
     command: "video",
     imageUrl: require("../../assets/images/youtube.png"),
     openCamera: false,

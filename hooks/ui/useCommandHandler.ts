@@ -34,6 +34,7 @@ interface CommandHandlerDependencies {
     setTipsModalVisible: (visible: boolean) => void;
     setUserMoodModalVisible: (visible: boolean) => void;
     setYoutubeCulturalInsightsModalVisible: (visible: boolean) => void;
+    noModalVisible: boolean;
   };
   textFeedBack: {
     setCurrentPromptType: (type: string) => void;
@@ -86,7 +87,8 @@ export const useCommandHandler = (deps: CommandHandlerDependencies) => {
 
   const voiceActivation = useVoiceActivation(
     deps.imageCapture.showCamera,
-    deps.imageCapture.capturedImage
+    deps.imageCapture.capturedImage,
+    deps.modals.noModalVisible
   );
 
   useEffect(() => {

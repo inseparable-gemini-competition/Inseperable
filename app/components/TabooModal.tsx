@@ -19,7 +19,7 @@ const TabooModal: React.FC<TabooModalProps> = ({
 }) => {
   const { translate } = useTranslations();
   return (
-    <GenericBottomSheet visible={visible} onClose={onClose} enableScroll={true}>
+    <GenericBottomSheet visible={visible} onClose={onClose} enableScroll={true} textToSpeak={result}>
         {isLoading ? (
           <View style={[styles.loadingContainer, { height: 100 }]}>
             <ActivityIndicator />

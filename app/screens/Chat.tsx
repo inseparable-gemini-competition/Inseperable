@@ -481,7 +481,6 @@ const Chat: React.FC = () => {
     );
   };
 
-
   if (loading) {
     return (
       <UILibView flex center>

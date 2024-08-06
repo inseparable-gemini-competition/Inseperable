@@ -49,6 +49,7 @@ const TipsModal: React.FC<TipsModalProps> = ({
       visible={isVisible}
       onClose={handleClose}
       enableScroll={true}
+      textToSpeak={result}
     >
       <Text style={modalStyles.modalTitle}>{translate("selectTipType")}</Text>
       <Picker

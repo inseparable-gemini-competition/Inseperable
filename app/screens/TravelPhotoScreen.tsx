@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   FlatList,
   ActivityIndicator,
@@ -30,6 +30,7 @@ import { colors } from "@/app/theme";
 import { SafeAreaView } from "react-native-safe-area-context";
 import FastImage from "react-native-fast-image";
 import { convertMarkdownToPlainText } from "@/app/helpers/markdown";
+import { useTranslations } from "@/hooks/ui/useTranslations";
 
 // Types
 interface Photo {
@@ -136,6 +137,7 @@ const searchPhotos = async ({
   const [_key, query] = queryKey;
   const searchPhotosFunction = httpsCallable(functions, "searchPhotos");
   const result = await searchPhotosFunction({ query, lastVisible: pageParam });
+  console.log("ss ", result);
   console.log(result);
   return result.data as PhotosResponse;
 };
@@ -168,6 +170,8 @@ const usePhotos = (searchQuery: string) => {
 // Component
 const TravelPhotoScreen: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [debouncedQuery, setDebouncedQuery] = useState<string>(searchQuery);
+  const { translate } = useTranslations();
   const {
     data,
     fetchNextPage,
@@ -176,7 +180,17 @@ const TravelPhotoScreen: React.FC = () => {
     isFetchingNextPage,
     error,
     uploadMutation,
-  } = usePhotos(searchQuery);
+  } = usePhotos(debouncedQuery);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedQuery(searchQuery);
+    }, 500); // Adjust the delay as needed
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [searchQuery]);
 
   useEffect(() => {
     (async () => {
@@ -207,12 +221,6 @@ const TravelPhotoScreen: React.FC = () => {
     }
   };
 
-  const handleSearch = (): void => {
-    if (searchQuery.trim()) {
-      fetchNextPage();
-    }
-  };
-
   const handleShare = async (photo: Photo) => {
     try {
       const result = await Share.share({
@@ -236,7 +244,9 @@ const TravelPhotoScreen: React.FC = () => {
   const renderPhoto = ({ item }: { item: Photo }): React.ReactElement => (
     <View style={styles.photoCard}>
       <FastImage source={{ uri: item.url }} style={styles.photoImage} />
-      <Text style={styles.photoCaption}>{convertMarkdownToPlainText(item.caption)}</Text>
+      <Text style={styles.photoCaption}>
+        {convertMarkdownToPlainText(item.caption)}
+      </Text>
       <Text style={styles.photoTimestamp}>
         {new Date(item.timestamp).toLocaleString()}
       </Text>
@@ -252,13 +262,13 @@ const TravelPhotoScreen: React.FC = () => {
   const allPhotos = data ? data.pages.flatMap((page) => page.photos) : [];
 
   return (
-    <SafeAreaView style={{flex: 1}}>
+    <SafeAreaView style={{ flex: 1 }}>
       <LinearGradient
         colors={[colors.backgroundGradientStart, colors.backgroundGradientEnd]}
         style={styles.container}
       >
         <View style={styles.header}>
-          <Text style={styles.headerText}>Travel Memories</Text>
+          <Text style={styles.headerText}>{translate("travelMemories")}</Text>
         </View>
 
         <View style={styles.actionContainer}>
@@ -271,20 +281,19 @@ const TravelPhotoScreen: React.FC = () => {
               size={24}
               color={colors.white}
             />
-            <Text style={styles.uploadButtonText}>Upload Photo</Text>
+            <Text style={styles.uploadButtonText}>{translate("uploadPhoto")}</Text>
           </TouchableOpacity>
 
           <View style={styles.searchContainer}>
             <TextInput
               style={styles.searchInput}
-              placeholder="Search photos..."
+              placeholder={translate("searchPhotos")}
               placeholderTextColor={colors.placeholder}
               value={searchQuery}
               onChangeText={setSearchQuery}
-              onSubmitEditing={handleSearch}
             />
             <TouchableOpacity
-              onPress={handleSearch}
+              onPress={() => setDebouncedQuery(searchQuery)}
               style={styles.searchButton}
             >
               <Ionicons name="search" size={24} color={colors.primary} />
@@ -302,7 +311,7 @@ const TravelPhotoScreen: React.FC = () => {
 
         {error && (
           <Text style={styles.errorText}>
-            {error.message || "An error occurred"}
+            {error.message || translate("anErrorOccurred")}
           </Text>
         )}
 
@@ -318,7 +327,7 @@ const TravelPhotoScreen: React.FC = () => {
                 size={50}
                 color={colors.secondary}
               />
-              <Text style={styles.noPhotosText}>No photos found</Text>
+              <Text style={styles.noPhotosText}>{translate("noPhotosFound")}</Text>
             </View>
           }
           onEndReached={() => {
@@ -423,8 +432,8 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: colors.dark,
     marginVertical: 4,
-    textAlign: 'center',
-    fontFamily: 'marcellus',
+    textAlign: "center",
+    fontFamily: "marcellus",
     padding: 10,
   },
   photoTimestamp: {

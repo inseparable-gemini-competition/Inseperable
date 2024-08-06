@@ -1,28 +1,18 @@
 // hooks/useFeedback.ts
 import { useState } from "react";
 import { useGenerateTextMutation } from "@/hooks/gemini/useGenerateText";
-import { useTextToSpeech } from "@/hooks/ui/useTextToSpeech";
-import { useTranslations } from "@/hooks/ui/useTranslations";
+import { useTextToSpeech } from "@/app/context/TextToSpeechContext";
 
-export const useTextFeedback = ({noModalVisible} : {noModalVisible: boolean}) => {
+export const useTextFeedback = () => {
   const [currentPromptType, setCurrentPromptType] = useState<string>("");
   const { speak, stop } = useTextToSpeech();
-  const {currentLanguage} = useTranslations();
 
   const {
     mutateAsync,
     isLoading: isLoadingFromGemini,
     data: feedbackText,
     reset,
-  } = useGenerateTextMutation({
-    onSuccess: (data) => {
-      if (data && typeof data === "string" && !noModalVisible) {
-        speak(data,{
-          language: currentLanguage || "en",
-        });
-      }
-    },
-  });
+  } = useGenerateTextMutation();
 
   const dismissFeedback = () => {
     stop();

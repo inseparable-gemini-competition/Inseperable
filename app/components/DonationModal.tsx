@@ -36,7 +36,7 @@ const DonationModal: React.FC<DonationModalProps> = ({
   };
 
   return (
-    <GenericBottomSheet visible={visible} onClose={onClose} enableScroll={true}>
+    <GenericBottomSheet visible={visible} onClose={onClose} enableScroll={true} textToSpeak={result?.description}>
       <Text style={modalStyles.modalTitle}>
         {translate('donationInfo')}
       </Text>

@@ -1,10 +1,10 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import * as Speech from "expo-speech";
 import { Audio } from "expo-av";
 import { useTranslations } from "@/hooks/ui/useTranslations";
 import { useGenerateContent } from "@/hooks/gemini";
 import * as FileSystem from "expo-file-system";
 import useStore from "@/app/store";
+import { useTextToSpeech } from "@/app/context/TextToSpeechContext";
 
 export const useVoiceCommands = () => {
   const [isListening, setIsListening] = useState<boolean>(false);
@@ -12,17 +12,18 @@ export const useVoiceCommands = () => {
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
   const recordingRef = useRef<Audio.Recording | null>(null);
   const { currentLanguage } = useStore();
+  const { speak } = useTextToSpeech();
 
   const { sendMessage, aiResponse, isLoading } = useGenerateContent({
     promptType: "audioCommand",
     onSuccess: (data) => {
       setRecording(null);
       if (data === "none") {
-        Speech.speak(translate("identifiedCategory"), {
+        speak(translate("identifiedCategory"), {
           language: currentLanguage || "en",
         });
       } else {
-        Speech.speak(translate("unidentifiedCategory"), {
+        speak(translate("unidentifiedCategory"), {
           language: currentLanguage || "en",
         });
       }
@@ -84,7 +85,7 @@ export const useVoiceCommands = () => {
         await recordingRef.current.stopAndUnloadAsync();
         const uri = recordingRef.current.getURI();
         if (uri) {
-          Speech.speak(translate("processing"), {
+          speak(translate("processing"), {
             language: currentLanguage || "en",
           });
           await sendAudioToGemini(uri);
@@ -104,7 +105,7 @@ export const useVoiceCommands = () => {
   }, []);
 
   const activateVoiceCommand = useCallback(() => {
-    Speech.speak(translate("pleaseStartSpeakingAndLongPresToStop"), {
+    speak(translate("pleaseStartSpeakingAndLongPresToStop"), {
       onDone: () => {
         startRecording();
       },
