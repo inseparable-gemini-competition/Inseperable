@@ -19,6 +19,7 @@ import { useNavigation } from "expo-router";
 import { I18nManager } from "react-native";
 import Toast from "react-native-toast-message";
 import ShortQuestionnaire from "@/app/screens/ShortQuestionnaire";
+import TravelPhotoScreen from "@/app/screens/TravelPhotoScreen";
 
 polyfillEncoding();
 polyfillReadableStream();
@@ -54,6 +55,7 @@ function NavigationWrapper({ onFinish }: any) {
     >
       <Stack.Screen name="Main" component={Main} />
       <Stack.Screen name="Plan" component={Plan} />
+      <Stack.Screen name="Photos" component={TravelPhotoScreen} />
       <Stack.Screen name="Shopping" component={HandmadeItems} />
       <Stack.Screen name="EnvImpact">
         {(props) => (

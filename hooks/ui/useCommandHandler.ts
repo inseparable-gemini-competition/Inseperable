@@ -5,6 +5,7 @@ import { useVoiceActivation } from "@/hooks/ui/useVoiceActivation";
 export type CommandType =
   | "read"
   | "video"
+  | "photos"
   | "identify"
   | "price"
   | "donate"
@@ -58,6 +59,7 @@ export const useCommandHandler = (deps: CommandHandlerDependencies) => {
       impact: () => navigation.navigate("EnvImpact"),
       tips: () => deps.modals.setTipsModalVisible(true),
       video: () => deps.modals.setYoutubeCulturalInsightsModalVisible(true),
+      photos: () => navigation.navigate("Photos"),
       takephoto: () =>
         deps.imageCapture.handleShowCamera({ autoCapture: false }),
       goback: () => navigation.goBack(),

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import {
   FlatList,
   ActivityIndicator,
@@ -22,7 +22,7 @@ import {
   getDocs,
 } from "firebase/firestore";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
-import { useInfiniteQuery, useMutation, useQueryClient } from "react-query";
+import { useInfiniteQuery, useMutation } from "react-query";
 import { db, auth, functions, storage } from "@/app/helpers/firebaseConfig";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
@@ -36,7 +36,8 @@ import { useTranslations } from "@/hooks/ui/useTranslations";
 interface Photo {
   id: string;
   url: string;
-  caption: string;
+  captions: string[];
+  description: string;
   timestamp: number;
 }
 
@@ -144,8 +145,7 @@ const searchPhotos = async ({
 
 // Custom hook
 const usePhotos = (searchQuery: string) => {
-  const queryClient = useQueryClient();
-
+  const [internalLoading, setInternalLoading] = useState(false);
   const infiniteQuery = useInfiniteQuery<PhotosResponse, Error>(
     ["photos", searchQuery],
     searchQuery ? searchPhotos : fetchPhotos,
@@ -156,15 +156,18 @@ const usePhotos = (searchQuery: string) => {
 
   const uploadMutation = useMutation(uploadAndAnalyzePhoto, {
     onSuccess: () => {
-      queryClient.invalidateQueries(["photos"]);
-      Alert.alert("Success", "Photo uploaded successfully");
+      setInternalLoading(true);
+      setTimeout(() => {
+        infiniteQuery.refetch();
+        setInternalLoading(false);
+      }, 8000);
     },
     onError: (error: any) => {
       Alert.alert("Error", `Failed to upload image: ${error.message}`);
     },
   });
 
-  return { ...infiniteQuery, uploadMutation };
+  return { ...infiniteQuery, uploadMutation, internalLoading };
 };
 
 // Component
@@ -180,6 +183,8 @@ const TravelPhotoScreen: React.FC = () => {
     isFetchingNextPage,
     error,
     uploadMutation,
+    isFetching,
+    internalLoading,
   } = usePhotos(debouncedQuery);
 
   useEffect(() => {
@@ -245,8 +250,11 @@ const TravelPhotoScreen: React.FC = () => {
     <View style={styles.photoCard}>
       <FastImage source={{ uri: item.url }} style={styles.photoImage} />
       <Text style={styles.photoCaption}>
-        {convertMarkdownToPlainText(item.caption)}
+        {convertMarkdownToPlainText(item.description)}
       </Text>
+      {item.captions?.map((caption: string) => (
+        <Text style={styles.photoCaption}>{caption}</Text>
+      ))}
       <Text style={styles.photoTimestamp}>
         {new Date(item.timestamp).toLocaleString()}
       </Text>
@@ -281,7 +289,9 @@ const TravelPhotoScreen: React.FC = () => {
               size={24}
               color={colors.white}
             />
-            <Text style={styles.uploadButtonText}>{translate("uploadPhoto")}</Text>
+            <Text style={styles.uploadButtonText}>
+              {translate("uploadPhoto")}
+            </Text>
           </TouchableOpacity>
 
           <View style={styles.searchContainer}>
@@ -301,7 +311,10 @@ const TravelPhotoScreen: React.FC = () => {
           </View>
         </View>
 
-        {(isLoading || uploadMutation.isLoading) && (
+        {(isLoading ||
+          uploadMutation.isLoading ||
+          isFetching ||
+          internalLoading) && (
           <ActivityIndicator
             size="large"
             color={colors.primary}
@@ -327,7 +340,9 @@ const TravelPhotoScreen: React.FC = () => {
                 size={50}
                 color={colors.secondary}
               />
-              <Text style={styles.noPhotosText}>{translate("noPhotosFound")}</Text>
+              <Text style={styles.noPhotosText}>
+                {translate("noPhotosFound")}
+              </Text>
             </View>
           }
           onEndReached={() => {

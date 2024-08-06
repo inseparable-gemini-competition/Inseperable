@@ -90,4 +90,11 @@ export const categories = (translate : Function) => [
     imageUrl: require("../../assets/images/youtube.png"),
     openCamera: false,
   },
+  {
+    id: "11",
+    title: translate("travelMemories"),
+    command: "photos",
+    imageUrl: require("../../assets/images/photos.png"),
+    openCamera: false,
+  },
 ];
