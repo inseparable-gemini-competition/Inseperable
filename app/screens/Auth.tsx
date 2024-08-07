@@ -14,7 +14,7 @@ import { useAuth } from "@/hooks/logic/useAuth";
 import { useTranslations } from "@/hooks/ui/useTranslations";
 import { colors } from "@/app/theme";
 
-const LoadingAnimation = ({ text }) => {
+const LoadingAnimation = ({ text }: {text: string}) => {
   const [rotation] = useState(new Animated.Value(0));
 
   useEffect(() => {
@@ -172,6 +172,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: colors.background 
   },
   loadingCircle: {
     width: 60,

@@ -60,7 +60,7 @@ export function useAuth({ fromLayout = false }: { fromLayout?: boolean } = {}) {
       setUser(user);
       if (user) {
         setIsLoading(true);
-        let updatedUserData = {
+        let updatedUserData: any = {
           id: user.uid,
           email: user.email,
         };
@@ -100,7 +100,7 @@ export function useAuth({ fromLayout = false }: { fromLayout?: boolean } = {}) {
 
         I18nManager.forceRTL(translations.isRTL === true);
         setUserData(updatedUserData);
-        Updates.reloadAsync();
+        if (updatedUserData.country) Updates.reloadAsync();
         setIsLoading(false);
       }
     });
