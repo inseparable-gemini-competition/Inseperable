@@ -87,9 +87,9 @@ const TripRecommendationModal: React.FC<TripRecommendationModalProps> = ({
           <Text style={styles.recommendationTitle}>
             {translate("weRecommend")}
           </Text>
-          <Text style={styles.placeName}>{recommendedTrip.name}</Text>
+          <Text style={styles.placeName}>{recommendedTrip?.name}</Text>
           <Text style={styles.placeDescription}>
-            {recommendedTrip.description}
+            {recommendedTrip?.description}
           </Text>
           <View style={styles.actionButtonsContainer}>
             <TouchableOpacity
@@ -98,7 +98,7 @@ const TripRecommendationModal: React.FC<TripRecommendationModalProps> = ({
                 onViewMap(
                   recommendedTrip?.latitude,
                   recommendedTrip?.longitude,
-                  name
+                  recommendedTrip?.name
                 )
               }
             >

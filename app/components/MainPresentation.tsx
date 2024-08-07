@@ -78,6 +78,7 @@ const MainPresentation: React.FC<MainPresentationProps> = ({
               onCloseFeedback={() => {
                 imageCapture.setCapturedImage(null);
                 textFeedBack.stop();
+                textFeedBack.reset();
               }}
             />
           ) : (
