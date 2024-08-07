@@ -105,7 +105,7 @@ export function useAuth({ fromLayout = false }: { fromLayout?: boolean } = {}) {
       }
     });
     return unsubscribe;
-  }, [fromLayout]);
+  }, []);
 
   const signUp = async (email: string, password: string) => {
     setIsLoading(true);
