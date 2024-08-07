@@ -172,7 +172,7 @@ const usePhotos = (searchQuery: string) => {
   const infiniteQuery = useInfiniteQuery<PhotosResponse, Error>(
     ["photos", searchQuery, userData?.id],
     ({ pageParam, queryKey }) => {
-      const [_, __, userId] = queryKey;
+      const [_, __, userId = ''] = queryKey;
       if (!userId) throw new Error("User ID is not available");
       
       return searchQuery
@@ -260,18 +260,18 @@ const TravelPhotoScreen: React.FC = () => {
     }
   };
 
-  const handleShare = async (photo: Photo) => {
+  const handleShare = async (photo: Photo, caption?: string) => {
     try {
+      const message = caption
+        ? `${caption}\n\nCheck out this photo from my travels!`
+        : `Check out this photo from my travels! ${photo.captions?.[0]}`;
+      
       const result = await Share.share({
-        message: `Check out this photo from my travels! ${photo.captions?.[0]}`,
+        message,
         url: photo.url,
       });
       if (result.action === Share.sharedAction) {
-        if (result.activityType) {
-          console.log("Shared with activity type of", result.activityType);
-        } else {
-          console.log("Shared");
-        }
+        console.log(result.activityType ? `Shared with ${result.activityType}` : 'Shared');
       } else if (result.action === Share.dismissedAction) {
         console.log("Dismissed");
       }
@@ -283,15 +283,23 @@ const TravelPhotoScreen: React.FC = () => {
   const renderPhoto = ({ item }: { item: Photo }): React.ReactElement => (
     <View style={styles.photoCard}>
       <FastImage source={{ uri: item.url }} style={styles.photoImage} />
-      <Text style={styles.photoCaption}>
-        {convertMarkdownToPlainText(item.description)}
-      </Text>
-      {item.captions?.map((caption: string, index: number) => (
-        <Text key={index} style={styles.photoCaption}>{caption}</Text>
-      ))}
-      <Text style={styles.photoTimestamp}>
-        {new Date(item.timestamp).toLocaleString()}
-      </Text>
+        <Text style={styles.photoDescription}>
+          {convertMarkdownToPlainText(item.description)}
+        </Text>
+        {item.captions?.map((caption: string, index: number) => (
+          <View key={index} style={styles.captionContainer}>
+            <Text style={styles.photoCaption}>{caption}</Text>
+            <TouchableOpacity
+              onPress={() => handleShare(item, caption)}
+              style={styles.shareCaptionButton}
+            >
+              <FontAwesome name="share-alt" size={16} color={colors.white} />
+            </TouchableOpacity>
+          </View>
+        ))}
+        <Text style={styles.photoTimestamp}>
+          {new Date(item.timestamp).toLocaleString()}
+        </Text>
       <TouchableOpacity
         onPress={() => handleShare(item)}
         style={styles.shareButton}
@@ -419,8 +427,9 @@ const styles = StyleSheet.create({
   },
   headerText: {
     color: colors.white,
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: "bold",
+    fontFamily: "marcellus",
   },
   actionContainer: {
     flexDirection: "row",
@@ -434,12 +443,18 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     flexDirection: "row",
     alignItems: "center",
+    elevation: 3,
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
   },
   uploadButtonText: {
     color: colors.white,
     fontSize: 16,
     fontWeight: "bold",
     marginLeft: 8,
+    fontFamily: "marcellus",
   },
   searchContainer: {
     flex: 1,
@@ -449,11 +464,17 @@ const styles = StyleSheet.create({
     marginLeft: 16,
     paddingHorizontal: 12,
     alignItems: "center",
+    elevation: 3,
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
   },
   searchInput: {
     flex: 1,
     height: 40,
     color: colors.dark,
+    fontFamily: "marcellus",
   },
   searchButton: {
     padding: 8,
@@ -480,29 +501,55 @@ const styles = StyleSheet.create({
     height: width * 0.6,
     resizeMode: "cover",
   },
-  photoInfo: {
+  blurOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    padding: 16,
+    justifyContent: "flex-end",
+  },
+  photoDescription: {
+    fontSize: 18,
+    color: colors.black,
+    marginBottom: 8,
+    fontFamily: "marcellus",
     padding: 16,
   },
+  captionContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 4,
+    paddingHorizontal: 16,
+  },
   photoCaption: {
-    fontSize: 18,
-    color: colors.dark,
-    marginVertical: 4,
-    textAlign: "center",
+    fontSize: 16,
+    color: colors.black,
     fontFamily: "marcellus",
-    padding: 10,
+    flex: 1,
+  },
+  shareCaptionButton: {
+    backgroundColor: colors.primary,
+    borderRadius: 15,
+    padding: 6,
+    marginLeft: 8,
   },
   photoTimestamp: {
     fontSize: 14,
     color: colors.light,
-    padding: 10,
+    marginTop: 8,
+    fontFamily: "marcellus",
   },
   shareButton: {
     position: "absolute",
     right: 16,
-    bottom: 16,
+    top: 16,
     backgroundColor: colors.primary,
     borderRadius: 20,
     padding: 8,
+    elevation: 3,
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
   },
   noPhotosContainer: {
     flex: 1,
@@ -514,11 +561,13 @@ const styles = StyleSheet.create({
     color: colors.secondary,
     fontSize: 18,
     marginTop: 10,
+    fontFamily: "marcellus",
   },
   errorText: {
     color: colors.danger,
     textAlign: "center",
     marginVertical: 10,
+    fontFamily: "marcellus",
   },
 });
 
