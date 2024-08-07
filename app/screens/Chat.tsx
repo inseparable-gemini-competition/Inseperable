@@ -31,7 +31,6 @@ import {
 import { storage, db } from "@/app/helpers/firebaseConfig";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useRoute, RouteProp, useNavigation } from "@react-navigation/native";
-import { useSignIn } from "@/hooks/authentication/useSignIn";
 import {
   View as UILibView,
   Text as UILibText,
@@ -43,6 +42,7 @@ import { useTranslations } from "@/hooks/ui/useTranslations";
 import * as ImagePicker from "expo-image-picker";
 import { Audio } from "expo-av";
 import { translate } from "@/app/helpers/i18n";
+import useStore from "@/app/store";
 
 type RootStackParamList = {
   ChatScreen: { recipientId: string; itemName: string };
@@ -130,11 +130,11 @@ const Chat: React.FC = () => {
   const getChatRoomId = (userId1: string, userId2: string) => {
     return [userId1, userId2].sort().join("_");
   };
-  const { userId, loading, setLoading, authenticateUser } = useSignIn();
+  const {userData} = useStore();
   const navigation = useNavigation();
+  const userId = userData?.id;
 
   useEffect(() => {
-    authenticateUser();
     const fetchInitialMessages = async () => {
       if (!userId) return;
       const chatRoomId = getChatRoomId(userId, recipientId);
@@ -165,7 +165,6 @@ const Chat: React.FC = () => {
 
       setLastVisible(snapshot.docs[snapshot.docs.length - 1]);
       setMessages(messagesData);
-      setLoading(false);
 
       const unsubscribe = onSnapshot(q, (snapshot) => {
         const realTimeMessages = snapshot.docs.map((doc) => {

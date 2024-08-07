@@ -31,6 +31,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import FastImage from "react-native-fast-image";
 import { convertMarkdownToPlainText } from "@/app/helpers/markdown";
 import { useTranslations } from "@/hooks/ui/useTranslations";
+import useStore from "@/app/store";
 
 // Types
 interface Photo {
@@ -47,14 +48,23 @@ interface PhotosResponse {
 }
 
 // API functions
-const fetchPhotos = async ({ pageParam = null }): Promise<PhotosResponse> => {
+const fetchPhotos = async ({
+  pageParam = null,
+  userId,
+}: {
+  pageParam: any;
+  userId: string;
+}): Promise<PhotosResponse> => {
   if (!auth.currentUser) {
     throw new Error("User not authenticated");
+  }
+  if (!userId) {
+    throw new Error("userId is required for fetchPhotos");
   }
   const photosRef = collection(db, "photos");
   let q = query(
     photosRef,
-    where("userId", "==", auth.currentUser.uid),
+    where("userId", "==", userId),
     orderBy("timestamp", "desc"),
     limit(20)
   );
@@ -65,11 +75,7 @@ const fetchPhotos = async ({ pageParam = null }): Promise<PhotosResponse> => {
 
   const snapshot = await getDocs(q);
   const photos = snapshot.docs.map(
-    (doc) =>
-      ({
-        id: doc.id,
-        ...doc.data(),
-      } as Photo)
+    (doc) => ({ id: doc.id, ...doc.data() } as Photo)
   );
 
   return {
@@ -78,9 +84,18 @@ const fetchPhotos = async ({ pageParam = null }): Promise<PhotosResponse> => {
   };
 };
 
-const uploadAndAnalyzePhoto = async (uri: string): Promise<void> => {
+const uploadAndAnalyzePhoto = async ({
+  uri,
+  userId,
+}: {
+  uri: string;
+  userId: string;
+}): Promise<void> => {
   if (!auth.currentUser) {
     throw new Error("User not authenticated");
+  }
+  if (!userId) {
+    throw new Error("userId is required for uploadAndAnalyzePhoto");
   }
 
   try {
@@ -88,15 +103,12 @@ const uploadAndAnalyzePhoto = async (uri: string): Promise<void> => {
     const blob = await response.blob();
 
     const filename = `${Date.now()}.jpg`;
-    const storageRef = ref(
-      storage,
-      `photos/${auth.currentUser.uid}/${filename}`
-    );
+    const storageRef = ref(storage, `photos/${userId}/${filename}`);
 
     const metadata = {
       contentType: "image/jpeg",
       customMetadata: {
-        userId: auth.currentUser.uid,
+        userId,
       },
     };
 
@@ -131,26 +143,45 @@ const uploadAndAnalyzePhoto = async (uri: string): Promise<void> => {
 const searchPhotos = async ({
   pageParam = null,
   queryKey,
+  userId,
 }: {
   pageParam: any;
+  userId: string;
   queryKey: (string | null)[];
 }): Promise<PhotosResponse> => {
+  if (!userId) {
+    throw new Error("userId is required for searchPhotos");
+  }
+
   const [_key, query] = queryKey;
   const searchPhotosFunction = httpsCallable(functions, "searchPhotos");
-  const result = await searchPhotosFunction({ query, lastVisible: pageParam });
-  console.log("ss ", result);
-  console.log(result);
+  const result = await searchPhotosFunction({
+    query,
+    lastVisible: pageParam,
+    userId,
+    pageSize: 20,
+  });
   return result.data as PhotosResponse;
 };
 
 // Custom hook
 const usePhotos = (searchQuery: string) => {
   const [internalLoading, setInternalLoading] = useState(false);
+  const { userData } = useStore();
+
   const infiniteQuery = useInfiniteQuery<PhotosResponse, Error>(
-    ["photos", searchQuery],
-    searchQuery ? searchPhotos : fetchPhotos,
+    ["photos", searchQuery, userData?.id],
+    ({ pageParam, queryKey }) => {
+      const [_, __, userId] = queryKey;
+      if (!userId) throw new Error("User ID is not available");
+      
+      return searchQuery
+        ? searchPhotos({ pageParam, queryKey: [_, searchQuery], userId })
+        : fetchPhotos({ pageParam, userId });
+    },
     {
       getNextPageParam: (lastPage) => lastPage.lastVisible,
+      enabled: !!userData?.id,
     }
   );
 
@@ -175,6 +206,7 @@ const TravelPhotoScreen: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [debouncedQuery, setDebouncedQuery] = useState<string>(searchQuery);
   const { translate } = useTranslations();
+  const { userData } = useStore();
   const {
     data,
     fetchNextPage,
@@ -190,7 +222,7 @@ const TravelPhotoScreen: React.FC = () => {
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedQuery(searchQuery);
-    }, 500); // Adjust the delay as needed
+    }, 500);
 
     return () => {
       clearTimeout(handler);
@@ -199,8 +231,7 @@ const TravelPhotoScreen: React.FC = () => {
 
   useEffect(() => {
     (async () => {
-      const { status } =
-        await ImagePicker.requestMediaLibraryPermissionsAsync();
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status !== "granted") {
         Alert.alert(
           "Permission needed",
@@ -210,7 +241,7 @@ const TravelPhotoScreen: React.FC = () => {
     })();
   }, []);
 
-  const handleUploadImage = async (): Promise<void> => {
+  const handleUploadImage = async (userId: string): Promise<void> => {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -218,7 +249,10 @@ const TravelPhotoScreen: React.FC = () => {
       });
 
       if (!result.canceled && result.assets && result.assets[0].uri) {
-        await uploadMutation.mutateAsync(result.assets[0].uri);
+        await uploadMutation.mutateAsync({
+          uri: result.assets[0].uri,
+          userId: userId,
+        });
       }
     } catch (error: any) {
       console.error("Error picking or uploading image:", error);
@@ -229,7 +263,7 @@ const TravelPhotoScreen: React.FC = () => {
   const handleShare = async (photo: Photo) => {
     try {
       const result = await Share.share({
-        message: `Check out this photo from my travels! ${photo.caption}`,
+        message: `Check out this photo from my travels! ${photo.captions?.[0]}`,
         url: photo.url,
       });
       if (result.action === Share.sharedAction) {
@@ -252,8 +286,8 @@ const TravelPhotoScreen: React.FC = () => {
       <Text style={styles.photoCaption}>
         {convertMarkdownToPlainText(item.description)}
       </Text>
-      {item.captions?.map((caption: string) => (
-        <Text style={styles.photoCaption}>{caption}</Text>
+      {item.captions?.map((caption: string, index: number) => (
+        <Text key={index} style={styles.photoCaption}>{caption}</Text>
       ))}
       <Text style={styles.photoTimestamp}>
         {new Date(item.timestamp).toLocaleString()}
@@ -269,6 +303,16 @@ const TravelPhotoScreen: React.FC = () => {
 
   const allPhotos = data ? data.pages.flatMap((page) => page.photos) : [];
 
+  if (!userData?.id) {
+    return (
+      <View style={styles.noPhotosContainer}>
+        <Text style={styles.noPhotosText}>
+          {translate("userDataNotAvailable")}
+        </Text>
+      </View>
+    );
+  }
+
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <LinearGradient
@@ -282,7 +326,7 @@ const TravelPhotoScreen: React.FC = () => {
         <View style={styles.actionContainer}>
           <TouchableOpacity
             style={styles.uploadButton}
-            onPress={handleUploadImage}
+            onPress={() => handleUploadImage(userData.id)}
           >
             <Ionicons
               name="cloud-upload-outline"
@@ -438,10 +482,6 @@ const styles = StyleSheet.create({
   },
   photoInfo: {
     padding: 16,
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
   },
   photoCaption: {
     fontSize: 18,
@@ -454,6 +494,7 @@ const styles = StyleSheet.create({
   photoTimestamp: {
     fontSize: 14,
     color: colors.light,
+    padding: 10,
   },
   shareButton: {
     position: "absolute",
