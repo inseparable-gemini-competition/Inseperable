@@ -128,7 +128,7 @@ export function useAuth({ fromLayout = false }: { fromLayout?: boolean } = {}) {
         return signIn(savedEmail, savedPassword);
       }
     }
-    throw new Error("Biometric login failed");
+    throw new Error("Did you sign in before?");
   };
 
   const saveBiometricCredentials = async (email: string, password: string) => {

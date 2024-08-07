@@ -74,7 +74,7 @@ export default function AuthScreen() {
       await biometricLogin();
     } catch (error) {
       console.error(error);
-      alert(translate("biometricFailed"));
+      alert(translate("didYouSignedInBefore"));
     } finally {
       setIsBiometricLoading(false);
     }

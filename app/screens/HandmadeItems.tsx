@@ -176,7 +176,7 @@ const HandMade: React.FC = () => {
       return (
         <View>
           <Text>{original}</Text>
-          <Text style={styles.translatingText}>{translate("translating")}</Text>
+          <Text>{translate("translating")}</Text>
         </View>
       );
     }

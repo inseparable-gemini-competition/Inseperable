@@ -109,8 +109,8 @@ export const styles = StyleSheet.create({
   },
   countdownContainer: {
     position: "absolute",
-    top: "40%",
-    start: "40%",
+    top: "50%",
+    end: "50%",
     transform: [{ translateX: -50 }, { translateY: -50 }],
     alignItems: "center",
     zIndex: 1,

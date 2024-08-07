@@ -19,11 +19,11 @@ export const useVoiceCommands = () => {
     onSuccess: (data) => {
       setRecording(null);
       if (data === "none") {
-        speak(translate("identifiedCategory"), {
+        speak(translate("unidentifiedCategory"), {
           language: currentLanguage || "en",
         });
       } else {
-        speak(translate("unidentifiedCategory"), {
+        speak(translate("identifiedCategory"), {
           language: currentLanguage || "en",
         });
       }
