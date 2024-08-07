@@ -20,7 +20,6 @@ const MainContainer: React.FC = () => {
     textFeedBack.mutateAsync,
     textFeedBack.setCurrentPromptType
   );
-  const navigationAndUser = useNavigationAndUser();
   const modalHandlers = useModalHandlers(
     textFeedBack.mutateAsync,
     modals.setTabooModalVisible
@@ -44,7 +43,6 @@ const MainContainer: React.FC = () => {
       tipSelection={tipSelection}
       textFeedBack={textFeedBack}
       imageCapture={imageCapture}
-      navigationAndUser={navigationAndUser}
       modalHandlers={modalHandlers}
       donation={donation}
       voiceActivation={voiceActivation}

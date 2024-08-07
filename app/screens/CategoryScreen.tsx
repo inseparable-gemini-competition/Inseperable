@@ -13,7 +13,7 @@ const CategoryScreen: React.FC<CategoryScreenProps> = ({
   animatedStyle
 }) => (
   <>
-    <HeaderDescription country={country} description={description} />
+    <HeaderDescription country={country} />
     <Animated.View style={[styles.content, animatedStyle]}>
       <CategoryList
         categories={categories}

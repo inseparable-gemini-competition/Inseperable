@@ -24,7 +24,6 @@ export interface ModalProps {
 
 export interface MainLayoutProps {
   children: ReactNode;
-  onResetPress: () => void;
   backgroundImage: string;
 }
 

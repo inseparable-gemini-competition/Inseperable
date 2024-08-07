@@ -12,19 +12,18 @@ import CategoryScreen from "@/app/screens/CategoryScreen";
 import { useModals } from "@/hooks/ui/useModals";
 import { useTextFeedback } from "@/hooks/ui/useTextFeedback";
 import { useCamera } from "@/hooks/ui/useCamera";
-import { useNavigationAndUser } from "@/hooks/authentication/useNavigationAndUser";
 import { useModalHandlers } from "@/hooks/ui/useModalHandlers";
 import { useDonation } from "@/hooks/ui/useDonation";
 import { useTipSelection } from "@/hooks/ui/useTipsSelection";
 import { useVoiceActivation } from "@/hooks/ui/useVoiceActivation";
 import { useTranslations } from "@/hooks/ui/useTranslations";
+import useStore from "@/app/store";
 
 interface MainPresentationProps {
   modals: ReturnType<typeof useModals>;
   tipSelection: ReturnType<typeof useTipSelection>;
   textFeedBack: ReturnType<typeof useTextFeedback>;
   imageCapture: ReturnType<typeof useCamera>;
-  navigationAndUser: ReturnType<typeof useNavigationAndUser>;
   modalHandlers: ReturnType<typeof useModalHandlers>;
   donation: ReturnType<typeof useDonation>;
   voiceActivation: ReturnType<typeof useVoiceActivation>;
@@ -36,13 +35,13 @@ const MainPresentation: React.FC<MainPresentationProps> = ({
   tipSelection,
   textFeedBack,
   imageCapture,
-  navigationAndUser,
   modalHandlers,
   donation,
   voiceActivation,
   handleCommand,
 }) => {
   const { translate } = useTranslations();
+  const { userData } = useStore();
   if (imageCapture.showCamera && !imageCapture.permission?.granted) {
     return (
       <View style={styles.permissionContainer}>
@@ -56,10 +55,7 @@ const MainPresentation: React.FC<MainPresentationProps> = ({
   }
 
   return (
-    <MainLayout
-      onResetPress={navigationAndUser.handleResetAndLogout}
-      backgroundImage={navigationAndUser.userData?.mostFamousLandmark || ""}
-    >
+    <MainLayout backgroundImage={userData?.mostFamousLandmark || ""}>
       <LongPressGestureHandler
         onHandlerStateChange={voiceActivation.handleLongPress}
         minDurationMs={500}
@@ -89,8 +85,8 @@ const MainPresentation: React.FC<MainPresentationProps> = ({
               <CategoryScreen
                 categories={categories as any}
                 onCategoryPress={(category) => handleCommand(category)}
-                country={navigationAndUser.userData?.country || ""}
-                description={navigationAndUser.userData?.description || ""}
+                country={userData?.country || ""}
+                description={userData?.description || ""}
                 animatedStyle={imageCapture.animatedStyle}
               />
               <VoiceActivationButton
@@ -110,7 +106,7 @@ const MainPresentation: React.FC<MainPresentationProps> = ({
             feedback={textFeedBack}
             modalHandlers={modalHandlers}
             tipSelection={tipSelection}
-            userData={navigationAndUser.userData}
+            userData={userData}
           />
         </View>
       </LongPressGestureHandler>

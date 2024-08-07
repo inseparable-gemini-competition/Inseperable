@@ -42,6 +42,7 @@ import { colors } from "@/app/theme";
 import { useTranslations } from "@/hooks/ui/useTranslations";
 import * as ImagePicker from "expo-image-picker";
 import { Audio } from "expo-av";
+import { translate } from "@/app/helpers/i18n";
 
 type RootStackParamList = {
   ChatScreen: { recipientId: string; itemName: string };
@@ -55,6 +56,57 @@ interface ChatMessage extends IMessage {
   image?: string;
   video?: string;
 }
+
+const useAudioPlayback = () => {
+  const [playingAudioId, setPlayingAudioId] = useState<string | null>(null);
+  const soundsRef = useRef<{ [key: string]: Audio.Sound }>({});
+
+  useEffect(() => {
+    return () => {
+      Object.values(soundsRef.current).forEach((sound) => {
+        sound.unloadAsync();
+      });
+    };
+  }, []);
+
+  const playPauseAudio = useCallback(
+    async (audioId: string, audioUrl: string) => {
+      try {
+        if (playingAudioId === audioId) {
+          await soundsRef.current[audioId]?.pauseAsync();
+          setPlayingAudioId(null);
+        } else {
+          if (playingAudioId && soundsRef.current[playingAudioId]) {
+            await soundsRef.current[playingAudioId].stopAsync();
+          }
+
+          if (!soundsRef.current[audioId]) {
+            const { sound } = await Audio.Sound.createAsync(
+              { uri: audioUrl },
+              { shouldPlay: true }
+            );
+            soundsRef.current[audioId] = sound;
+          } else {
+            await soundsRef.current[audioId].playAsync();
+          }
+
+          setPlayingAudioId(audioId);
+
+          soundsRef.current[audioId].setOnPlaybackStatusUpdate((status) => {
+            if (status.isLoaded && status.didJustFinish) {
+              setPlayingAudioId(null);
+            }
+          });
+        }
+      } catch (error) {
+        console.error("Error playing audio:", error);
+      }
+    },
+    [playingAudioId]
+  );
+
+  return { playingAudioId, playPauseAudio };
+};
 
 const Chat: React.FC = () => {
   const route = useRoute<ChatScreenRouteProp>();
@@ -73,10 +125,7 @@ const Chat: React.FC = () => {
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
   const [imageUploading, setImageUploading] = useState(false);
   const [audioUploading, setAudioUploading] = useState(false);
-  const [audioPlaybackStatus, setAudioPlaybackStatus] = useState<{
-    [key: string]: boolean;
-  }>({});
-  const soundRef = useRef<{ [key: string]: Audio.Sound }>({});
+  const { playingAudioId, playPauseAudio } = useAudioPlayback();
 
   const getChatRoomId = (userId1: string, userId2: string) => {
     return [userId1, userId2].sort().join("_");
@@ -146,7 +195,6 @@ const Chat: React.FC = () => {
       fetchInitialMessages();
     }
 
-    // Request permissions for audio recording, camera, and media library
     (async () => {
       const { status: audioStatus } = await Audio.requestPermissionsAsync();
       const { status: cameraStatus } =
@@ -162,12 +210,6 @@ const Chat: React.FC = () => {
         console.error("Necessary permissions not granted");
       }
     })();
-
-    return () => {
-      Object.values(soundRef.current).forEach((sound) => {
-        sound.unloadAsync();
-      });
-    };
   }, [userId]);
 
   const fetchMoreMessages = async () => {
@@ -298,94 +340,63 @@ const Chat: React.FC = () => {
     }
   };
 
-  const startRecording = async () => {
-    try {
-      await Audio.setAudioModeAsync({
-        allowsRecordingIOS: true,
-        playsInSilentModeIOS: true,
-      });
-      const { recording } = await Audio.Recording.createAsync(
-        Audio.RECORDING_OPTIONS_PRESET_HIGH_QUALITY
-      );
-      setRecording(recording);
-      setIsRecording(true);
-      Alert.alert("Recording", "Audio recording started.");
-    } catch (err) {
-      console.error("Failed to start recording", err);
-      Alert.alert("Error", "Failed to start recording. Please try again.");
-    }
-  };
+  // const startRecording = async () => {
+  //   try {
+  //     await Audio.setAudioModeAsync({
+  //       allowsRecordingIOS: true,
+  //       playsInSilentModeIOS: true,
+  //     });
+  //     const { recording } = await Audio.Recording.createAsync(
+  //       Audio.RECORDING_OPTIONS_PRESET_HIGH_QUALITY
+  //     );
+  //     setRecording(recording);
+  //     setIsRecording(true);
+  //     Alert.alert("Recording", "Audio recording started.");
+  //   } catch (err) {
+  //     console.error("Failed to start recording", err);
+  //     Alert.alert("Error", "Failed to start recording. Please try again.");
+  //   }
+  // };
 
-  const stopRecording = async () => {
-    if (!recording) return;
+  // const stopRecording = async () => {
+  //   if (!recording) return;
 
-    setIsRecording(false);
-    setAudioUploading(true);
-    try {
-      await recording.stopAndUnloadAsync();
-      const uri = recording.getURI();
-      setRecording(null);
+  //   setIsRecording(false);
+  //   setAudioUploading(true);
+  //   try {
+  //     await recording.stopAndUnloadAsync();
+  //     const uri = recording.getURI();
+  //     setRecording(null);
 
-      if (uri) {
-        const audioBlob = await fetch(uri).then((r) => r.blob());
-        const audioRef = ref(storage, `audios/${Date.now()}.m4a`);
-        await uploadBytes(audioRef, audioBlob);
-        const audioUrl = await getDownloadURL(audioRef);
+  //     if (uri) {
+  //       const audioBlob = await fetch(uri).then((r) => r.blob());
+  //       const audioRef = ref(storage, `audios/${Date.now()}.m4a`);
+  //       await uploadBytes(audioRef, audioBlob);
+  //       const audioUrl = await getDownloadURL(audioRef);
 
-        const newAudioMessage: ChatMessage = {
-          _id: Date.now().toString(),
-          createdAt: new Date(),
-          user: {
-            _id: userId || "",
-            name: `User-${userId?.substring(0, 6)}`,
-          },
-          audio: audioUrl,
-        };
+  //       const newAudioMessage: ChatMessage = {
+  //         _id: Date.now().toString(),
+  //         createdAt: new Date(),
+  //         user: {
+  //           _id: userId || "",
+  //           name: `User-${userId?.substring(0, 6)}`,
+  //         },
+  //         audio: audioUrl,
+  //       };
 
-        handleSend([newAudioMessage]);
-        Alert.alert("Success", "Audio uploaded successfully.");
-      }
-    } catch (err) {
-      console.error("Failed to stop recording or upload audio", err);
-      Alert.alert(
-        "Error",
-        "Failed to stop recording or upload audio. Please try again."
-      );
-    } finally {
-      setAudioUploading(false);
-    }
-  };
-
-  const playAudio = async (audioUrl: string) => {
-    try {
-      if (soundRef.current[audioUrl]) {
-        if (audioPlaybackStatus[audioUrl]) {
-          await soundRef.current[audioUrl].pauseAsync();
-          setAudioPlaybackStatus((prev) => ({ ...prev, [audioUrl]: false }));
-        } else {
-          await soundRef.current[audioUrl].playAsync();
-          setAudioPlaybackStatus((prev) => ({ ...prev, [audioUrl]: true }));
-        }
-      } else {
-        const { sound: newSound } = await Audio.Sound.createAsync(
-          { uri: audioUrl },
-          { shouldPlay: true }
-        );
-
-        soundRef.current[audioUrl] = newSound;
-        setAudioPlaybackStatus((prev) => ({ ...prev, [audioUrl]: true }));
-
-        newSound.setOnPlaybackStatusUpdate((status) => {
-          if (status.isLoaded && status.didJustFinish) {
-            setAudioPlaybackStatus((prev) => ({ ...prev, [audioUrl]: false }));
-          }
-        });
-      }
-    } catch (error) {
-      console.error("Error playing audio:", error);
-      Alert.alert("Error", "Failed to play audio. Please try again.");
-    }
-  };
+  //       handleSend([newAudioMessage]);
+  //       Alert.alert("Success", "Audio uploaded successfully.");
+  //     }
+  //   } catch (err) {
+  //     console.error("Failed to stop recording or upload audio", err);
+  //     Alert.alert(
+  //       "Error",
+  //       "Failed to stop recording or upload audio. Please try again."
+  //     );
+  //   } finally {
+  //     setAudioUploading(false);
+  //   }
+  // };
 
   const CustomInputToolbar = () => (
     <InputToolbar
@@ -409,7 +420,7 @@ const Chat: React.FC = () => {
                   <UILibText style={styles.buttonText}>Image</UILibText>
                 </TouchableOpacity>
               )}
-              {audioUploading ? (
+              {/* {audioUploading ? (
                 <UILibView style={styles.loadingContainer}>
                   <ActivityIndicator size="small" color={colors.primary} />
                   <UILibText style={styles.loadingText}>
@@ -436,7 +447,7 @@ const Chat: React.FC = () => {
                   <Ionicons name="mic" size={24} color={colors.primary} />
                   <UILibText style={styles.buttonText}>Record</UILibText>
                 </TouchableOpacity>
-              )}
+              )} */}
             </UILibView>
           )}
         />
@@ -444,32 +455,30 @@ const Chat: React.FC = () => {
     />
   );
 
-  const MessageAudio = (props: any) => {
-    const { currentMessage } = props;
+  // const MessageAudio = useCallback(
+  //   ({ currentMessage }: { currentMessage: ChatMessage }) => {
+  //     const audio = currentMessage.audio;
+  //     const isPlaying = playingAudioId === currentMessage._id;
 
-    const [audio, setaudio] = useState() as any;
-
-    useEffect(() => {
-      setaudio(currentMessage.audio);
-    }, [currentMessage]);
-
-    const isPlaying = audioPlaybackStatus[audio] || false;
-
-    return (
-      <UILibView style={styles.audioContainer}>
-        <TouchableOpacity onPress={() => playAudio(audio)}>
-          <Ionicons
-            name={isPlaying ? "pause" : "play"}
-            size={24}
-            color={colors.primary}
-          />
-        </TouchableOpacity>
-        <UILibText style={styles.audioText}>
-          {isPlaying ? "Playing..." : "Audio message"}
-        </UILibText>
-      </UILibView>
-    );
-  };
+  //     return (
+  //       <UILibView style={styles.audioContainer}>
+  //         <TouchableOpacity
+  //           onPress={() => playPauseAudio(currentMessage._id, audio)}
+  //         >
+  //           <Ionicons
+  //             name={isPlaying ? "pause" : "play"}
+  //             size={24}
+  //             color={colors.primary}
+  //           />
+  //         </TouchableOpacity>
+  //         <UILibText style={styles.audioText}>
+  //           {isPlaying ? "Playing..." : "Audio message"}
+  //         </UILibText>
+  //       </UILibView>
+  //     );
+  //   },
+  //   [playingAudioId, playPauseAudio]
+  // );
 
   const renderMessageImage = (props: any) => {
     const { currentMessage } = props;
@@ -502,7 +511,9 @@ const Chat: React.FC = () => {
             color={colors.primary}
           />
         </TouchableOpacity>
-        <UILibText style={styles.headerText}>Chat about {itemName}</UILibText>
+        <UILibText style={styles.headerText}>
+          {translate("chatAbout")} {itemName}
+        </UILibText>
       </View>
       <UILibView flex>
         <GiftedChat
@@ -533,7 +544,9 @@ const Chat: React.FC = () => {
               currentUserId={userId || ""}
             />
           )}
-          renderMessageAudio={(props) => <MessageAudio {...props} />}
+          // renderMessageAudio={(props) => (
+          //   <MessageAudio currentMessage={props.currentMessage} />
+          // )}
           renderMessageImage={renderMessageImage}
           onSend={handleSend}
           user={{
@@ -561,6 +574,7 @@ const CustomMessageText = (props: {
   const { currentMessage, currentUserId } = props;
   const isRightBubble = currentMessage.user._id === currentUserId;
   const textColor = isRightBubble ? "white" : colors.translatedTextLight;
+  const { translate } = useTranslations();
 
   return (
     <UILibView>
@@ -571,7 +585,7 @@ const CustomMessageText = (props: {
         </UILibText>
       ) : (
         <UILibText style={[styles.translatedText, { color: textColor }]}>
-          Translating...
+          {translate("Translating")}...
         </UILibText>
       )}
     </UILibView>
@@ -609,7 +623,7 @@ const styles = StyleSheet.create({
     borderTopColor: colors.border,
   },
   actions: {
-    width: 150,
+    width: 80,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -657,23 +671,6 @@ const styles = StyleSheet.create({
     height: 150,
     borderRadius: 10,
     marginVertical: 5,
-  },
-  videoContainer: {
-    width: 200,
-    height: 150,
-    borderRadius: 10,
-    overflow: "hidden",
-    marginVertical: 5,
-  },
-  videoThumbnail: {
-    width: "100%",
-    height: "100%",
-  },
-  playIcon: {
-    position: "absolute",
-    top: "50%",
-    left: "50%",
-    transform: [{ translateX: -24 }, { translateY: -24 }],
   },
 });
 

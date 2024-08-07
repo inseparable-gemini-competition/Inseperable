@@ -41,7 +41,7 @@ export const styles = StyleSheet.create({
   },
   headerContainer: {
     paddingHorizontal: 16,
-    alignSelf: "flex-start"
+    alignSelf: "flex-start",
   },
   title: {
     fontSize: 48,
@@ -110,7 +110,7 @@ export const styles = StyleSheet.create({
   countdownContainer: {
     position: "absolute",
     top: "40%",
-    end: "44%",
+    start: "40%",
     transform: [{ translateX: -50 }, { translateY: -50 }],
     alignItems: "center",
     zIndex: 1,
@@ -212,19 +212,28 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 8, // Increase touchable area
   },
   resetButton: {
-    position: "absolute",
-    top: 28,
-    end: 20,
     backgroundColor: "#f44336",
     padding: 10,
     borderRadius: 20,
     elevation: 5,
     zIndex: 1,
+    marginBottom: 10,
+    alignSelf: 'flex-start',
+    
+  },
+  resetButton2: {
+    backgroundColor: "#f44336",
+    padding: 10,
+    borderRadius: 20,
+    elevation: 5,
+    zIndex: 1,
+    alignSelf: 'flex-start',
   },
   resetButtonText: {
     color: "white",
     fontSize: 18,
     fontFamily: "marcellus",
+    textAlign: 'left'
   },
 });
 

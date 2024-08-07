@@ -10,9 +10,8 @@ export const useJsonControlledGeneration = ({
   promptType: string;
   onSuccess?: (input: any) => void;
 }) => {
-  
   const generateJsonContent = httpsCallable(functions, "generateJsonContent");
-  const {currentLanguage} = useTranslations();
+  const { currentLanguage } = useTranslations();
 
   const fetchJsonControlledGeneration = async (inputData?: object) => {
     const result = (await generateJsonContent({
@@ -27,18 +26,24 @@ export const useJsonControlledGeneration = ({
       : result.data?.result;
   };
 
-  const { mutate, data, isLoading, isError, reset } = useMutation(
-    fetchJsonControlledGeneration,
-    {
-      onSuccess,
-    }
-  );
+  const mutation = useMutation(fetchJsonControlledGeneration, {
+    onSuccess,
+  });
+
+  const generate = async (inputData?: object) => {
+    return new Promise((resolve, reject) => {
+      mutation.mutate(inputData, {
+        onSuccess: (data) => resolve(data),
+        onError: (error) => reject(error),
+      });
+    });
+  };
 
   return {
-    generate: (inputData?: object) => mutate(inputData),
-    result: data,
-    isLoading,
-    isError,
-    reset,
+    generate,
+    result: mutation.data,
+    isLoading: mutation.isLoading,
+    isError: mutation.isError,
+    reset: mutation.reset,
   };
 };

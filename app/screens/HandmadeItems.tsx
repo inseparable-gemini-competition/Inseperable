@@ -1,19 +1,8 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { FlatList, ListRenderItem, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { View, Text, Card, Button } from "react-native-ui-lib";
-import {
-  collection,
-  query,
-  orderBy,
-  limit,
-  startAfter,
-  getDocs,
-  QueryDocumentSnapshot,
-  DocumentData,
-} from "firebase/firestore";
 import { useNavigation, NavigationProp } from "@react-navigation/native";
-import { db } from "@/app/helpers/firebaseConfig";
 import { Ionicons } from "@expo/vector-icons";
 import Animated, {
   Easing,
@@ -26,70 +15,173 @@ import { colors } from "@/app/theme";
 import styles from "./HandMadeStyles";
 import { useTranslations } from "@/hooks/ui/useTranslations";
 import { convertMarkdownToPlainText } from "@/app/helpers/markdown";
-import { useInfiniteQuery } from "react-query";
+import { useInfiniteQuery, useQueryClient } from "react-query";
+import { getFunctions, httpsCallable } from "firebase/functions";
+import {
+  getFirestore,
+  doc,
+  onSnapshot,
+  DocumentData,
+} from "firebase/firestore";
+import useStore from "@/app/store";
 
 interface HandmadeItem {
   id: string;
-  name: string;
-  price: string;
+  name: { original: string; translated?: string };
+  price: { original: string; translated?: string };
   imageUrl: string;
-  carbonFootprint: string;
+  carbonFootprint: { original: string; translated?: string };
   ownerId: string;
 }
 
 interface FetchResponse {
   items: HandmadeItem[];
-  lastVisible: QueryDocumentSnapshot<DocumentData> | null;
+  lastVisible: string | null;
 }
+
+interface TranslationUpdate {
+  [key: string]: {
+    name?: string;
+    price?: string;
+    carbonFootprint?: string;
+  };
+}
+
+const functions = getFunctions();
+const getHandmadeItems = httpsCallable<
+  { pageParam?: string; language: string; country: string },
+  FetchResponse
+>(functions, "getHandmadeItems");
+const db = getFirestore();
 
 const fetchHandmadeItems = async ({
   pageParam = undefined,
+  country = "",
+  language = "en",
+}: {
+  pageParam?: string;
+  country: string;
+  language: string;
 }): Promise<FetchResponse> => {
-  const itemsQuery = query(
-    collection(db, "products"),
-    orderBy("createdAt"),
-    limit(10),
-    ...(pageParam ? [startAfter(pageParam)] : [])
-  );
-
-  const querySnapshot = await getDocs(itemsQuery);
-  const items: HandmadeItem[] = [];
-  let lastVisible: QueryDocumentSnapshot<DocumentData> | null = null;
-
-  querySnapshot.forEach((doc) => {
-    if (doc.exists() && doc.data().createdAt) {
-      items.push({ id: doc.id, ...doc.data() } as HandmadeItem);
-    } else {
-      console.error("Document missing createdAt:", doc.id);
-    }
+  const result = await getHandmadeItems({
+    pageParam,
+    language,
+    country,
   });
-
-  if (!querySnapshot.empty) {
-    lastVisible = querySnapshot.docs[querySnapshot.docs.length - 1];
-  }
-
-  return {
-    items,
-    lastVisible,
-  };
+  return result.data;
 };
 
 const HandMade: React.FC = () => {
   const navigation = useNavigation<NavigationProp<any>>();
-  const { data, error, isLoading, isFetching, fetchNextPage, hasNextPage } =
-    useInfiniteQuery<FetchResponse>({
-      queryKey: ["handmadeItems"],
-      queryFn: fetchHandmadeItems,
+  const queryClient = useQueryClient();
+  const [translationUpdates, setTranslationUpdates] =
+    useState<TranslationUpdate>({});
+  const { userData } = useStore();
+  const country = userData?.country || "";
+  const { translate, isRTL, currentLanguage } = useTranslations();
+
+  const { data, isLoading, isFetching, fetchNextPage, hasNextPage } =
+    useInfiniteQuery<FetchResponse, Error>({
+      queryKey: ["handmadeItems", country],
+      queryFn: ({ pageParam }) =>
+        fetchHandmadeItems({ pageParam, country, language: currentLanguage }),
       getNextPageParam: (lastPage) => lastPage.lastVisible,
       staleTime: 1000,
     });
-  const { translate, isRTL } = useTranslations();
+
+  useEffect(() => {
+    const unsubscribes: (() => void)[] = [];
+
+    if (data) {
+      data.pages
+        .flatMap((page) => page.items)
+        .forEach((item) => {
+          const unsubscribe = onSnapshot(
+            doc(db, "products", item.id),
+            (doc) => {
+              const updatedData = doc.data() as DocumentData | undefined;
+              if (updatedData && updatedData.translations) {
+                setTranslationUpdates((prev) => ({
+                  ...prev,
+                  [item.id]: updatedData.translations[currentLanguage],
+                }));
+              }
+            }
+          );
+          unsubscribes.push(unsubscribe);
+        });
+    }
+
+    return () => {
+      unsubscribes.forEach((unsubscribe) => unsubscribe());
+    };
+  }, [data, currentLanguage]);
+
+  useEffect(() => {
+    if (Object.keys(translationUpdates).length > 0) {
+      queryClient.setQueryData<{ pages: { items: HandmadeItem[] }[] }>(
+        ["handmadeItems"],
+        (oldData) => {
+          if (!oldData) return oldData;
+          return {
+            ...oldData,
+            pages: oldData.pages.map((page) => ({
+              ...page,
+              items: page.items.map((item) => ({
+                ...item,
+                name: {
+                  ...item.name,
+                  translated:
+                    translationUpdates[item.id]?.name || item.name.translated,
+                },
+                price: {
+                  ...item.price,
+                  translated:
+                    translationUpdates[item.id]?.price || item.price.translated,
+                },
+                carbonFootprint: {
+                  ...item.carbonFootprint,
+                  translated:
+                    translationUpdates[item.id]?.carbonFootprint ||
+                    item.carbonFootprint.translated,
+                },
+              })),
+            })),
+          };
+        }
+      );
+    }
+  }, [translationUpdates, queryClient]);
 
   const purchaseItem = (item: HandmadeItem) => {
     navigation.navigate("Chat", {
       recipientId: item.ownerId,
-      itemName: item.name,
+      itemName: item.name.original,
     });
+  };
+
+  const TranslatingText: React.FC<{
+    original: string;
+    translated?: string;
+  }> = ({ original, translated }) => {
+    const [isTranslating, setIsTranslating] = useState(!translated);
+
+    useEffect(() => {
+      if (translated) {
+        setIsTranslating(false);
+      }
+    }, [translated]);
+
+    if (isTranslating) {
+      return (
+        <View>
+          <Text>{original}</Text>
+          <Text style={styles.translatingText}>{translate("translating")}</Text>
+        </View>
+      );
+    }
+
+    return <Text>{translated || original}</Text>;
   };
 
   const renderItem: ListRenderItem<HandmadeItem> = ({ item }) => (
@@ -100,7 +192,10 @@ const HandMade: React.FC = () => {
           imageStyle={styles.itemImage}
         />
         <View style={styles.cardContent}>
-          <Text style={styles.itemName}>{item.name}</Text>
+          <TranslatingText
+            original={item.name.original}
+            translated={item.name.translated}
+          />
           <View style={styles.itemRow}>
             <Ionicons
               name="pricetag"
@@ -108,7 +203,10 @@ const HandMade: React.FC = () => {
               color={colors.primary}
               style={styles.icon}
             />
-            <Text style={styles.itemPrice}>{item.price}</Text>
+            <TranslatingText
+              original={item.price.original}
+              translated={item.price.translated}
+            />
           </View>
           <View style={styles.itemRow}>
             <Ionicons
@@ -121,9 +219,15 @@ const HandMade: React.FC = () => {
               <Text style={styles.itemCarbonFootprint}>
                 {translate("carbonFootprint")}
               </Text>
-              <Text style={styles.itemCarbonFootprintValue}>
-                {convertMarkdownToPlainText(item.carbonFootprint)}
-              </Text>
+              <TranslatingText
+                original={convertMarkdownToPlainText(
+                  item.carbonFootprint.original
+                )}
+                translated={
+                  item.carbonFootprint.translated &&
+                  convertMarkdownToPlainText(item.carbonFootprint.translated)
+                }
+              />
             </View>
           </View>
           <Button
@@ -218,7 +322,6 @@ const HandMade: React.FC = () => {
           <Text style={styles.loadingText}>{translate("loading")}</Text>
         </Animated.View>
       )}
-      {error && <Text style={styles.errorText}>{translate("fetchError")}</Text>}
       {data && (
         <FlatList
           showsVerticalScrollIndicator={false}
