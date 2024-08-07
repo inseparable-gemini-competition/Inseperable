@@ -8,6 +8,7 @@ import {
   Alert,
   Share,
   Dimensions,
+  Platform,
 } from "react-native";
 import { View, Text } from "react-native-ui-lib";
 import * as ImagePicker from "expo-image-picker";
@@ -172,9 +173,9 @@ const usePhotos = (searchQuery: string) => {
   const infiniteQuery = useInfiniteQuery<PhotosResponse, Error>(
     ["photos", searchQuery, userData?.id],
     ({ pageParam, queryKey }) => {
-      const [_, __, userId = ''] = queryKey;
+      const [_, __, userId = ""] = queryKey;
       if (!userId) throw new Error("User ID is not available");
-      
+
       return searchQuery
         ? searchPhotos({ pageParam, queryKey: [_, searchQuery], userId })
         : fetchPhotos({ pageParam, userId });
@@ -231,7 +232,8 @@ const TravelPhotoScreen: React.FC = () => {
 
   useEffect(() => {
     (async () => {
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      const { status } =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status !== "granted") {
         Alert.alert(
           "Permission needed",
@@ -265,16 +267,13 @@ const TravelPhotoScreen: React.FC = () => {
       const message = caption
         ? `${caption}\n\nCheck out this photo from my travels!`
         : `Check out this photo from my travels! ${photo.captions?.[0]}`;
-      
-      const result = await Share.share({
-        message,
-        url: photo.url,
-      });
-      if (result.action === Share.sharedAction) {
-        console.log(result.activityType ? `Shared with ${result.activityType}` : 'Shared');
-      } else if (result.action === Share.dismissedAction) {
-        console.log("Dismissed");
-      }
+
+      const shareContent =
+        Platform.OS === "android"
+          ? { message: `${message}\n${photo.url}` } // Combine message and URL for Android
+          : { message: message, url: photo.url };
+
+      await Share.share(shareContent);
     } catch (error: any) {
       Alert.alert("Error", error.message);
     }
@@ -283,23 +282,23 @@ const TravelPhotoScreen: React.FC = () => {
   const renderPhoto = ({ item }: { item: Photo }): React.ReactElement => (
     <View style={styles.photoCard}>
       <FastImage source={{ uri: item.url }} style={styles.photoImage} />
-        <Text style={styles.photoDescription}>
-          {convertMarkdownToPlainText(item.description)}
-        </Text>
-        {item.captions?.map((caption: string, index: number) => (
-          <View key={index} style={styles.captionContainer}>
-            <Text style={styles.photoCaption}>{caption}</Text>
-            <TouchableOpacity
-              onPress={() => handleShare(item, caption)}
-              style={styles.shareCaptionButton}
-            >
-              <FontAwesome name="share-alt" size={16} color={colors.white} />
-            </TouchableOpacity>
-          </View>
-        ))}
-        <Text style={styles.photoTimestamp}>
-          {new Date(item.timestamp).toLocaleString()}
-        </Text>
+      <Text style={styles.photoDescription}>
+        {convertMarkdownToPlainText(item.description)}
+      </Text>
+      {item.captions?.map((caption: string, index: number) => (
+        <View key={index} style={styles.captionContainer}>
+          <Text style={styles.photoCaption}>{caption}</Text>
+          <TouchableOpacity
+            onPress={() => handleShare(item, caption)}
+            style={styles.shareCaptionButton}
+          >
+            <FontAwesome name="share-alt" size={16} color={colors.white} />
+          </TouchableOpacity>
+        </View>
+      ))}
+      <Text style={styles.photoTimestamp}>
+        {new Date(item.timestamp).toLocaleString()}
+      </Text>
       <TouchableOpacity
         onPress={() => handleShare(item)}
         style={styles.shareButton}
