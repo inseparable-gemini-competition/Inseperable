@@ -7,6 +7,7 @@ import {
   Image,
   Alert,
   ActivityIndicator,
+  Platform,
 } from "react-native";
 import {
   GiftedChat,
@@ -57,57 +58,6 @@ interface ChatMessage extends IMessage {
   video?: string;
 }
 
-const useAudioPlayback = () => {
-  const [playingAudioId, setPlayingAudioId] = useState<string | null>(null);
-  const soundsRef = useRef<{ [key: string]: Audio.Sound }>({});
-
-  useEffect(() => {
-    return () => {
-      Object.values(soundsRef.current).forEach((sound) => {
-        sound.unloadAsync();
-      });
-    };
-  }, []);
-
-  const playPauseAudio = useCallback(
-    async (audioId: string, audioUrl: string) => {
-      try {
-        if (playingAudioId === audioId) {
-          await soundsRef.current[audioId]?.pauseAsync();
-          setPlayingAudioId(null);
-        } else {
-          if (playingAudioId && soundsRef.current[playingAudioId]) {
-            await soundsRef.current[playingAudioId].stopAsync();
-          }
-
-          if (!soundsRef.current[audioId]) {
-            const { sound } = await Audio.Sound.createAsync(
-              { uri: audioUrl },
-              { shouldPlay: true }
-            );
-            soundsRef.current[audioId] = sound;
-          } else {
-            await soundsRef.current[audioId].playAsync();
-          }
-
-          setPlayingAudioId(audioId);
-
-          soundsRef.current[audioId].setOnPlaybackStatusUpdate((status) => {
-            if (status.isLoaded && status.didJustFinish) {
-              setPlayingAudioId(null);
-            }
-          });
-        }
-      } catch (error) {
-        console.error("Error playing audio:", error);
-      }
-    },
-    [playingAudioId]
-  );
-
-  return { playingAudioId, playPauseAudio };
-};
-
 const Chat: React.FC = () => {
   const route = useRoute<ChatScreenRouteProp>();
   const { recipientId, itemName } = route.params || {
@@ -121,18 +71,14 @@ const Chat: React.FC = () => {
   const PAGE_SIZE = 10;
 
   const { isRTL } = useTranslations();
-  const [isRecording, setIsRecording] = useState(false);
-  const [recording, setRecording] = useState<Audio.Recording | null>(null);
   const [imageUploading, setImageUploading] = useState(false);
-  const [audioUploading, setAudioUploading] = useState(false);
-  const { playingAudioId, playPauseAudio } = useAudioPlayback();
+  const {userData} = useStore();
+  const navigation = useNavigation();
+  const userId = userData?.id || "";
 
   const getChatRoomId = (userId1: string, userId2: string) => {
     return [userId1, userId2].sort().join("_");
   };
-  const {userData} = useStore();
-  const navigation = useNavigation();
-  const userId = userData?.id;
 
   useEffect(() => {
     const fetchInitialMessages = async () => {
@@ -195,18 +141,13 @@ const Chat: React.FC = () => {
     }
 
     (async () => {
-      const { status: audioStatus } = await Audio.requestPermissionsAsync();
-      const { status: cameraStatus } =
-        await ImagePicker.requestCameraPermissionsAsync();
-      const { status: mediaLibraryStatus } =
-        await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (Platform.OS !== 'web') {
+        const { status: cameraStatus } = await ImagePicker.requestCameraPermissionsAsync();
+        const { status: mediaLibraryStatus } = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
-      if (
-        audioStatus !== "granted" ||
-        cameraStatus !== "granted" ||
-        mediaLibraryStatus !== "granted"
-      ) {
-        console.error("Necessary permissions not granted");
+        if (cameraStatus !== 'granted' || mediaLibraryStatus !== 'granted') {
+          Alert.alert('Permission required', 'Please grant camera and media library permissions to use this feature.');
+        }
       }
     })();
   }, [userId]);
@@ -248,31 +189,27 @@ const Chat: React.FC = () => {
     setLoadingMore(false);
   };
 
-  const handleSend = async (newMessages: IMessage[] = []) => {
+  const handleSend = useCallback(async (newMessages: IMessage[] = []) => {
     const newMessage = newMessages[0];
     if (newMessage && userId) {
       try {
         const chatRoomId = getChatRoomId(userId, recipientId);
         await addDoc(collection(db, "chatRooms", chatRoomId, "messages"), {
-          text: newMessage?.text || "",
+          text: newMessage.text || "",
           translatedText: "",
           createdAt: new Date(),
           userId: userId,
           userName: `User-${userId.substring(0, 6)}`,
-          audio: newMessage?.audio || null,
-          image: newMessage?.image || null,
-          video: newMessage?.video || null,
+          audio: newMessage.audio || null,
+          image: newMessage.image || null,
+          video: newMessage.video || null,
         });
-        Alert.alert("Success", "Message sent successfully.");
       } catch (error) {
-        console.error("Error sending message:", error.message);
+        console.error("Error sending message:", error);
         Alert.alert("Error", "Failed to send message. Please try again.");
       }
-    } else {
-      console.error("Invalid message or user ID");
-      Alert.alert("Error", "Invalid message or user ID.");
     }
-  };
+  }, [userId, recipientId]);
 
   const pickImage = async () => {
     try {
@@ -310,14 +247,13 @@ const Chat: React.FC = () => {
                     _id: Date.now().toString(),
                     createdAt: new Date(),
                     user: {
-                      _id: userId || "",
-                      name: `User-${userId?.substring(0, 6)}`,
+                      _id: userId,
+                      name: `User-${userId.substring(0, 6)}`,
                     },
                     image: downloadURL,
                   };
 
                   handleSend([newMediaMessage]);
-                  Alert.alert("Success", "Image uploaded successfully.");
                 } catch (error) {
                   console.error("Error picking or uploading image:", error);
                   Alert.alert(
@@ -339,69 +275,13 @@ const Chat: React.FC = () => {
     }
   };
 
-  // const startRecording = async () => {
-  //   try {
-  //     await Audio.setAudioModeAsync({
-  //       allowsRecordingIOS: true,
-  //       playsInSilentModeIOS: true,
-  //     });
-  //     const { recording } = await Audio.Recording.createAsync(
-  //       Audio.RECORDING_OPTIONS_PRESET_HIGH_QUALITY
-  //     );
-  //     setRecording(recording);
-  //     setIsRecording(true);
-  //     Alert.alert("Recording", "Audio recording started.");
-  //   } catch (err) {
-  //     console.error("Failed to start recording", err);
-  //     Alert.alert("Error", "Failed to start recording. Please try again.");
-  //   }
-  // };
-
-  // const stopRecording = async () => {
-  //   if (!recording) return;
-
-  //   setIsRecording(false);
-  //   setAudioUploading(true);
-  //   try {
-  //     await recording.stopAndUnloadAsync();
-  //     const uri = recording.getURI();
-  //     setRecording(null);
-
-  //     if (uri) {
-  //       const audioBlob = await fetch(uri).then((r) => r.blob());
-  //       const audioRef = ref(storage, `audios/${Date.now()}.m4a`);
-  //       await uploadBytes(audioRef, audioBlob);
-  //       const audioUrl = await getDownloadURL(audioRef);
-
-  //       const newAudioMessage: ChatMessage = {
-  //         _id: Date.now().toString(),
-  //         createdAt: new Date(),
-  //         user: {
-  //           _id: userId || "",
-  //           name: `User-${userId?.substring(0, 6)}`,
-  //         },
-  //         audio: audioUrl,
-  //       };
-
-  //       handleSend([newAudioMessage]);
-  //       Alert.alert("Success", "Audio uploaded successfully.");
-  //     }
-  //   } catch (err) {
-  //     console.error("Failed to stop recording or upload audio", err);
-  //     Alert.alert(
-  //       "Error",
-  //       "Failed to stop recording or upload audio. Please try again."
-  //     );
-  //   } finally {
-  //     setAudioUploading(false);
-  //   }
-  // };
-
-  const CustomInputToolbar = () => (
+  const CustomInputToolbar = (props) => (
     <InputToolbar
+      {...props}
       containerStyle={styles.inputToolbar}
       renderActions={() => (
         <Actions
+          {...props}
           containerStyle={styles.actions}
           icon={() => (
             <UILibView row>
@@ -419,65 +299,12 @@ const Chat: React.FC = () => {
                   <UILibText style={styles.buttonText}>Image</UILibText>
                 </TouchableOpacity>
               )}
-              {/* {audioUploading ? (
-                <UILibView style={styles.loadingContainer}>
-                  <ActivityIndicator size="small" color={colors.primary} />
-                  <UILibText style={styles.loadingText}>
-                    Uploading audio...
-                  </UILibText>
-                </UILibView>
-              ) : isRecording ? (
-                <TouchableOpacity
-                  onPress={stopRecording}
-                  style={[styles.actionButton, styles.recordingButton]}
-                >
-                  <Ionicons name="stop-circle" size={24} color={colors.error} />
-                  <UILibText
-                    style={[styles.buttonText, { color: colors.error }]}
-                  >
-                    Stop
-                  </UILibText>
-                </TouchableOpacity>
-              ) : (
-                <TouchableOpacity
-                  onPress={startRecording}
-                  style={styles.actionButton}
-                >
-                  <Ionicons name="mic" size={24} color={colors.primary} />
-                  <UILibText style={styles.buttonText}>Record</UILibText>
-                </TouchableOpacity>
-              )} */}
             </UILibView>
           )}
         />
       )}
     />
   );
-
-  // const MessageAudio = useCallback(
-  //   ({ currentMessage }: { currentMessage: ChatMessage }) => {
-  //     const audio = currentMessage.audio;
-  //     const isPlaying = playingAudioId === currentMessage._id;
-
-  //     return (
-  //       <UILibView style={styles.audioContainer}>
-  //         <TouchableOpacity
-  //           onPress={() => playPauseAudio(currentMessage._id, audio)}
-  //         >
-  //           <Ionicons
-  //             name={isPlaying ? "pause" : "play"}
-  //             size={24}
-  //             color={colors.primary}
-  //           />
-  //         </TouchableOpacity>
-  //         <UILibText style={styles.audioText}>
-  //           {isPlaying ? "Playing..." : "Audio message"}
-  //         </UILibText>
-  //       </UILibView>
-  //     );
-  //   },
-  //   [playingAudioId, playPauseAudio]
-  // );
 
   const renderMessageImage = (props: any) => {
     const { currentMessage } = props;
@@ -488,14 +315,6 @@ const Chat: React.FC = () => {
       />
     );
   };
-
-  if (loading) {
-    return (
-      <UILibView flex center>
-        <LoaderScreen message="Loading chat..." color={colors.info} />
-      </UILibView>
-    );
-  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -539,22 +358,19 @@ const Chat: React.FC = () => {
           )}
           renderMessageText={(props) => (
             <CustomMessageText
-              {...(props as any)}
-              currentUserId={userId || ""}
+              {...props}
+              currentUserId={userId}
             />
           )}
-          // renderMessageAudio={(props) => (
-          //   <MessageAudio currentMessage={props.currentMessage} />
-          // )}
           renderMessageImage={renderMessageImage}
           onSend={handleSend}
           user={{
-            _id: userId || "",
+            _id: userId,
           }}
           loadEarlier={!loadingMore && !!lastVisible}
           onLoadEarlier={fetchMoreMessages}
           isLoadingEarlier={loadingMore}
-          renderInputToolbar={() => <CustomInputToolbar />}
+          renderInputToolbar={(props) => <CustomInputToolbar {...props} />}
           inverted={true}
           listViewProps={{
             onEndReached: fetchMoreMessages,
@@ -632,10 +448,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
     padding: 5,
   },
-  recordingButton: {
-    backgroundColor: colors.errorLight,
-    borderRadius: 5,
-  },
   buttonText: {
     fontSize: 12,
     marginTop: 2,
@@ -650,20 +462,6 @@ const styles = StyleSheet.create({
     fontSize: 10,
     marginTop: 2,
     color: colors.primary,
-  },
-  audioContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: colors.bubbleLeft,
-    borderRadius: 20,
-    padding: 10,
-    marginVertical: 5,
-  },
-  audioText: {
-    marginLeft: 10,
-    fontFamily: "marcellus",
-    fontSize: 14,
-    color: colors.text,
   },
   imageMessage: {
     width: 200,
