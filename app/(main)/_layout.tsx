@@ -30,9 +30,7 @@ const Stack = createStackNavigator();
 function NavigationWrapper({ onFinish }: any) {
   const { userData, translations } = useStore();
   const { goBack } = useNavigation();
-  useAuth({fromLayout: true});
-
-  I18nManager.forceRTL(translations.isRTL === true);
+  useAuth({ fromLayout: true });
 
   if (!userData?.id) {
     return (
@@ -115,7 +113,7 @@ export default function TabLayout() {
       setLocalLoading(false);
       I18nManager.forceRTL(translations.isRTL === true);
       setUserData(updatedUserData);
-      Updates.reloadAsync();
+      if (translations.isRTL) Updates.reloadAsync();
     }
   };
 

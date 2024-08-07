@@ -45,6 +45,7 @@ const Question = ({
           margin: 15,
           color: colors.black,
           fontFamily: "marcellus",
+          textAlign: 'left'
         }}
       >
         {question?.question}

@@ -100,7 +100,7 @@ export function useAuth({ fromLayout = false }: { fromLayout?: boolean } = {}) {
 
         I18nManager.forceRTL(translations.isRTL === true);
         setUserData(updatedUserData);
-        if (updatedUserData.country) Updates.reloadAsync();
+        if (translations.isRTl) Updates.reloadAsync();
         setIsLoading(false);
       }
     });
