@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   StyleSheet,
@@ -32,17 +32,11 @@ import {
 import { storage, db } from "@/app/helpers/firebaseConfig";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useRoute, RouteProp, useNavigation } from "@react-navigation/native";
-import {
-  View as UILibView,
-  Text as UILibText,
-  LoaderScreen,
-} from "react-native-ui-lib";
+import { View as UILibView, Text as UILibText } from "react-native-ui-lib";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "@/app/theme";
 import { useTranslations } from "@/hooks/ui/useTranslations";
 import * as ImagePicker from "expo-image-picker";
-import { Audio } from "expo-av";
-import { translate } from "@/app/helpers/i18n";
 import useStore from "@/app/store";
 
 type RootStackParamList = {
@@ -66,13 +60,14 @@ const Chat: React.FC = () => {
   };
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loadingMore, setLoadingMore] = useState(false);
+  const {translate} = useTranslations();
   const [lastVisible, setLastVisible] =
     useState<QueryDocumentSnapshot<DocumentData> | null>(null);
   const PAGE_SIZE = 10;
 
   const { isRTL } = useTranslations();
   const [imageUploading, setImageUploading] = useState(false);
-  const {userData} = useStore();
+  const { userData } = useStore();
   const navigation = useNavigation();
   const userId = userData?.id || "";
 
@@ -141,12 +136,17 @@ const Chat: React.FC = () => {
     }
 
     (async () => {
-      if (Platform.OS !== 'web') {
-        const { status: cameraStatus } = await ImagePicker.requestCameraPermissionsAsync();
-        const { status: mediaLibraryStatus } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (Platform.OS !== "web") {
+        const { status: cameraStatus } =
+          await ImagePicker.requestCameraPermissionsAsync();
+        const { status: mediaLibraryStatus } =
+          await ImagePicker.requestMediaLibraryPermissionsAsync();
 
-        if (cameraStatus !== 'granted' || mediaLibraryStatus !== 'granted') {
-          Alert.alert('Permission required', 'Please grant camera and media library permissions to use this feature.');
+        if (cameraStatus !== "granted" || mediaLibraryStatus !== "granted") {
+          Alert.alert(
+            "Permission required",
+            "Please grant camera and media library permissions to use this feature."
+          );
         }
       }
     })();
@@ -189,27 +189,30 @@ const Chat: React.FC = () => {
     setLoadingMore(false);
   };
 
-  const handleSend = useCallback(async (newMessages: IMessage[] = []) => {
-    const newMessage = newMessages[0];
-    if (newMessage && userId) {
-      try {
-        const chatRoomId = getChatRoomId(userId, recipientId);
-        await addDoc(collection(db, "chatRooms", chatRoomId, "messages"), {
-          text: newMessage.text || "",
-          translatedText: "",
-          createdAt: new Date(),
-          userId: userId,
-          userName: `User-${userId.substring(0, 6)}`,
-          audio: newMessage.audio || null,
-          image: newMessage.image || null,
-          video: newMessage.video || null,
-        });
-      } catch (error) {
-        console.error("Error sending message:", error);
-        Alert.alert("Error", "Failed to send message. Please try again.");
+  const handleSend = useCallback(
+    async (newMessages: IMessage[] = []) => {
+      const newMessage = newMessages[0];
+      if (newMessage && userId) {
+        try {
+          const chatRoomId = getChatRoomId(userId, recipientId);
+          await addDoc(collection(db, "chatRooms", chatRoomId, "messages"), {
+            text: newMessage.text || "",
+            translatedText: "",
+            createdAt: new Date(),
+            userId: userId,
+            userName: `User-${userId.substring(0, 6)}`,
+            audio: newMessage.audio || null,
+            image: newMessage.image || null,
+            video: newMessage.video || null,
+          });
+        } catch (error) {
+          console.error("Error sending message:", error);
+          Alert.alert("Error", "Failed to send message. Please try again.");
+        }
       }
-    }
-  }, [userId, recipientId]);
+    },
+    [userId, recipientId]
+  );
 
   const pickImage = async () => {
     try {
@@ -357,10 +360,7 @@ const Chat: React.FC = () => {
             />
           )}
           renderMessageText={(props) => (
-            <CustomMessageText
-              {...props}
-              currentUserId={userId}
-            />
+            <CustomMessageText {...props} currentUserId={userId} />
           )}
           renderMessageImage={renderMessageImage}
           onSend={handleSend}
