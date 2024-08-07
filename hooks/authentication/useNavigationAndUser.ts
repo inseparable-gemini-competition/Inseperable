@@ -34,7 +34,6 @@ export const useNavigationAndUser = () => {
 
   const handleRecommendation = async () => {
     try {
-      await signOut(auth);
       setUserData({...userData, country: null, travelPlan: []});
     } catch (error) {
       console.error("Error logging out:", error);

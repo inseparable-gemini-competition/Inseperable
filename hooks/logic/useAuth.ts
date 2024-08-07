@@ -69,6 +69,7 @@ export function useAuth({ fromLayout = false }: { fromLayout?: boolean } = {}) {
                 const result = (await generateTranslations({
                   baseLanguage: userDocSnap.data().baseLanguage,
                 })) as any;
+                console.log('result', result);
                 setTranslations({
                   en: translations.en,
                   [result.baseLanguage]: result.translations,

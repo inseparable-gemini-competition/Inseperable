@@ -3,12 +3,12 @@ import {
   StyleSheet,
   TouchableOpacity,
   TextInput as TextField,
+  ActivityIndicator
 } from "react-native";
 import { View, Text } from "react-native-ui-lib";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
-import useStore from "@/app/store";
 import { useAuth } from "@/hooks/logic/useAuth";
 import { useTranslations } from "@/hooks/ui/useTranslations";
 import { colors } from "@/app/theme";
@@ -21,15 +21,15 @@ type RootStackParamList = {
 
 type AuthScreenNavigationProp = StackNavigationProp<RootStackParamList, "Auth">;
 
-
 export default function AuthScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLogin, setIsLogin] = useState(true);
-  const { signIn, signUp, biometricLogin, saveBiometricCredentials } =
-    useAuth();
-  const { translate, setTranslations, translations, setCurrentLanguage } =
-    useTranslations();
+  const [isLoading, setIsLoading] = useState(false);
+  const [isBiometricLoading, setIsBiometricLoading] = useState(false);
+  const { signIn, signUp, biometricLogin, saveBiometricCredentials } = useAuth();
+  const { translate, setTranslations, translations, setCurrentLanguage } = useTranslations();
+
   const onTranslationSuccess = useCallback(
     (data: any) => {
       setTranslations({
@@ -48,6 +48,7 @@ export default function AuthScreen() {
   });
 
   const handleAuth = async () => {
+    setIsLoading(true);
     try {
       let user;
       if (isLogin) {
@@ -62,15 +63,20 @@ export default function AuthScreen() {
     } catch (error) {
       console.error(error);
       alert(translate("authFailed"));
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleBiometricLogin = async () => {
+    setIsBiometricLoading(true);
     try {
       await biometricLogin();
     } catch (error) {
       console.error(error);
       alert(translate("biometricFailed"));
+    } finally {
+      setIsBiometricLoading(false);
     }
   };
 
@@ -116,23 +122,38 @@ export default function AuthScreen() {
             placeholderTextColor={colors.placeholder}
           />
         </View>
-        <TouchableOpacity style={styles.button} onPress={handleAuth}>
-          <Text style={styles.buttonText}>
-            {isLogin ? translate("login") : translate("signUp")}
-          </Text>
+        <TouchableOpacity 
+          style={styles.button} 
+          onPress={handleAuth}
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <ActivityIndicator color={colors.white} />
+          ) : (
+            <Text style={styles.buttonText}>
+              {isLogin ? translate("login") : translate("signUp")}
+            </Text>
+          )}
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.biometricButton}
           onPress={handleBiometricLogin}
+          disabled={isBiometricLoading}
         >
-          <Ionicons
-            name="finger-print-outline"
-            size={24}
-            color={colors.white}
-          />
-          <Text style={styles.biometricButtonText}>
-            {translate("biometricLogin")}
-          </Text>
+          {isBiometricLoading ? (
+            <ActivityIndicator color={colors.white} />
+          ) : (
+            <>
+              <Ionicons
+                name="finger-print-outline"
+                size={24}
+                color={colors.white}
+              />
+              <Text style={styles.biometricButtonText}>
+                {translate("biometricLogin")}
+              </Text>
+            </>
+          )}
         </TouchableOpacity>
         <TouchableOpacity onPress={() => setIsLogin(!isLogin)}>
           <Text style={styles.switchText}>
