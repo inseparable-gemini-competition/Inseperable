@@ -69,7 +69,7 @@ export function useAuth({ fromLayout = false }: { fromLayout?: boolean } = {}) {
                 const result = (await generateTranslations({
                   baseLanguage: userDocSnap.data().baseLanguage,
                 })) as any;
-                console.log('result', result);
+                console.log("result", result);
                 setTranslations({
                   en: translations.en,
                   [result.baseLanguage]: result.translations,
@@ -92,7 +92,7 @@ export function useAuth({ fromLayout = false }: { fromLayout?: boolean } = {}) {
           };
         }
 
-        I18nManager.forceRTL(true);
+        I18nManager.forceRTL(translations.isRTL === true);
         setUserData(updatedUserData);
         Updates.reloadAsync();
       }

@@ -18,10 +18,10 @@ import { Button } from "react-native-ui-lib";
 import { getDoc, doc } from "firebase/firestore";
 import { db } from "../helpers/firebaseConfig";
 import { colors } from "@/app/theme";
-import { useSignIn } from "@/hooks/authentication/useSignIn";
 import { useNavigation } from "expo-router";
 import { useTranslations } from "@/hooks/ui/useTranslations";
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import useStore from "@/app/store";
 
 const { width, height } = Dimensions.get("window");
 
@@ -31,41 +31,45 @@ interface MenuButtonProps {
   onPress: () => void;
 }
 
-const MenuButton: React.FC<MenuButtonProps> = React.memo(({ iconName, selected, onPress }) => (
-  <TouchableOpacity
-    style={[styles.button, selected && styles.selected]}
-    onPress={onPress}
-  >
-    <MaterialIcons name={iconName} size={20} color="white" />
-  </TouchableOpacity>
-));
+const MenuButton: React.FC<MenuButtonProps> = React.memo(
+  ({ iconName, selected, onPress }) => (
+    <TouchableOpacity
+      style={[styles.button, selected && styles.selected]}
+      onPress={onPress}
+    >
+      <MaterialIcons name={iconName} size={20} color="white" />
+    </TouchableOpacity>
+  )
+);
 
 interface CustomImageProps {
   source: { uri: string };
   style: any;
 }
 
-const CustomImage: React.FC<CustomImageProps> = React.memo(({ source, style }) => {
-  const [imageLoaded, setImageLoaded] = useState(false);
+const CustomImage: React.FC<CustomImageProps> = React.memo(
+  ({ source, style }) => {
+    const [imageLoaded, setImageLoaded] = useState(false);
 
-  return (
-    <View style={[style, styles.imageContainer]}>
-      <FastImage
-        source={{
-          uri: "https://via.placeholder.com/400x600?text=Loading...",
-        }}
-        style={[StyleSheet.absoluteFill, { opacity: imageLoaded ? 0 : 1 }]}
-        resizeMode={FastImage.resizeMode.cover}
-      />
-      <FastImage
-        source={source}
-        style={[StyleSheet.absoluteFill, { opacity: imageLoaded ? 1 : 0 }]}
-        resizeMode={FastImage.resizeMode.cover}
-        onLoad={() => setImageLoaded(true)}
-      />
-    </View>
-  );
-});
+    return (
+      <View style={[style, styles.imageContainer]}>
+        <FastImage
+          source={{
+            uri: "https://via.placeholder.com/400x600?text=Loading...",
+          }}
+          style={[StyleSheet.absoluteFill, { opacity: imageLoaded ? 0 : 1 }]}
+          resizeMode={FastImage.resizeMode.cover}
+        />
+        <FastImage
+          source={source}
+          style={[StyleSheet.absoluteFill, { opacity: imageLoaded ? 1 : 0 }]}
+          resizeMode={FastImage.resizeMode.cover}
+          onLoad={() => setImageLoaded(true)}
+        />
+      </View>
+    );
+  }
+);
 
 interface VisitingIndicatorProps {
   visible: boolean;
@@ -73,14 +77,16 @@ interface VisitingIndicatorProps {
   style: any;
 }
 
-const VisitingIndicator: React.FC<VisitingIndicatorProps> = React.memo(({ visible, text, style }) => {
-  if (!visible) return null;
-  return (
-    <Animated.View style={[styles.visitingIndicator, style]}>
-      <Text style={styles.visitingIndicatorText}>{text}</Text>
-    </Animated.View>
-  );
-});
+const VisitingIndicator: React.FC<VisitingIndicatorProps> = React.memo(
+  ({ visible, text, style }) => {
+    if (!visible) return null;
+    return (
+      <Animated.View style={[styles.visitingIndicator, style]}>
+        <Text style={styles.visitingIndicatorText}>{text}</Text>
+      </Animated.View>
+    );
+  }
+);
 
 interface CategoryCardProps {
   item: any;
@@ -91,51 +97,59 @@ interface CategoryCardProps {
   onPressMap: () => void;
 }
 
-const CategoryCard: React.FC<CategoryCardProps> = React.memo(({ item, cardIndex, currentIndex, scaleAnim, rotateAnim, onPressMap }) => {
-  const {translate} = useTranslations();
-  const isCurrentCard = cardIndex === currentIndex;
-  const cardStyle = [
-    styles.cardContainer,
-    isCurrentCard
-      ? {
-          transform: [
-            { scale: scaleAnim },
-            {
-              rotate: rotateAnim.interpolate({
-                inputRange: [-300, 0, 300],
-                outputRange: ["-30deg", "0deg", "30deg"],
-              }),
-            },
-          ],
-        }
-      : {},
-  ];
+const CategoryCard: React.FC<CategoryCardProps> = React.memo(
+  ({ item, cardIndex, currentIndex, scaleAnim, rotateAnim, onPressMap }) => {
+    const { translate } = useTranslations();
+    const isCurrentCard = cardIndex === currentIndex;
+    const cardStyle = [
+      styles.cardContainer,
+      isCurrentCard
+        ? {
+            transform: [
+              { scale: scaleAnim },
+              {
+                rotate: rotateAnim.interpolate({
+                  inputRange: [-300, 0, 300],
+                  outputRange: ["-30deg", "0deg", "30deg"],
+                }),
+              },
+            ],
+          }
+        : {},
+    ];
 
-  return (
-    <Animated.View style={cardStyle}>
-      <CustomImage
-        source={{
-          uri:
-            item?.photoUrl ||
-            "https://via.placeholder.com/400x600?text=No+Image",
-        }}
-        style={styles.card}
-      />
-      <View style={styles.infoContainer}>
-        <Text style={styles.currentLocation}>{item?.time}</Text>
-        <Text style={styles.museumName}>{item?.name}</Text>
-        <Text style={styles.description} numberOfLines={3} ellipsizeMode="tail">{item?.description}</Text>
-        <Button
-          label={translate("openInGoogleMaps")}
-          backgroundColor="#FFC107"
-          color="white"
-          onPress={onPressMap}
-          style={styles.mapsButton}
+    return (
+      <Animated.View style={cardStyle}>
+        <CustomImage
+          source={{
+            uri:
+              item?.photoUrl ||
+              "https://via.placeholder.com/400x600?text=No+Image",
+          }}
+          style={styles.card}
         />
-      </View>
-    </Animated.View>
-  );
-});
+        <View style={styles.infoContainer}>
+          <Text style={styles.currentLocation}>{item?.time}</Text>
+          <Text style={styles.museumName}>{item?.name}</Text>
+          <Text
+            style={styles.description}
+            numberOfLines={3}
+            ellipsizeMode="tail"
+          >
+            {item?.description}
+          </Text>
+          <Button
+            label={translate("openInGoogleMaps")}
+            backgroundColor="#FFC107"
+            color="white"
+            onPress={onPressMap}
+            style={styles.mapsButton}
+          />
+        </View>
+      </Animated.View>
+    );
+  }
+);
 
 const openGoogleMaps = (latitude: number, longitude: number) => {
   const url = `https://www.google.com/maps?q=${latitude},${longitude}`;
@@ -146,11 +160,12 @@ const Plan: React.FC = () => {
   const [categoryData, setCategoryData] = useState<any[]>([]);
   const { reset } = useNavigation();
   const [loading, setLoading] = useState<boolean>(true);
-  const { authenticateUser } = useSignIn();
+  const { userData } = useStore();
   const [currentItem, setCurrentItem] = useState<any>();
   const [fadeAnim] = useState(new Animated.Value(0));
   const [showVisitingIndicator, setShowVisitingIndicator] = useState(false);
-  const [showNotVisitingIndicator, setShowNotVisitingIndicator] = useState(false);
+  const [showNotVisitingIndicator, setShowNotVisitingIndicator] =
+    useState(false);
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const rotateAnim = useRef(new Animated.Value(0)).current;
@@ -163,27 +178,40 @@ const Plan: React.FC = () => {
   const categories = [
     { name: translate("adventure"), action: "Adventure", icon: "hiking" },
     { name: translate("romance"), action: "Romance", icon: "favorite" },
-    { name: translate("culturalExploration"), action: "Cultural Exploration", icon: "museum" },
+    {
+      name: translate("culturalExploration"),
+      action: "Cultural Exploration",
+      icon: "museum",
+    },
     { name: translate("relaxation"), action: "Relaxation", icon: "spa" },
-    { name: translate("FamilyFun"), action: "Family Fun", icon: "family-restroom" },
-    { name: translate("foodDining"), action: "Food & Dining", icon: "restaurant" },
+    {
+      name: translate("FamilyFun"),
+      action: "Family Fun",
+      icon: "family-restroom",
+    },
+    {
+      name: translate("foodDining"),
+      action: "Food & Dining",
+      icon: "restaurant",
+    },
     { name: translate("shopping"), action: "Shopping", icon: "shopping-cart" },
   ];
-  const [selectedCategory, setSelectedCategory] = useState<string>(categories[0].action);
+  const [selectedCategory, setSelectedCategory] = useState<string>(
+    categories[0].action
+  );
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
-      const id = await authenticateUser();
 
-      if (!id) {
+      if (!userData?.id) {
         console.error("User ID is not defined");
         setLoading(false);
         return;
       }
 
       try {
-        const userDoc = await getDoc(doc(db, "users", id));
+        const userDoc = await getDoc(doc(db, "users", userData?.id));
 
         if (userDoc.exists()) {
           const userData = userDoc.data();
@@ -274,7 +302,6 @@ const Plan: React.FC = () => {
   const handleSwipedRight = useCallback(() => {
     resetIndicators();
   }, [resetIndicators]);
-  
 
   const renderCard = useCallback(
     (card: any, cardIndex: number) => {
@@ -389,9 +416,9 @@ const styles = StyleSheet.create({
     marginStart: 5,
     width: 37,
     height: 37,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.5)",
     borderRadius: 25,
     top: 17,
   },
@@ -413,7 +440,7 @@ const styles = StyleSheet.create({
   },
   cardContainer: {
     width: width,
-    height: Platform.OS === 'ios' ? height - 100 : height,
+    height: Platform.OS === "ios" ? height - 100 : height,
     overflow: "hidden",
   },
   imageContainer: {
@@ -422,7 +449,7 @@ const styles = StyleSheet.create({
   },
   card: {
     width: width,
-    height: '100%',
+    height: "100%",
     overflow: "hidden",
     backgroundColor: "transparent",
   },
@@ -456,7 +483,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 25,
-    alignSelf: 'center',
+    alignSelf: "center",
     marginTop: 10,
   },
   loadingContainer: {

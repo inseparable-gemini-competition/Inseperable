@@ -113,7 +113,7 @@ export default function TabLayout() {
         console.error("Error saving user data: ", error);
       }
       setLocalLoading(false);
-      I18nManager.forceRTL(true);
+      I18nManager.forceRTL(translations.isRTL === true);
       setUserData(updatedUserData);
       Updates.reloadAsync();
     }
