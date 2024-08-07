@@ -1,3 +1,4 @@
+// useAuth.ts
 import { useState, useEffect, useCallback } from "react";
 import {
   createUserWithEmailAndPassword,
@@ -18,6 +19,8 @@ import * as Updates from "expo-updates";
 
 export function useAuth({ fromLayout = false }: { fromLayout?: boolean } = {}) {
   const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isTranslating, setIsTranslating] = useState(false);
   const { setUserData, userData } = useStore();
 
   const { currentLanguage, translations, setTranslations, setCurrentLanguage } =
@@ -31,9 +34,11 @@ export function useAuth({ fromLayout = false }: { fromLayout?: boolean } = {}) {
         isRTL: data.isRTl,
       });
       setCurrentLanguage(data.baseLanguage);
+      setIsTranslating(false);
     },
-    [translations]
+    [translations, setTranslations, setCurrentLanguage]
   );
+
   const { generate: generateTranslations } = useJsonControlledGeneration({
     promptType: "translateApp",
     onSuccess: onTranslationSuccess,
@@ -47,25 +52,26 @@ export function useAuth({ fromLayout = false }: { fromLayout?: boolean } = {}) {
       });
       return unsubscribe;
     }
-  }, []);
+  }, [fromLayout]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (fromLayout) return;
       setUser(user);
       if (user) {
+        setIsLoading(true);
         let updatedUserData = {
           id: user.uid,
           email: user.email,
         };
 
-        // Check if userData is empty (has no fields)
         if (!userData || Object.keys(userData).length === 0) {
           try {
             const userDocSnap = await getDoc(doc(db, "users", user.uid));
 
             if (userDocSnap.exists()) {
               if (!currentLanguage) {
+                setIsTranslating(true);
                 const result = (await generateTranslations({
                   baseLanguage: userDocSnap.data().baseLanguage,
                 })) as any;
@@ -95,40 +101,56 @@ export function useAuth({ fromLayout = false }: { fromLayout?: boolean } = {}) {
         I18nManager.forceRTL(translations.isRTL === true);
         setUserData(updatedUserData);
         Updates.reloadAsync();
+        setIsLoading(false);
       }
     });
     return unsubscribe;
-  }, [setUserData]);
+  }, [setUserData, fromLayout, currentLanguage, generateTranslations, translations, userData]);
 
   const signUp = async (email: string, password: string) => {
-    const userCredential = await createUserWithEmailAndPassword(
-      auth,
-      email,
-      password
-    );
-    return userCredential.user;
+    setIsLoading(true);
+    try {
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      return userCredential.user;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const signIn = async (email: string, password: string) => {
-    const userCredential = await signInWithEmailAndPassword(
-      auth,
-      email,
-      password
-    );
-    return userCredential.user;
+    setIsLoading(true);
+    try {
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      return userCredential.user;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const biometricLogin = async () => {
-    const savedEmail = await AsyncStorage.getItem("userEmail");
-    const savedPassword = await AsyncStorage.getItem("userPassword");
+    setIsLoading(true);
+    try {
+      const savedEmail = await AsyncStorage.getItem("userEmail");
+      const savedPassword = await AsyncStorage.getItem("userPassword");
 
-    if (savedEmail && savedPassword) {
-      const { success } = await LocalAuthentication.authenticateAsync();
-      if (success) {
-        return signIn(savedEmail, savedPassword);
+      if (savedEmail && savedPassword) {
+        const { success } = await LocalAuthentication.authenticateAsync();
+        if (success) {
+          return signIn(savedEmail, savedPassword);
+        }
       }
+      throw new Error("Did you sign in before?");
+    } finally {
+      setIsLoading(false);
     }
-    throw new Error("Did you sign in before?");
   };
 
   const saveBiometricCredentials = async (email: string, password: string) => {
@@ -142,5 +164,7 @@ export function useAuth({ fromLayout = false }: { fromLayout?: boolean } = {}) {
     signIn,
     biometricLogin,
     saveBiometricCredentials,
+    isLoading,
+    isTranslating,
   };
 }

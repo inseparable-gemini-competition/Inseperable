@@ -1,54 +1,54 @@
-import React, { useCallback, useState } from "react";
+// AuthScreen.tsx
+import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
   TouchableOpacity,
   TextInput as TextField,
-  ActivityIndicator
+  Animated,
+  Easing,
 } from "react-native";
 import { View, Text } from "react-native-ui-lib";
-import { StackNavigationProp } from "@react-navigation/stack";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "@/hooks/logic/useAuth";
 import { useTranslations } from "@/hooks/ui/useTranslations";
 import { colors } from "@/app/theme";
-import { useJsonControlledGeneration } from "@/hooks";
 
-type RootStackParamList = {
-  Main: undefined;
-  Auth: undefined;
+const LoadingAnimation = ({ text }) => {
+  const [rotation] = useState(new Animated.Value(0));
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.timing(rotation, {
+        toValue: 1,
+        duration: 2000,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      })
+    ).start();
+  }, [rotation]);
+
+  const spin = rotation.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
+
+  return (
+    <View style={styles.loadingContainer}>
+      <Animated.View style={[styles.loadingCircle, { transform: [{ rotate: spin }] }]} />
+      <Text style={styles.loadingText}>{text}</Text>
+    </View>
+  );
 };
-
-type AuthScreenNavigationProp = StackNavigationProp<RootStackParamList, "Auth">;
 
 export default function AuthScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLogin, setIsLogin] = useState(true);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isBiometricLoading, setIsBiometricLoading] = useState(false);
-  const { signIn, signUp, biometricLogin, saveBiometricCredentials } = useAuth();
-  const { translate, setTranslations, translations, setCurrentLanguage } = useTranslations();
-
-  const onTranslationSuccess = useCallback(
-    (data: any) => {
-      setTranslations({
-        en: translations.en,
-        [data.baseLanguage]: data.translations,
-        isRTL: data.isRTl,
-      });
-      setCurrentLanguage(data.baseLanguage);
-    },
-    [translations]
-  );
-
-  const { generate: generateTranslations } = useJsonControlledGeneration({
-    promptType: "translateApp",
-    onSuccess: onTranslationSuccess,
-  });
+  const { signIn, signUp, biometricLogin, saveBiometricCredentials, isLoading, isTranslating } = useAuth();
+  const { translate } = useTranslations();
 
   const handleAuth = async () => {
-    setIsLoading(true);
     try {
       let user;
       if (isLogin) {
@@ -63,22 +63,25 @@ export default function AuthScreen() {
     } catch (error) {
       console.error(error);
       alert(translate("authFailed"));
-    } finally {
-      setIsLoading(false);
     }
   };
 
   const handleBiometricLogin = async () => {
-    setIsBiometricLoading(true);
     try {
       await biometricLogin();
     } catch (error) {
       console.error(error);
       alert(translate("didYouSignedInBefore"));
-    } finally {
-      setIsBiometricLoading(false);
     }
   };
+
+  if (isTranslating) {
+    return <LoadingAnimation text={translate("translatingApp")} />;
+  }
+
+  if (isLoading) {
+    return <LoadingAnimation text={translate("loggingIn")} />;
+  }
 
   return (
     <LinearGradient
@@ -127,33 +130,23 @@ export default function AuthScreen() {
           onPress={handleAuth}
           disabled={isLoading}
         >
-          {isLoading ? (
-            <ActivityIndicator color={colors.white} />
-          ) : (
-            <Text style={styles.buttonText}>
-              {isLogin ? translate("login") : translate("signUp")}
-            </Text>
-          )}
+          <Text style={styles.buttonText}>
+            {isLogin ? translate("login") : translate("signUp")}
+          </Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.biometricButton}
           onPress={handleBiometricLogin}
-          disabled={isBiometricLoading}
+          disabled={isLoading}
         >
-          {isBiometricLoading ? (
-            <ActivityIndicator color={colors.white} />
-          ) : (
-            <>
-              <Ionicons
-                name="finger-print-outline"
-                size={24}
-                color={colors.white}
-              />
-              <Text style={styles.biometricButtonText}>
-                {translate("biometricLogin")}
-              </Text>
-            </>
-          )}
+          <Ionicons
+            name="finger-print-outline"
+            size={24}
+            color={colors.white}
+          />
+          <Text style={styles.biometricButtonText}>
+            {translate("biometricLogin")}
+          </Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => setIsLogin(!isLogin)}>
           <Text style={styles.switchText}>
@@ -174,6 +167,25 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     padding: 20,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loadingCircle: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    borderWidth: 3,
+    borderColor: colors.primary,
+    borderTopColor: 'transparent',
+  },
+  loadingText: {
+    marginTop: 20,
+    fontSize: 18,
+    color: colors.primary,
+    fontWeight: "bold",
   },
   title: {
     fontSize: 32,
