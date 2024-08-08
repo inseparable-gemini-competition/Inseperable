@@ -1,59 +1,105 @@
-import React, { useState } from "react";
-import { View, Text, ActivityIndicator, StyleSheet } from "react-native";
-import { Button } from "react-native-ui-lib";
-import { styles as globalStyles, modalStyles } from "@/app/screens/MainStyles";
-import GenericBottomSheet, {
-  GenericBottomSheetTextInput,
-} from "./GenericBottomSheet";
-import { useTranslations } from "@/hooks/ui/useTranslations";
-import { colors } from "@/app/theme";
-import { useExtractCulturalInsights } from "@/hooks/logic/useVideoCulturalinsight";
-import YoutubePlayer from "react-native-youtube-iframe";
-import { convertMarkdownToPlainText } from "@/app/helpers/markdown";
+import React, { useState, useCallback } from 'react';
+import { View, Text, ActivityIndicator, StyleSheet, Alert } from 'react-native';
+import { Button } from 'react-native-ui-lib';
+import { styles as globalStyles, modalStyles } from '@/app/screens/MainStyles';
+import GenericBottomSheet from './GenericBottomSheet';
+import { useTranslations } from '@/hooks/ui/useTranslations';
+import { colors } from '@/app/theme';
+import { Video } from 'expo-av';
+import * as ImagePicker from 'expo-image-picker';
+import { convertMarkdownToPlainText } from '@/app/helpers/markdown';
+import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { httpsCallable } from 'firebase/functions';
+import {functions, storage} from '../helpers/firebaseConfig'
 
-interface YouTubeCulturalInsightsModalProps {
+interface VideoCulturalInsightsModalProps {
   visible: boolean;
   onClose: () => void;
 }
 
-const YouTubeCulturalInsightsModal: React.FC<
-  YouTubeCulturalInsightsModalProps
-> = ({ visible, onClose }) => {
+const VideoCulturalInsightsModal: React.FC<VideoCulturalInsightsModalProps> = ({ visible, onClose }) => {
   const { translate, currentLanguage } = useTranslations();
-  const [youtubeUrl, setYoutubeUrl] = useState<string>("");
-  const [videoId, setVideoId] = useState<string | null>(null);
+  const [videoUri, setVideoUri] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
+  const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
+  const [culturalInsights, setCulturalInsights] = useState<string | null>(null);
 
-  const {
-    data: culturalInsights,
-    isLoading,
-    refetch,
-  } = useExtractCulturalInsights(youtubeUrl, currentLanguage);
+  const pickVideo = useCallback(async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Videos,
+      allowsEditing: true,
+      aspect: [16, 9],
+      quality: 1,
+    });
 
-  const onSubmit = (): void => {
-    const videoId = extractVideoId(youtubeUrl);
-    if (videoId) {
-      setVideoId(videoId);
-      refetch();
-    } else {
-      // Handle invalid URL
-      console.error("Invalid YouTube URL");
+    if (!result.canceled && result.assets[0].uri) {
+      setVideoUri(result.assets[0].uri);
     }
-  };
+  }, []);
 
-  const extractVideoId = (url: string): string | null => {
-    const regExp =
-      /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-    const match = url.match(regExp);
-    return match && match[2].length === 11 ? match[2] : null;
-  };
+  const uploadVideo = useCallback(async () => {
+    if (!videoUri) return;
+
+    setIsUploading(true);
+    try {
+      const response = await fetch(videoUri);
+      const blob = await response.blob();
+      const filename = `videos/${Date.now()}.mp4`;
+      const storageRef = ref(storage, filename);
+
+      const uploadTask = uploadBytesResumable(storageRef, blob);
+
+      uploadTask.on('state_changed', 
+        (snapshot) => {
+          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          setUploadProgress(progress);
+        },
+        (error) => {
+          console.error("Upload failed:", error);
+          Alert.alert(translate("errorTitle"), translate("uploadFailed"));
+          setIsUploading(false);
+        },
+        async () => {
+          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+          console.log('File available at', downloadURL);
+          setIsUploading(false);
+          analyzeVideo(downloadURL);
+        }
+      );
+    } catch (error) {
+      console.error("Error in uploadVideo:", error);
+      Alert.alert(translate("errorTitle"), translate("uploadFailed"));
+      setIsUploading(false);
+    }
+  }, [videoUri, translate]);
+
+  const analyzeVideo = useCallback(async (videoUrl: string) => {
+    setIsAnalyzing(true);
+    try {
+      const extractCulturalVideoAnalysis = httpsCallable(functions, 'extractCulturalVideoAnalysis');
+      const result = await extractCulturalVideoAnalysis({ videoUrl, language: currentLanguage });
+      setCulturalInsights(result.data.culturalInsights);
+    } catch (error) {
+      console.error("Analysis failed:", error);
+      Alert.alert(translate("errorTitle"), translate("analysisFailed"));
+    } finally {
+      setIsAnalyzing(false);
+    }
+  }, [currentLanguage, translate]);
+
+  const resetState = useCallback(() => {
+    setVideoUri(null);
+    setUploadProgress(0);
+    setCulturalInsights(null);
+  }, []);
 
   return (
     <GenericBottomSheet
       visible={visible}
       onClose={() => {
         onClose();
-        setYoutubeUrl("");
-        setVideoId(null);
+        resetState();
       }}
       enableScroll={true}
       textToSpeak={culturalInsights}
@@ -63,49 +109,55 @@ const YouTubeCulturalInsightsModal: React.FC<
           <Text style={modalStyles.modalTitle}>
             {translate("getCulturalContext")}
           </Text>
-          {isLoading ? (
+          {isUploading || isAnalyzing ? (
             <View style={[globalStyles.loadingContainer, { height: 100 }]}>
               <ActivityIndicator color={colors.primary} />
               <Text style={styles.loadingText}>
-                {translate("analyzingVideo")}
+                {isUploading ? `${translate("uploadingVideo")} ${uploadProgress.toFixed(0)}%` : translate("analyzingVideo")}
               </Text>
             </View>
           ) : (
             <>
-              {videoId && (
+              {videoUri && (
                 <View style={styles.videoContainer}>
-                  <YoutubePlayer height={200} play={false} videoId={videoId} />
+                  <Video
+                    source={{ uri: videoUri }}
+                    style={styles.video}
+                    useNativeControls
+                    resizeMode="contain"
+                  />
                 </View>
               )}
-              <GenericBottomSheetTextInput
-                placeholder={translate("enterYoutubeUrl")}
-                value={youtubeUrl}
-                onChangeText={setYoutubeUrl}
-                keyboardType="url"
-                style={[modalStyles.textInput, styles.youtubeInput]}
+              <Button
+                style={styles.button}
+                onPress={pickVideo}
+                label={translate("selectVideo")}
+                backgroundColor={colors.secondary}
               />
               <Button
-                style={styles.submitButton}
-                onPress={onSubmit}
-                label={translate("getInsights")}
+                style={styles.button}
+                onPress={uploadVideo}
+                label={translate("uploadAndAnalyze")}
                 backgroundColor={colors.primary}
+                disabled={!videoUri || isUploading}
               />
             </>
           )}
         </>
       ) : (
         <View style={styles.insightsContainer}>
-          {videoId && (
-            <View style={styles.videoContainer}>
-              <YoutubePlayer height={200} play={false} videoId={videoId} />
-            </View>
-          )}
           <Text style={styles.insightsTitle}>
             {translate("culturalInsights")}
           </Text>
           <Text style={styles.insightsText}>
             {convertMarkdownToPlainText(culturalInsights)}
           </Text>
+          <Button
+            style={styles.button}
+            onPress={resetState}
+            label={translate("analyzeAnotherVideo")}
+            backgroundColor={colors.secondary}
+          />
         </View>
       )}
     </GenericBottomSheet>
@@ -114,46 +166,40 @@ const YouTubeCulturalInsightsModal: React.FC<
 
 const styles = StyleSheet.create({
   loadingText: {
-    textAlign: "center",
-    fontFamily: "marcellus",
+    textAlign: 'center',
+    fontFamily: 'marcellus',
     color: colors.primary,
     marginTop: 10,
   },
-  submitButton: {
+  button: {
     marginVertical: 8,
-    maxWidth: "80%",
-    alignSelf: "center",
+    maxWidth: '80%',
+    alignSelf: 'center',
   },
   insightsContainer: {
     padding: 20,
-    alignItems: "center",
+    alignItems: 'center',
   },
   insightsTitle: {
     fontSize: 22,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     color: colors.primary,
     marginBottom: 10,
   },
   insightsText: {
     fontSize: 16,
     color: colors.dark,
-    textAlign: "center",
+    textAlign: 'center',
     marginBottom: 20,
-  },
-  closeButton: {
-    padding: 10,
-  },
-  closeButtonText: {
-    color: colors.secondary,
-    textAlign: "center",
-  },
-  youtubeInput: {
-    height: 40, // Reduced height for the YouTube URL input
   },
   videoContainer: {
-    width: "100%",
+    width: '100%',
+    aspectRatio: 16 / 9,
     marginBottom: 20,
+  },
+  video: {
+    flex: 1,
   },
 });
 
-export default YouTubeCulturalInsightsModal;
+export default VideoCulturalInsightsModal;

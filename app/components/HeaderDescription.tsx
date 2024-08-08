@@ -35,7 +35,7 @@ const HeaderDescription: React.FC<HeaderDescriptionProps> = ({ country }) => {
           style={styles.resetButton}
           onPress={handleRecommendation}
         >
-          <Ionicons name="compass" size={24} color={colors.white} />
+          <Ionicons name="refresh" size={24} color={colors.white} />
         </TouchableOpacity>
       </View>
     </View>
