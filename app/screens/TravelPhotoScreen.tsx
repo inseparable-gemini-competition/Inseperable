@@ -173,7 +173,7 @@ const usePhotos = (searchQuery: string) => {
   const infiniteQuery = useInfiniteQuery<PhotosResponse, Error>(
     ["photos", searchQuery, userData?.id],
     ({ pageParam, queryKey }) => {
-      const [_, __, userId = ""] = queryKey;
+      const [_, __, userId = "" as any] = queryKey;
       if (!userId) throw new Error("User ID is not available");
 
       return searchQuery
@@ -192,7 +192,7 @@ const usePhotos = (searchQuery: string) => {
       setTimeout(() => {
         infiniteQuery.refetch();
         setInternalLoading(false);
-      }, 8000);
+      }, 6000);
     },
     onError: (error: any) => {
       Alert.alert("Error", `Failed to upload image: ${error.message}`);
