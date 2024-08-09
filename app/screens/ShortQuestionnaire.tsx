@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { View, Text, Button } from "react-native-ui-lib";
+import { View, Button } from "react-native-ui-lib";
 import { colors } from "../theme";
 import Question from "@/app/components/Question/Question";
-import { ActivityIndicator, ScrollView } from "react-native";
+import { ActivityIndicator, ScrollView, StyleSheet } from "react-native";
 import { useJsonControlledGeneration } from "@/hooks/gemini/useJsonControlledGeneration";
 import { useTranslations } from "@/hooks/ui/useTranslations";
 import { CustomText } from "@/app/components/CustomText";
@@ -67,30 +67,17 @@ const Questionnaire = ({ onFinish }: Props) => {
   if (isLoadingCountryData) {
     return (
       <View
-        style={{
-          flex: 1,
-          justifyContent: "center",
-          alignItems: "center",
-          backgroundColor: colors.background,
-        }}
+        style={styles.container}
       >
         <ActivityIndicator size="large" color={colors.primary} />
-        <CustomText>
-          {translate("recommending")}
-        </CustomText>
+        <CustomText>{translate("recommending")}</CustomText>
       </View>
     );
   }
   return (
     <ScrollView
       keyboardShouldPersistTaps={"handled"}
-      contentContainerStyle={{
-        justifyContent: "center",
-        flexGrow: 1,
-        alignItems: "center",
-        backgroundColor: colors.background,
-        paddingVertical: 20,
-      }}
+      contentContainerStyle={styles.container}
     >
       <View>
         {!countryDataResult?.country && question ? (
@@ -107,35 +94,20 @@ const Questionnaire = ({ onFinish }: Props) => {
         ) : (
           <>
             {countryDataResult?.country !== "null" && (
-              <CustomText
-                style={{
-                  fontSize: 70,
-                  color: colors.black,
-                  textAlign: "center",
-                  padding: 10,
-                }}
-              >
+              <CustomText style={styles.largeText}>
                 {countryDataResult?.country} {countryDataResult?.flag}
               </CustomText>
             )}
-            <CustomText
-              style={{
-                fontSize: 15,
-                color: colors.black,
-                textAlign: "center",
-                padding: 10,
-                paddingHorizontal: 30,
-              }}
-            >
+            <CustomText style={styles.text}>
               {countryDataResult?.description !== "null"
                 ? countryDataResult?.description
                 : ""}
             </CustomText>
 
             <Button
-              style={{ width: 300, alignSelf: "center" }}
+              style={styles.button}
               label={translate("finish")}
-              labelStyle={{fontFamily: 'marcellus'}}
+              labelStyle={{ fontFamily: "marcellus" }}
               backgroundColor={colors.primary}
               onPress={() => {
                 onFinish({
@@ -159,3 +131,29 @@ const Questionnaire = ({ onFinish }: Props) => {
 };
 
 export default Questionnaire;
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: colors.background,
+  },
+  text: {
+    fontSize: 15,
+    color: colors.black,
+    textAlign: "center",
+    padding: 10,
+    paddingHorizontal: 30,
+  },
+  button: {
+    width: 300,
+    alignSelf: "center",
+  },
+  largeText :{
+    fontSize: 70,
+    color: colors.black,
+    textAlign: "center",
+    padding: 10,
+  }
+});

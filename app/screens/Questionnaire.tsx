@@ -2,7 +2,7 @@ import { useCallback, useState } from "react";
 import { View, Button } from "react-native-ui-lib";
 import { colors } from "../theme";
 import Question from "@/app/components/Question/Question";
-import { ActivityIndicator, ScrollView } from "react-native";
+import { ActivityIndicator, ScrollView, StyleSheet } from "react-native";
 import { useJsonControlledGeneration } from "@/hooks/gemini/useJsonControlledGeneration";
 import { convertJSONToObject } from "@/app/helpers/questionnaireHelpers";
 import { useGenerateContent } from "@/hooks/gemini/useGeminiStream";
@@ -25,7 +25,7 @@ const Questionnaire = ({ onFinish }: Props) => {
     useTranslations();
   const [localLoading, setLocalLoading] = useState(false);
 
-  const { navigate } = useNavigation();
+  const { navigate } = useNavigation<any>();
 
   const [questions, setQuestions] = useState([
     {
@@ -183,31 +183,16 @@ const Questionnaire = ({ onFinish }: Props) => {
     );
   } else if (isLoading) {
     return (
-      <View
-        style={{
-          flex: 1,
-          justifyContent: "center",
-          alignItems: "center",
-          backgroundColor: colors.background,
-        }}
-      >
+      <View style={styles.container}>
         <ActivityIndicator size="large" color={colors.primary} />
-        <CustomText>
-          {translate("recommending")}
-        </CustomText>
+        <CustomText>{translate("recommending")}</CustomText>
       </View>
     );
   }
   return (
     <ScrollView
       keyboardShouldPersistTaps={"handled"}
-      contentContainerStyle={{
-        justifyContent: "center",
-        flexGrow: 1,
-        alignItems: "center",
-        backgroundColor: colors.background,
-        paddingVertical: 20,
-      }}
+      contentContainerStyle={styles.scrollView}
     >
       <View>
         {!result?.country && !result?.plan && question ? (
@@ -224,33 +209,18 @@ const Questionnaire = ({ onFinish }: Props) => {
         ) : (
           <>
             {result?.country !== "null" && (
-              <CustomText
-                style={{
-                  fontSize: 70,
-                  color: colors.black,
-                  textAlign: "center",
-                  padding: 10,
-                }}
-              >
+              <CustomText style={styles.largeText}>
                 {result?.country} {result?.flag}
               </CustomText>
             )}
-            <CustomText
-              style={{
-                fontSize: 15,
-                color: colors.black,
-                textAlign: "center",
-                padding: 10,
-                paddingHorizontal: 30,
-              }}
-            >
+            <CustomText style={styles.text}>
               {result?.description !== "null" ? result?.description : ""}
             </CustomText>
 
             <Button
-              style={{ width: 300, alignSelf: "center" }}
+              style={styles.button}
               label={translate("finish")}
-              labelStyle={{fontFamily: 'marcellus'}}
+              labelStyle={{ fontFamily: "marcellus" }}
               backgroundColor={colors.primary}
               onPress={() => {
                 onFinish({
@@ -274,3 +244,46 @@ const Questionnaire = ({ onFinish }: Props) => {
 };
 
 export default Questionnaire;
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: colors.background,
+  },
+  text: {
+    fontSize: 15,
+    color: colors.black,
+    textAlign: "center",
+    padding: 10,
+    paddingHorizontal: 30,
+  },
+  largeText: {
+    fontSize: 70,
+    color: colors.black,
+    textAlign: "center",
+    padding: 10,
+  },
+  button: {
+    borderRadius: 10,
+    fontFamily: "marcellus",
+    padding: 15,
+    marginTop: 20,
+    backgroundColor: colors.background,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    width: 350,
+    height: 60,
+  },
+  scrollView: {
+    justifyContent: "center",
+    flexGrow: 1,
+    alignItems: "center",
+    backgroundColor: colors.background,
+    paddingVertical: 20,
+  },
+});
