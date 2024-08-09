@@ -89,10 +89,6 @@ const FontSettingsContent: React.FC<FontSettingsContentProps> = ({
           </TouchableOpacity>
         </View>
       </View>
-
-      <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-        <CustomText style={styles.closeButtonText}>Close</CustomText>
-      </TouchableOpacity>
     </View>
   );
 
@@ -112,6 +108,7 @@ const FontSettingsContent: React.FC<FontSettingsContentProps> = ({
 const styles = StyleSheet.create({
   container: {
     padding: 16,
+    paddingTop: 24,
     backgroundColor: colors.background,
   },
   title: {
