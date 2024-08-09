@@ -73,8 +73,16 @@ const WhatToSayModal: React.FC<WhatToSayModalProps> = ({
                 backgroundColor={colors.black}
                 size={ButtonSize.large}
                 borderRadius={10}
-                style={{ width: "94%", alignSelf: "center" }}
-                labelStyle={{ fontFamily: "marcellus" }}
+                style={{ width: "94%", alignSelf: "center", height: 50 }}
+                labelStyle={{
+                  color: 'white',
+                  fontSize: 18,
+                  fontWeight: 'normal',
+                  fontFamily: "marcellus",
+                  textShadowOffset: { width: 0, height: 0.1 },
+                  textShadowRadius: 0.1,
+                  textShadowColor: 'rgba(0, 0, 0, 0.3)'
+                }}
               />
             </>
           ) : (

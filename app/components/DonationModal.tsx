@@ -78,7 +78,19 @@ const DonationModal: React.FC<DonationModalProps> = ({
               onPress={handleOpenLink}
               label={translate("viewInGoogleTranslate")}
               backgroundColor={colors.black}
-              labelStyle={{ fontFamily: "marcellus" }}
+              labelStyle={{
+                color: colors.white,
+                fontSize: 18,
+                fontWeight: "normal",
+                fontFamily: "marcellus",
+                textShadowOffset: { width: 0, height: 0.1 },
+                textShadowRadius: 0.1,
+                textShadowColor: "rgba(0, 0, 0, 0.3)",
+              }}
+              style={{
+                height: 50,
+                borderRadius: 8,
+              }}
             />
           </View>
         )}

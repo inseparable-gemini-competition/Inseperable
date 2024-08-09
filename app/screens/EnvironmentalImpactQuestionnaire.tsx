@@ -1,8 +1,8 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { View, Text, Button } from "react-native-ui-lib";
 import { colors } from "../theme";
 import Question from "@/app/components/Question/Question";
-import { ActivityIndicator, ScrollView } from "react-native";
+import { ActivityIndicator, ScrollView, TouchableOpacity } from "react-native";
 import { useJsonControlledGeneration } from "@/hooks/gemini/useJsonControlledGeneration";
 import { convertJSONToObject } from "@/app/helpers/environmentalQuestionnaireHelpers";
 import { useGenerateContent } from "@/hooks/gemini/useGeminiStream";
@@ -10,6 +10,13 @@ import { useTranslations } from "@/hooks/ui/useTranslations";
 import useStore from "@/app/store";
 import { useUpdateUserScore } from "@/hooks/logic/useUserScore";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "expo-router";
+import Animated, {
+  useAnimatedStyle,
+  withTiming,
+  Easing,
+} from "react-native-reanimated";
 
 type Props = {
   onFinish: (params?: { setLocalLoading: (loading: boolean) => void }) => void;
@@ -18,7 +25,8 @@ type Props = {
 const EnvironmentalImpactQuestionnaire = ({ onFinish }: Props) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<string[]>([]);
-  const { translate } = useTranslations();
+  const { translate, isRTL } = useTranslations();
+  const navigation = useNavigation();
   const defaultQuestions = [
     {
       id: 1,
@@ -92,6 +100,23 @@ const EnvironmentalImpactQuestionnaire = ({ onFinish }: Props) => {
     }
   };
 
+  const fadeInDownStyle = useAnimatedStyle(() => {
+    return {
+      opacity: withTiming(1, {
+        duration: 500,
+        easing: Easing.out(Easing.exp),
+      }),
+      transform: [
+        {
+          translateY: withTiming(0, {
+            duration: 500,
+            easing: Easing.out(Easing.exp),
+          }),
+        },
+      ],
+    };
+  });
+
   if (isLoadingNextQuestion) {
     return (
       <View
@@ -125,8 +150,22 @@ const EnvironmentalImpactQuestionnaire = ({ onFinish }: Props) => {
       </View>
     );
   }
+
   return (
-    <SafeAreaView style={{flex: 1}}>
+    <SafeAreaView style={{ flex: 1 }}>
+      <Animated.View style={[styles.header, fadeInDownStyle]}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backButton}
+        >
+          <Ionicons
+            name={isRTL ? "arrow-forward" : "arrow-back"}
+            size={24}
+            color={colors.white}
+          />
+        </TouchableOpacity>
+        <Text style={styles.title}>{translate("environmentalImpact")}</Text>
+      </Animated.View>
       <ScrollView
         contentContainerStyle={{
           justifyContent: "center",
@@ -181,7 +220,7 @@ const EnvironmentalImpactQuestionnaire = ({ onFinish }: Props) => {
               <Button
                 style={{ width: 300, alignSelf: "center" }}
                 label={translate("finish")}
-                labelStyle={{fontFamily: 'marcellus'}}
+                labelStyle={{ fontFamily: "marcellus" }}
                 backgroundColor={colors.primary}
                 onPress={() =>
                   onFinish({
@@ -202,6 +241,24 @@ const EnvironmentalImpactQuestionnaire = ({ onFinish }: Props) => {
       </ScrollView>
     </SafeAreaView>
   );
+};
+
+const styles = {
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 16,
+    backgroundColor: colors.headerBackground,
+    width: "100%",
+  },
+  backButton: {
+    marginEnd: 16,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: colors.white,
+  },
 };
 
 export default EnvironmentalImpactQuestionnaire;

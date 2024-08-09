@@ -7,13 +7,14 @@ import {
   TouchableOpacity,
   Dimensions,
   Image,
+  TextInput,
+  ScrollView,
 } from "react-native";
 import { Carousel } from "react-native-ui-lib";
 import { colors } from "@/app/theme";
 import { useTranslations } from "@/hooks/ui/useTranslations";
-import GenericBottomSheet, {
-  GenericBottomSheetTextInput,
-} from "./GenericBottomSheet";
+import { useNavigation } from "@react-navigation/native";
+import GenericBottomSheet, { GenericBottomSheetTextInput } from "./GenericBottomSheet";
 
 const { width: screenWidth } = Dimensions.get("window");
 
@@ -31,8 +32,13 @@ interface TripRecommendationModalProps {
     longitude: number;
     imageUrl: string;
   }> | null;
-  onViewMap: Function;
-  onOpenUber: Function;
+  onViewMap: (latitude: number, longitude: number, name: string) => void;
+  onOpenUber: (latitude: number, longitude: number) => void;
+}
+
+interface ChatMessage {
+  text: string;
+  isUser: boolean;
 }
 
 const TripRecommendationModal: React.FC<TripRecommendationModalProps> = ({
@@ -48,9 +54,18 @@ const TripRecommendationModal: React.FC<TripRecommendationModalProps> = ({
 }) => {
   const { translate } = useTranslations();
   const [activeIndex, setActiveIndex] = useState(0);
+  const navigation = useNavigation<any>();
+
+  const handleChatOpen = () => {
+    if (recommendedTrips?.[activeIndex]) {
+      navigation.navigate("ChatScreenModal", {
+        placeName: recommendedTrips[activeIndex]?.name,
+      });
+    }
+  };
 
   const renderCarouselItem = (
-    trip: (typeof recommendedTrips)[0],
+    trip: typeof recommendedTrips[0],
     index: number
   ) => (
     <View key={index} style={styles.carouselItem}>
@@ -65,7 +80,7 @@ const TripRecommendationModal: React.FC<TripRecommendationModalProps> = ({
   return (
     <GenericBottomSheet
       visible={visible}
-      onClose={()=>{
+      onClose={() => {
         onClose();
         setUserMoodAndDesires("");
       }}
@@ -75,14 +90,10 @@ const TripRecommendationModal: React.FC<TripRecommendationModalProps> = ({
       {!recommendedTrips ? (
         <>
           <Text style={styles.modalTitle}>{translate("tellUsYourMood")}</Text>
-          <Text
-            style={{
-              marginVertical: 5,
-              fontFamily: "marcellus",
-              textAlign: "center",
-            }}
-          >
-            {translate("basedOnYourMoodWeWillRecommendBestDestination")}
+          <Text style={styles.descriptionText}>
+            {translate(
+              "basedOnYourMoodAndDesiresWeWillRecommendBestDestinationAndInfoAboutIt"
+            )}
           </Text>
           {isLoading ? (
             <View style={styles.loadingContainer}>
@@ -164,6 +175,10 @@ const TripRecommendationModal: React.FC<TripRecommendationModalProps> = ({
             </TouchableOpacity>
           </View>
 
+          <TouchableOpacity onPress={handleChatOpen}>
+            <Text style={styles.askQuestionText}>{translate("askQuestion")}</Text>
+          </TouchableOpacity>
+
           <TouchableOpacity style={styles.closeButton} onPress={onClose}>
             <Text style={styles.closeButtonText}>{translate("back")}</Text>
           </TouchableOpacity>
@@ -180,6 +195,12 @@ const styles = StyleSheet.create({
     color: colors.primary,
     textAlign: "center",
     marginVertical: 20,
+  },
+  descriptionText: {
+    marginVertical: 5,
+    fontFamily: "marcellus",
+    textAlign: "center",
+    marginBottom: 10,
   },
   loadingContainer: {
     height: 100,
@@ -270,6 +291,12 @@ const styles = StyleSheet.create({
     color: colors.white,
     textAlign: "center",
     fontFamily: "marcellus",
+  },
+  askQuestionText: {
+    color: colors.primary,
+    textAlign: "center",
+    fontFamily: "marcellus",
+    marginVertical: 10,
   },
   closeButton: {
     padding: 10,

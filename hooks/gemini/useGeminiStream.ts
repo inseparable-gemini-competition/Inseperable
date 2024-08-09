@@ -1,7 +1,9 @@
+import { translate } from '@/app/helpers/i18n';
 import { useTranslations } from "./../ui/useTranslations";
 import { useState, useCallback } from "react";
 import { useMutation } from "react-query";
 import { getFunctions, httpsCallable } from "firebase/functions";
+import { Alert } from "react-native";
 
 const functions = getFunctions();
 const generateStreamContent = httpsCallable(functions, "generateStreamContent");
@@ -58,6 +60,7 @@ export const useGenerateContent = (
 ): UseGenerateContentResult => {
   const { promptType, onSuccess, inputData } = options;
   const [aiResponse, setAiResponse] = useState<string>("");
+  const {translate} = useTranslations();
 
   const { currentLanguage } = useTranslations();
   const mutation = useMutation(
@@ -83,10 +86,14 @@ export const useGenerateContent = (
         onSuccess?.(data);
       },
       onError: (error) => {
-        console.error("Error fetching content:", error);
+        Alert.alert(
+          translate("unexpectedError"),
+          error instanceof Error ? error.message : translate("unexpectedError")
+        );
       },
     }
   );
+  
 
   const sendMessage = useCallback(
     (

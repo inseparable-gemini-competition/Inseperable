@@ -173,11 +173,22 @@ const VideoCulturalInsightsModal: React.FC<VideoCulturalInsightsModalProps> = ({
                 <Button
                   size={ButtonSize.large}
                   onPress={pickVideo}
-                  borderRadius={10}
-                  padding={true}
+                  borderRadius={8}
                   label={translate("selectVideo")}
                   backgroundColor={colors.black}
-                  labelStyle={{ fontFamily: "marcellus" }}
+                  labelStyle={{
+                    color: "white",
+                    fontSize: 18,
+                    fontWeight: "normal",
+                    fontFamily: "marcellus",
+                    textShadowOffset: { width: 0, height: 0.1 },
+                    textShadowRadius: 0.1,
+                    textShadowColor: "rgba(0, 0, 0, 0.3)",
+                  }}
+                  style={{
+                    height: 50,
+                    borderRadius: 8,
+                  }}
                 />
               )}
               {videoUri && (
@@ -188,7 +199,19 @@ const VideoCulturalInsightsModal: React.FC<VideoCulturalInsightsModalProps> = ({
                   borderRadius={10}
                   backgroundColor={colors.primary}
                   disabled={!videoUri || isUploading}
-                  labelStyle={{ fontFamily: "marcellus" }}
+                  labelStyle={{
+                    color: 'white',
+                    fontSize: 18,
+                    fontWeight: 'normal',
+                    fontFamily: "marcellus",
+                    textShadowOffset: { width: 0, height: 0.1 },
+                    textShadowRadius: 0.1,
+                    textShadowColor: 'rgba(0, 0, 0, 0.3)'
+                  }}
+                  style={{
+                    height: 50,
+                    borderRadius: 8,
+                  }}
                 />
               )}
             </>
@@ -208,7 +231,19 @@ const VideoCulturalInsightsModal: React.FC<VideoCulturalInsightsModalProps> = ({
             borderRadius={10}
             label={translate("analyzeAnotherVideo")}
             backgroundColor={colors.black}
-            labelStyle={{ fontFamily: "marcellus" }}
+            labelStyle={{
+              color: "white",
+              fontSize: 18,
+              fontWeight: "normal",
+              fontFamily: "marcellus",
+              textShadowOffset: { width: 0, height: 0.1 },
+              textShadowRadius: 0.1,
+              textShadowColor: "rgba(0, 0, 0, 0.3)",
+            }}
+            style={{
+              height: 50,
+              borderRadius: 8,
+            }}
           />
         </View>
       )}

@@ -37,6 +37,8 @@ import { useTranslations } from "@/hooks/ui/useTranslations";
 import useStore from "@/app/store";
 import { debounce } from "@/app/helpers/debounce";
 import { httpsCallable } from "firebase/functions";
+import Animated, { useAnimatedStyle, withTiming, Easing } from "react-native-reanimated";
+import { useNavigation } from "expo-router";
 
 // Types
 interface Photo {
@@ -117,9 +119,11 @@ const TravelPhotoScreen: React.FC = () => {
   const [uploading, setUploading] = useState<boolean>(false);
   const [progress, setProgress] = useState<number>(0);
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const { translate } = useTranslations();
+  const { translate, translations } = useTranslations();
   const { userData } = useStore();
+  const {goBack} = useNavigation();
 
+  
   useEffect(() => {
     if (!userData?.id) return;
 
@@ -318,15 +322,42 @@ const TravelPhotoScreen: React.FC = () => {
     );
   }
 
+  const fadeInDownStyle = useAnimatedStyle(() => {
+    return {
+      opacity: withTiming(1, {
+        duration: 500,
+        easing: Easing.out(Easing.exp),
+      }),
+      transform: [
+        {
+          translateY: withTiming(0, {
+            duration: 500,
+            easing: Easing.out(Easing.exp),
+          }),
+        },
+      ],
+    };
+  });
+
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <LinearGradient
         colors={[colors.backgroundGradientStart, colors.backgroundGradientEnd]}
         style={styles.container}
       >
-        <View style={styles.header}>
-          <Text style={styles.headerText}>{translate("travelMemories")}</Text>
-        </View>
+        <Animated.View style={[styles.header, fadeInDownStyle]}>
+          <TouchableOpacity
+            onPress={goBack}
+            style={styles.backButton}
+          >
+            <Ionicons
+              name={translations?.isRTL ? "arrow-forward" : "arrow-back"}
+              size={24}
+              color={colors.white}
+            />
+          </TouchableOpacity>
+          <Text style={styles.title}>{translate("travelMemories")}</Text>
+        </Animated.View>
 
         <View style={styles.actionContainer}>
           <TouchableOpacity
@@ -406,15 +437,18 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    backgroundColor: colors.headerBackground,
+    flexDirection: 'row',
+    alignItems: 'center',
     padding: 16,
-    alignItems: "center",
+    backgroundColor: colors.headerBackground,
   },
-  headerText: {
+  backButton: {
+    marginEnd: 16,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: 'bold',
     color: colors.white,
-    fontSize: 28,
-    fontWeight: "bold",
-    fontFamily: "marcellus",
   },
   actionContainer: {
     flexDirection: "row",
