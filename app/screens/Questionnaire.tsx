@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { View, Text, Button } from "react-native-ui-lib";
 import { colors } from "../theme";
 import Question from "@/app/components/Question/Question";

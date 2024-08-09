@@ -92,7 +92,7 @@ const TripRecommendationModal: React.FC<TripRecommendationModalProps> = ({
           <Text style={styles.modalTitle}>{translate("tellUsYourMood")}</Text>
           <Text style={styles.descriptionText}>
             {translate(
-              "basedOnYourMoodAndDesiresWeWillRecommendBestDestinationAndInfoAboutIt"
+              "basedOnYourMoodAndDesiresWeWillRecommendBestDestination"
             )}
           </Text>
           {isLoading ? (

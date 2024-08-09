@@ -41,7 +41,9 @@ const Option = ({ option, onChoose, isSelected }: Props) => {
           style={styles.option}
           onPress={() => onChoose(option)}
         >
-          <Text style={styles.text}>{option}</Text>
+          <Text style={styles.text} numberOfLines={2} adjustsFontSizeToFit>
+            {option}
+          </Text>
         </TouchableOpacity>
       </View>
     </Animated.View>
@@ -58,6 +60,8 @@ const styles = StyleSheet.create({
   text: {
     fontFamily: "marcellus",
     textAlign: "center",
+    fontSize: 16,
+    paddingHorizontal: 5,
   },
   option: {
     backgroundColor: "white",
