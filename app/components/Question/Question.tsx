@@ -121,11 +121,13 @@ const Question = ({
           label={translate("previous")}
             backgroundColor={colors.primary}
             onPress={onPrevious}
+            labelStyle={{fontFamily: 'marcellus'}}
           />
         )}
         {showNext && (
           <Button
             label={translate("next")}
+            labelStyle={{fontFamily: 'marcellus'}}
             backgroundColor={colors.primary}
             onPress={() => {
               onNext(currentText);

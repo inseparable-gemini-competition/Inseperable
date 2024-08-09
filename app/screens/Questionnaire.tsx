@@ -251,6 +251,7 @@ const Questionnaire = ({ onFinish }: Props) => {
             <Button
               style={{ width: 300, alignSelf: "center" }}
               label={translate("finish")}
+              labelStyle={{fontFamily: 'marcellus'}}
               backgroundColor={colors.primary}
               onPress={() => {
                 onFinish({

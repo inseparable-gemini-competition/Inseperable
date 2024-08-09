@@ -49,6 +49,7 @@ const MainPresentation: React.FC<MainPresentationProps> = ({
         <Button
           onPress={imageCapture.requestPermission}
           label={translate("grantPermission")}
+          labelStyle={{fontFamily: "marcellus"}}
         />
       </View>
     );

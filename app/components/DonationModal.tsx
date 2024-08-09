@@ -6,7 +6,7 @@ import {
   Linking,
   StyleSheet,
 } from "react-native";
-import { Button } from "react-native-ui-lib";
+import { Button, ButtonSize } from "react-native-ui-lib";
 import GenericBottomSheet from "./GenericBottomSheet";
 import { useTranslations } from "@/hooks/ui/useTranslations";
 import { colors } from "@/app/theme";
@@ -52,6 +52,15 @@ const DonationModal: React.FC<DonationModalProps> = ({
     >
       <View style={styles.container}>
         <Text style={styles.title}>{translate("donationInfo")}</Text>
+        <Text
+          style={{
+            marginVertical: 5,
+            fontFamily: "marcellus",
+            textAlign: "center",
+          }}
+        >
+          {translate("weWillRecommendADonationEntityToYou")}
+        </Text>
         {isLoading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={colors.primary} />
@@ -64,9 +73,12 @@ const DonationModal: React.FC<DonationModalProps> = ({
             <Text style={styles.name}>{result?.name}</Text>
             <Text style={styles.description}>{result?.description}</Text>
             <Button
-              style={styles.button}
+              size={ButtonSize.large}
+              borderRadius={10}
               onPress={handleOpenLink}
               label={translate("viewInGoogleTranslate")}
+              backgroundColor={colors.black}
+              labelStyle={{ fontFamily: "marcellus" }}
             />
           </View>
         )}
@@ -74,7 +86,6 @@ const DonationModal: React.FC<DonationModalProps> = ({
     </GenericBottomSheet>
   );
 };
-
 
 const styles = StyleSheet.create({
   container: {

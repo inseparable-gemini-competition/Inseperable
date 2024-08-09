@@ -33,6 +33,16 @@ const TabooModal: React.FC<TabooModalProps> = ({
       textToSpeak={result}
     >
       <View style={styles.container}>
+      <Text style={styles.modalTitle}>{translate("taboo")}</Text>
+        <Text
+          style={{
+            marginBottom: 20,
+            fontFamily: "marcellus",
+            textAlign: "center",
+          }}
+        >
+          {translate("KnowAllTheTaboosYouNeedToAvoid")}
+        </Text>
         {isLoading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={colors.primary} />
@@ -42,7 +52,6 @@ const TabooModal: React.FC<TabooModalProps> = ({
           </View>
         ) : (
           <>
-            <Text style={styles.modalTitle}>{translate("tabooInfo")}</Text>
             <View style={styles.resultContainer}>
               <Text style={styles.resultText}>{result}</Text>
             </View>

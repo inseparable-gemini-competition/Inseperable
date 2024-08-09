@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, ActivityIndicator, StyleSheet } from "react-native";
-import { Button } from "react-native-ui-lib";
+import { Button, ButtonSize } from "react-native-ui-lib";
 import { styles as globalStyles, modalStyles } from "@/app/screens/MainStyles";
 import GenericBottomSheet, {
   GenericBottomSheetTextInput,
@@ -29,9 +29,24 @@ const WhatToSayModal: React.FC<WhatToSayModalProps> = ({
 }) => {
   const { translate } = useTranslations();
   return (
-    <GenericBottomSheet visible={visible} onClose={onClose} enableScroll={true} textToSpeak={result || ""}>
-      <Text style={styles.title}>
-        {translate("whatToSay")}
+    <GenericBottomSheet
+      visible={visible}
+      onClose={()=>{
+        onClose();
+        setUserSituation("");
+      }}
+      enableScroll={true}
+      textToSpeak={result || ""}
+    >
+      <Text style={styles.title}>{translate("whatToSay")}</Text>
+      <Text
+        style={{
+          marginBottom: 20,
+          fontFamily: "marcellus",
+          textAlign: "center",
+        }}
+      >
+        {translate("whateverSituationYouAreInWeWillHelp")}
       </Text>
       {isLoading ? (
         <View style={[globalStyles.loadingContainer, { height: 100 }]}>
@@ -42,27 +57,33 @@ const WhatToSayModal: React.FC<WhatToSayModalProps> = ({
         </View>
       ) : (
         <>
-          <GenericBottomSheetTextInput
-            placeholder={translate("enterSituation")}
-            value={userSituation}
-            onChangeText={setUserSituation}
-            multiline
-            keyboardType="default"
-            style={modalStyles.textInput}
-          />
-          <Button
-            style={styles.submitButton}
-            onPress={onSubmit}
-            label={translate("submit")}
-            backgroundColor={colors.black}
-          />
-          {result && (
+          {!result ? (
+            <>
+              <GenericBottomSheetTextInput
+                placeholder={translate("enterSituation")}
+                value={userSituation}
+                onChangeText={setUserSituation}
+                multiline
+                keyboardType="default"
+                style={modalStyles.textInput}
+              />
+              <Button
+                onPress={onSubmit}
+                label={translate("submit")}
+                backgroundColor={colors.black}
+                size={ButtonSize.large}
+                borderRadius={10}
+                style={{ width: "94%", alignSelf: "center" }}
+                labelStyle={{ fontFamily: "marcellus" }}
+              />
+            </>
+          ) : (
             <View style={styles.resultContainer}>
               <Text style={[modalStyles.modalText, styles.resultText]}>
                 {result}
               </Text>
             </View>
-          )}    
+          )}
         </>
       )}
     </GenericBottomSheet>

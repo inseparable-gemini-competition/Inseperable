@@ -49,7 +49,10 @@ const TripRecommendationModal: React.FC<TripRecommendationModalProps> = ({
   const { translate } = useTranslations();
   const [activeIndex, setActiveIndex] = useState(0);
 
-  const renderCarouselItem = (trip: typeof recommendedTrips[0], index: number) => (
+  const renderCarouselItem = (
+    trip: (typeof recommendedTrips)[0],
+    index: number
+  ) => (
     <View key={index} style={styles.carouselItem}>
       <Image
         style={styles.carouselImage}
@@ -60,11 +63,26 @@ const TripRecommendationModal: React.FC<TripRecommendationModalProps> = ({
   );
 
   return (
-    <GenericBottomSheet visible={visible} onClose={onClose} enableScroll={true} textToSpeak={recommendedTrips?.[activeIndex]?.description}>
+    <GenericBottomSheet
+      visible={visible}
+      onClose={()=>{
+        onClose();
+        setUserMoodAndDesires("");
+      }}
+      enableScroll={true}
+      textToSpeak={recommendedTrips?.[activeIndex]?.description}
+    >
       {!recommendedTrips ? (
         <>
-          <Text style={styles.modalTitle}>
-            {translate("tellUsYourMood")}
+          <Text style={styles.modalTitle}>{translate("tellUsYourMood")}</Text>
+          <Text
+            style={{
+              marginVertical: 5,
+              fontFamily: "marcellus",
+              textAlign: "center",
+            }}
+          >
+            {translate("basedOnYourMoodWeWillRecommendBestDestination")}
           </Text>
           {isLoading ? (
             <View style={styles.loadingContainer}>
@@ -83,10 +101,7 @@ const TripRecommendationModal: React.FC<TripRecommendationModalProps> = ({
                 keyboardType="default"
                 style={styles.textInput}
               />
-              <TouchableOpacity
-                style={styles.submitButton}
-                onPress={onSubmit}
-              >
+              <TouchableOpacity style={styles.submitButton} onPress={onSubmit}>
                 <Text style={styles.submitButtonText}>
                   {translate("findPlaces")}
                 </Text>

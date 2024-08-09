@@ -54,6 +54,12 @@ const TipsModal: React.FC<TipsModalProps> = ({
       textToSpeak={result}
     >
       <Text style={styles.title}>{translate("selectTipType")}</Text>
+      <Text style={{
+        marginVertical: 5,
+        fontFamily: "marcellus",
+        textAlign: "center",
+
+      }}>{translate("pickAnyCategoryYouWantTipsAbout")}</Text>
       <Picker
         style={globalStyles.picker}
         placeholder={translate("selectTipType")}

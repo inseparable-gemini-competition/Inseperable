@@ -144,6 +144,7 @@ const CategoryCard: React.FC<CategoryCardProps> = React.memo(
             color="white"
             onPress={onPressMap}
             style={styles.mapsButton}
+            labelStyle={{fontFamily: 'marcellus'}}
           />
         </View>
       </Animated.View>

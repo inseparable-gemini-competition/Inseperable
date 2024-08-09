@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from "react";
 import { View, Text, ActivityIndicator, StyleSheet, Alert } from "react-native";
-import { Button, ProgressBar } from "react-native-ui-lib";
+import { Button, ButtonSize, ProgressBar } from "react-native-ui-lib";
 import { styles as globalStyles } from "@/app/screens/MainStyles";
 import GenericBottomSheet from "./GenericBottomSheet";
 import { useTranslations } from "@/hooks/ui/useTranslations";
@@ -116,12 +116,21 @@ const VideoCulturalInsightsModal: React.FC<VideoCulturalInsightsModalProps> = ({
         resetState();
       }}
       enableScroll={true}
-      textToSpeak={culturalInsights}
+      textToSpeak={culturalInsights || ""}
     >
       {!culturalInsights ? (
         <>
           <Text style={styles.modalTitle}>
             {translate("getCulturalContext")}
+          </Text>
+          <Text
+            style={{
+              marginBottom: 20,
+              fontFamily: "marcellus",
+              textAlign: "center",
+            }}
+          >
+            {translate("weWillAnalyzeYourVideoCulturally")}
           </Text>
           {isUploading || isAnalyzing ? (
             <>
@@ -162,19 +171,24 @@ const VideoCulturalInsightsModal: React.FC<VideoCulturalInsightsModalProps> = ({
               )}
               {!videoUri && (
                 <Button
-                  style={styles.button}
+                  size={ButtonSize.large}
                   onPress={pickVideo}
+                  borderRadius={10}
+                  padding={true}
                   label={translate("selectVideo")}
                   backgroundColor={colors.black}
+                  labelStyle={{ fontFamily: "marcellus" }}
                 />
               )}
               {videoUri && (
                 <Button
-                  style={[styles.button, styles.uploadButton]}
                   onPress={uploadVideo}
                   label={translate("uploadAndAnalyze")}
+                  size={ButtonSize.large}
+                  borderRadius={10}
                   backgroundColor={colors.primary}
                   disabled={!videoUri || isUploading}
+                  labelStyle={{ fontFamily: "marcellus" }}
                 />
               )}
             </>
@@ -189,10 +203,12 @@ const VideoCulturalInsightsModal: React.FC<VideoCulturalInsightsModalProps> = ({
             {convertMarkdownToPlainText(culturalInsights)}
           </Text>
           <Button
-            style={[styles.button, styles.analyzeButton]}
             onPress={resetState}
+            size={ButtonSize.large}
+            borderRadius={10}
             label={translate("analyzeAnotherVideo")}
             backgroundColor={colors.black}
+            labelStyle={{ fontFamily: "marcellus" }}
           />
         </View>
       )}
@@ -222,7 +238,6 @@ const styles = StyleSheet.create({
   },
   button: {
     marginVertical: 10,
-    maxWidth: "80%",
     alignSelf: "center",
     borderRadius: 25,
     paddingVertical: 12,
