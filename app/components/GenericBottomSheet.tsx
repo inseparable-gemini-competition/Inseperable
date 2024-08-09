@@ -3,6 +3,10 @@ import {
   StyleSheet,
   ViewStyle,
   TextStyle,
+  TouchableOpacity,
+  View,
+  ActivityIndicator,
+  Keyboard,
 } from "react-native";
 import BottomSheet, {
   BottomSheetBackdrop,
@@ -12,6 +16,9 @@ import BottomSheet, {
 } from "@gorhom/bottom-sheet";
 import { useTextToSpeech } from "@/app/context/TextToSpeechContext";
 import SpeechControlIcon from "@/app/components/SpeechControlIcon";
+
+import { Ionicons } from "@expo/vector-icons";
+import { useVoiceToText } from "@/hooks/ui/useVoiceToText";
 
 interface GenericBottomSheetProps {
   visible: boolean;
@@ -27,6 +34,7 @@ interface GenericBottomSheetProps {
   buttonStyle?: ViewStyle;
   textStyle?: TextStyle;
   textToSpeak?: string;
+  onSubmit?: (text: string) => void;
 }
 
 const defaultRenderBackdrop = (props: any) => (
@@ -34,8 +42,6 @@ const defaultRenderBackdrop = (props: any) => (
 );
 
 export const GenericBottomSheetTextInput = BottomSheetTextInput;
-
-
 
 const GenericBottomSheet: React.FC<GenericBottomSheetProps> = ({
   visible,
@@ -49,10 +55,13 @@ const GenericBottomSheet: React.FC<GenericBottomSheetProps> = ({
   inputStyle,
   textStyle,
   textToSpeak,
+  onSubmit,
 }) => {
   const bottomSheetRef = useRef<BottomSheet>(null);
   const { speak, stop } = useTextToSpeech();
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const { isListening, startListening, stopListening, isSendingMessage } =
+    useVoiceToText(onSubmit ?? (() => {}));
 
   const memoizedSnapPoints = useMemo(() => snapPoints, [snapPoints]);
 
@@ -70,6 +79,14 @@ const GenericBottomSheet: React.FC<GenericBottomSheetProps> = ({
     }
   };
 
+  const handleVoiceToggle = () => {
+    if (isListening) {
+      stopListening();
+    } else {
+      startListening();
+    }
+  };
+
   return (
     <BottomSheet
       ref={bottomSheetRef}
@@ -78,6 +95,7 @@ const GenericBottomSheet: React.FC<GenericBottomSheetProps> = ({
       onChange={(index) => {
         if (index === -1) {
           onClose();
+          Keyboard.dismiss()
           if (isSpeaking) {
             stop();
             setIsSpeaking(false);
@@ -89,19 +107,38 @@ const GenericBottomSheet: React.FC<GenericBottomSheetProps> = ({
       keyboardBehavior="interactive"
       keyboardBlurBehavior="restore"
       android_keyboardInputMode="adjustResize"
-      enablePanDownToClose
+      // enablePanDownToClose
     >
       <ContentComponent
         contentContainerStyle={[styles.contentContainer, contentContainerStyle]}
         keyboardShouldPersistTaps={"handled"}
+        nestedScrollEnabled
       >
-        {textToSpeak && (
-          <SpeechControlIcon
-            isSpeaking={isSpeaking}
-            onToggle={handleToggleSpeech}
-            style={styles.speechIcon}
-          />
-        )}
+        <View style={styles.iconContainer}>
+          {textToSpeak && (
+            <SpeechControlIcon
+              isSpeaking={isSpeaking}
+              onToggle={handleToggleSpeech}
+              style={styles.speechIcon}
+            />
+          )}
+          {!textToSpeak &&
+            onSubmit &&
+            (Boolean(!isSendingMessage) ? (
+              <TouchableOpacity
+                onPress={handleVoiceToggle}
+                style={styles.voiceIcon}
+              >
+                <Ionicons
+                  name={isListening ? "mic" : "mic-outline"}
+                  size={24}
+                  color={isListening ? "red" : "black"}
+                />
+              </TouchableOpacity>
+            ) : (
+              <ActivityIndicator size="small" />
+            ))}
+        </View>
         {React.Children.map(children, (child) =>
           React.isValidElement(child)
             ? React.cloneElement(child, {
@@ -113,7 +150,7 @@ const GenericBottomSheet: React.FC<GenericBottomSheetProps> = ({
                     ? { ...styles.input, ...inputStyle }
                     : {}),
                 },
-              })
+              } as any)
             : child
         )}
       </ContentComponent>
@@ -150,9 +187,23 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     textAlign: "center",
   },
+  iconContainer: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    alignItems: "center",
+    marginBottom: 0,
+  },
   speechIcon: {
-    top: 40,
-    end: 25,
+    marginRight: 16,
+  },
+  voiceIcon: {
+    padding: 8,
+  },
+  transcript: {
+    marginTop: 16,
+    fontSize: 14,
+    fontStyle: "italic",
+    color: "#666",
   },
 });
 

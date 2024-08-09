@@ -7,7 +7,10 @@ import { polyfill as polyfillReadableStream } from "react-native-polyfill-global
 import useGoogleImageSearch from "@/hooks/ui/useGoogleImageSearch";
 import { db } from "../helpers/firebaseConfig";
 import { doc, setDoc } from "firebase/firestore";
-import { createStackNavigator } from "@react-navigation/stack";
+import {
+  TransitionPresets,
+  createStackNavigator,
+} from "@react-navigation/stack";
 import Main from "@/app/screens/Main";
 import Chat from "@/app/screens/Chat";
 import Plan from "@/app/screens/Plan";
@@ -15,7 +18,7 @@ import HandmadeItems from "@/app/screens/HandmadeItems";
 import Questionnaire from "../screens/Questionnaire";
 import EnvironmentalImpactQuestionnaire from "@/app/screens/EnvironmentalImpactQuestionnaire";
 import { useNavigation } from "expo-router";
-import { I18nManager } from "react-native";
+import { I18nManager, Platform } from "react-native";
 import Toast from "react-native-toast-message";
 import ShortQuestionnaire from "@/app/screens/ShortQuestionnaire";
 import TravelPhotoScreen from "@/app/screens/TravelPhotoScreen";
@@ -29,7 +32,7 @@ polyfillReadableStream();
 const Stack = createStackNavigator();
 
 function NavigationWrapper({ onFinish }: any) {
-  const { userData, translations } = useStore();
+  const { userData } = useStore();
   const { goBack } = useNavigation();
   useAuth({ fromLayout: true });
 
@@ -69,11 +72,16 @@ function NavigationWrapper({ onFinish }: any) {
       <Stack.Screen name="Plan" component={Plan} />
       <Stack.Screen name="Photos" component={TravelPhotoScreen} />
       <Stack.Screen name="Shopping" component={HandmadeItems} />
-      <Stack.Screen
-        name="ChatScreenModal"
-        component={ChatScreenModal}
-        options={{ headerShown: false, presentation: "modal" }}
-      />
+      <Stack.Group
+        screenOptions={{
+          presentation: "modal",
+          gestureEnabled: true,
+          ...(Platform.OS === "android" && TransitionPresets.ModalPresentationIOS),
+        }}
+      >
+        <Stack.Screen name="ChatScreenModal" component={ChatScreenModal} />
+      </Stack.Group>
+
       <Stack.Screen name="EnvImpact">
         {(props) => (
           <EnvironmentalImpactQuestionnaire {...props} onFinish={goBack} />

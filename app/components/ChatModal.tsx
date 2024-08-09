@@ -56,7 +56,7 @@ const ChatScreenModal: React.FC<ChatScreenModalProps> = ({ navigation, route }) 
         <CustomText style={styles.closeButtonText}>{translate("back")}</CustomText>
       </TouchableOpacity>
 
-      <ScrollView style={styles.chatContainer}>
+      <ScrollView keyboardShouldPersistTaps={'handled'} style={styles.chatContainer}>
         {chatHistory.map((chat, index) => (
           <View
             key={index}

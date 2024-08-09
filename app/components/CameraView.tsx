@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, TouchableOpacity } from 'react-native';
 import { CameraView as ExpoCameraView } from 'expo-camera';
 import { Ionicons } from '@expo/vector-icons';
 import {styles} from '@/app/screens/MainStyles';

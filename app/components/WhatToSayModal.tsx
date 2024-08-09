@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { View, Text, ActivityIndicator, StyleSheet } from "react-native";
 import { Button, ButtonSize } from "react-native-ui-lib";
 import { styles as globalStyles, modalStyles } from "@/app/screens/MainStyles";
@@ -14,7 +14,7 @@ interface WhatToSayModalProps {
   isLoading: boolean;
   result: string | null;
   onClose: () => void;
-  onSubmit: () => void;
+  onSubmit: (situation?: string) => void;
   userSituation: string;
   setUserSituation: (situation: string) => void;
 }
@@ -29,14 +29,18 @@ const WhatToSayModal: React.FC<WhatToSayModalProps> = ({
   setUserSituation,
 }) => {
   const { translate } = useTranslations();
+
   return (
     <GenericBottomSheet
       visible={visible}
-      onClose={()=>{
+      onClose={() => {
         onClose();
         setUserSituation("");
       }}
       enableScroll={true}
+      onSubmit={(data) => {
+        onSubmit(data);
+      }}
       textToSpeak={result || ""}
     >
       <CustomText style={styles.title}>{translate("whatToSay")}</CustomText>
@@ -75,13 +79,13 @@ const WhatToSayModal: React.FC<WhatToSayModalProps> = ({
                 borderRadius={10}
                 style={{ width: "94%", alignSelf: "center", height: 50 }}
                 labelStyle={{
-                  color: 'white',
+                  color: "white",
                   fontSize: 18,
-                  fontWeight: 'normal',
+                  fontWeight: "normal",
                   fontFamily: "marcellus",
                   textShadowOffset: { width: 0, height: 0.1 },
                   textShadowRadius: 0.1,
-                  textShadowColor: 'rgba(0, 0, 0, 0.3)'
+                  textShadowColor: "rgba(0, 0, 0, 0.3)",
                 }}
               />
             </>

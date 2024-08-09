@@ -5,23 +5,33 @@ import {
   StyleSheet,
   TouchableOpacity,
   Dimensions,
-  Image,
 } from "react-native";
-import { Carousel } from "react-native-ui-lib";
+import Carousel from "react-native-reanimated-carousel";
 import { colors } from "@/app/theme";
 import { useTranslations } from "@/hooks/ui/useTranslations";
 import { useNavigation } from "@react-navigation/native";
-import GenericBottomSheet, { GenericBottomSheetTextInput } from "./GenericBottomSheet";
+import GenericBottomSheet, {
+  GenericBottomSheetTextInput,
+} from "./GenericBottomSheet";
 import { CustomText } from "@/app/components/CustomText";
-
+import Pagination from "@/app/components/Pagination"; // Import the Pagination component
+import FastImage from "react-native-fast-image";
 
 const { width: screenWidth } = Dimensions.get("window");
+
+interface RecommendedTrip {
+  name: string;
+  description: string;
+  latitude: number;
+  longitude: number;
+  imageUrl: string;
+}
 
 interface TripRecommendationModalProps {
   visible: boolean;
   isLoading: boolean;
   onClose: () => void;
-  onSubmit: () => void;
+  onSubmit: (mood?: string) => void;
   userMoodAndDesires: string;
   setUserMoodAndDesires: (input: string) => void;
   recommendedTrips: Array<{
@@ -33,11 +43,6 @@ interface TripRecommendationModalProps {
   }> | null;
   onViewMap: (latitude: number, longitude: number, name: string) => void;
   onOpenUber: (latitude: number, longitude: number) => void;
-}
-
-interface ChatMessage {
-  text: string;
-  isUser: boolean;
 }
 
 const TripRecommendationModal: React.FC<TripRecommendationModalProps> = ({
@@ -63,12 +68,9 @@ const TripRecommendationModal: React.FC<TripRecommendationModalProps> = ({
     }
   };
 
-  const renderCarouselItem = (
-    trip: typeof recommendedTrips[0],
-    index: number
-  ) => (
+  const renderCarouselItem = (trip: RecommendedTrip, index: number) => (
     <View key={index} style={styles.carouselItem}>
-      <Image
+      <FastImage
         style={styles.carouselImage}
         source={{ uri: trip?.imageUrl }}
         resizeMode="cover"
@@ -78,17 +80,23 @@ const TripRecommendationModal: React.FC<TripRecommendationModalProps> = ({
 
   return (
     <GenericBottomSheet
+      snapPoints={["75%", "75%"]}
       visible={visible}
       onClose={() => {
         onClose();
         setUserMoodAndDesires("");
       }}
       enableScroll={true}
+      onSubmit={(data) => {
+        onSubmit(data);
+      }}
       textToSpeak={recommendedTrips?.[activeIndex]?.description}
     >
       {!recommendedTrips ? (
         <>
-          <CustomText style={styles.modalTitle}>{translate("tellUsYourMood")}</CustomText>
+          <CustomText style={styles.modalTitle}>
+            {translate("tellUsYourMood")}
+          </CustomText>
           <CustomText style={styles.descriptionText}>
             {translate(
               "basedOnYourMoodAndDesiresWeWillRecommendBestDestination"
@@ -111,7 +119,10 @@ const TripRecommendationModal: React.FC<TripRecommendationModalProps> = ({
                 keyboardType="default"
                 style={styles.textInput}
               />
-              <TouchableOpacity style={styles.submitButton} onPress={onSubmit}>
+              <TouchableOpacity
+                style={styles.submitButton}
+                onPress={() => onSubmit()}
+              >
                 <CustomText style={styles.submitButtonText}>
                   {translate("findPlaces")}
                 </CustomText>
@@ -126,16 +137,18 @@ const TripRecommendationModal: React.FC<TripRecommendationModalProps> = ({
           </CustomText>
 
           <Carousel
-            onChangePage={setActiveIndex}
-            pageWidth={screenWidth * 0.8}
-            containerStyle={styles.carouselContainer}
-            pageControlPosition={Carousel.pageControlPositions.UNDER}
-            pageControlProps={{ onPagePress: setActiveIndex }}
-          >
-            {recommendedTrips.map((trip, index) =>
-              renderCarouselItem(trip, index)
-            )}
-          </Carousel>
+            data={recommendedTrips}
+            width={screenWidth * 0.8}
+            height={200}
+            renderItem={({ item, index }) => renderCarouselItem(item, index)}
+            onSnapToItem={setActiveIndex}
+            loop={false}
+          />
+
+          {/* <Pagination
+            dotsLength={recommendedTrips.length}
+            activeDotIndex={activeIndex}
+          /> */}
 
           <CustomText style={styles.placeName}>
             {recommendedTrips[activeIndex]?.name}
@@ -175,11 +188,15 @@ const TripRecommendationModal: React.FC<TripRecommendationModalProps> = ({
           </View>
 
           <TouchableOpacity onPress={handleChatOpen}>
-            <CustomText style={styles.askQuestionText}>{translate("askQuestion")}</CustomText>
+            <CustomText style={styles.askQuestionText}>
+              {translate("askQuestion")}
+            </CustomText>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <CustomText style={styles.closeButtonText}>{translate("back")}</CustomText>
+            <CustomText style={styles.closeButtonText}>
+              {translate("back")}
+            </CustomText>
           </TouchableOpacity>
         </View>
       )}
@@ -217,6 +234,7 @@ const styles = StyleSheet.create({
     borderColor: colors.primary,
     borderRadius: 10,
     fontFamily: "marcellus",
+    height: 60,
     color: colors.dark,
   },
   submitButton: {
@@ -238,10 +256,6 @@ const styles = StyleSheet.create({
   recommendationTitle: {
     fontSize: 22,
     color: colors.primary,
-    marginBottom: 20,
-  },
-  carouselContainer: {
-    height: 200,
     marginBottom: 20,
   },
   carouselItem: {

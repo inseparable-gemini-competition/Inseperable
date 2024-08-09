@@ -19,34 +19,39 @@ export const useModalHandlers = (
 ) => {
   const [userSituation, setUserSituation] = useState<string>("");
   const [userMoodAndDesires, setUserMoodAndDesires] = useState<string>("");
-  const [userMoodModalLoading, setUserMoodModalLoading] = useState<boolean>(false);
-  const [recommendedTrips, setRecommendedTrips] = useState<RecommendedTrip | null>(null);
+  const [userMoodModalLoading, setUserMoodModalLoading] =
+    useState<boolean>(false);
+  const [recommendedTrips, setRecommendedTrips] =
+    useState<RecommendedTrip | null>(null);
   const { userData } = useStore();
   const { translate } = useTranslations();
   const { mutateAsync: updateUserScore } = useUpdateUserScore();
 
-  const handleSituationSubmit = async () => {
+  const handleSituationSubmit = async (voiceSituation?: string) => {
     await mutateAsync({
       promptType: "situation",
       inputData: {
-        userSituation,
+        userSituation: userSituation || voiceSituation,
         country: userData.country,
       },
     });
     updateUserScore({
       cultural: 10,
-    })
+    });
   };
 
   const handleTabooSubmit = async () => {
     setTabooModalVisible(true);
     await mutateAsync({
       promptType: "taboo",
-      inputData: { country: userData?.country, currentLanguage: userData?.currentLanguage },
+      inputData: {
+        country: userData?.country,
+        currentLanguage: userData?.currentLanguage,
+      },
     });
     updateUserScore({
       cultural: 10,
-    })
+    });
   };
 
   const openMapWithLocation = async (
@@ -65,7 +70,9 @@ export const useModalHandlers = (
         Alert.alert(translate("unableToOpenMaps"));
       }
     } catch (err) {
-      Alert.alert(err instanceof Error ? err.message : translate("unknownError"));
+      Alert.alert(
+        err instanceof Error ? err.message : translate("unknownError")
+      );
     }
   };
 
@@ -82,21 +89,25 @@ export const useModalHandlers = (
         await Linking.openURL(uberWebUrl);
       }
     } catch (err) {
-      Alert.alert(err instanceof Error ? err.message : translate("unableToOpenUber"));
+      Alert.alert(
+        err instanceof Error ? err.message : translate("unableToOpenUber")
+      );
     }
   };
 
-  const handleTripRecommendationSubmit = async () => {
+  const handleTripRecommendationSubmit = async (voiceMood) => {
     try {
       setUserMoodModalLoading(true);
       updateUserScore({
         cultural: 10,
-      })
+      });
       const functions = getFunctions();
       const result = (await httpsCallable(
         functions,
         "scheduleTrip"
-      )({ userInput: {userMoodAndDesires, country: userData?.country} })) as any;
+      )({
+        userInput: { userMoodAndDesires : userMoodAndDesires || voiceMood, country: userData?.country },
+      })) as any;
 
       setRecommendedTrips(result.data);
       setUserMoodModalLoading(false);
