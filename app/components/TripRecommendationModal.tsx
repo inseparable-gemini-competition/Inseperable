@@ -1,18 +1,21 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
   ActivityIndicator,
   StyleSheet,
   TouchableOpacity,
+  Dimensions,
+  Image,
 } from "react-native";
-import { Button } from "react-native-ui-lib";
-import { styles as globalStyles, modalStyles } from "@/app/screens/MainStyles";
+import { Carousel } from "react-native-ui-lib";
+import { colors } from "@/app/theme";
+import { useTranslations } from "@/hooks/ui/useTranslations";
 import GenericBottomSheet, {
   GenericBottomSheetTextInput,
 } from "./GenericBottomSheet";
-import { useTranslations } from "@/hooks/ui/useTranslations";
-import { colors } from "@/app/theme";
+
+const { width: screenWidth } = Dimensions.get("window");
 
 interface TripRecommendationModalProps {
   visible: boolean;
@@ -21,12 +24,13 @@ interface TripRecommendationModalProps {
   onSubmit: () => void;
   userMoodAndDesires: string;
   setUserMoodAndDesires: (input: string) => void;
-  recommendedTrip: {
+  recommendedTrips: Array<{
     name: string;
     description: string;
     latitude: number;
     longitude: number;
-  } | null;
+    imageUrl: string;
+  }> | null;
   onViewMap: Function;
   onOpenUber: Function;
 }
@@ -38,29 +42,35 @@ const TripRecommendationModal: React.FC<TripRecommendationModalProps> = ({
   onSubmit,
   userMoodAndDesires,
   setUserMoodAndDesires,
-  recommendedTrip,
+  recommendedTrips,
   onViewMap,
   onOpenUber,
 }) => {
   const { translate } = useTranslations();
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  const renderCarouselItem = (trip: typeof recommendedTrips[0], index: number) => (
+    <View key={index} style={styles.carouselItem}>
+      <Image
+        style={styles.carouselImage}
+        source={{ uri: trip?.imageUrl }}
+        resizeMode="cover"
+      />
+    </View>
+  );
 
   return (
-    <GenericBottomSheet
-      visible={visible}
-      onClose={onClose}
-      enableScroll={true}
-      textToSpeak={recommendedTrip?.description}
-    >
-      {!recommendedTrip ? (
+    <GenericBottomSheet visible={visible} onClose={onClose} enableScroll={true} textToSpeak={recommendedTrips?.[activeIndex]?.description}>
+      {!recommendedTrips ? (
         <>
-          <Text style={modalStyles.modalTitle}>
+          <Text style={styles.modalTitle}>
             {translate("tellUsYourMood")}
           </Text>
           {isLoading ? (
-            <View style={[globalStyles.loadingContainer, { height: 100 }]}>
+            <View style={styles.loadingContainer}>
               <ActivityIndicator color={colors.primary} />
               <Text style={styles.loadingText}>
-                {translate("findingPerfectPlace")}
+                {translate("findingPerfectPlaces")}
               </Text>
             </View>
           ) : (
@@ -71,14 +81,16 @@ const TripRecommendationModal: React.FC<TripRecommendationModalProps> = ({
                 onChangeText={setUserMoodAndDesires}
                 multiline
                 keyboardType="default"
-                style={modalStyles.textInput}
+                style={styles.textInput}
               />
-              <Button
+              <TouchableOpacity
                 style={styles.submitButton}
                 onPress={onSubmit}
-                label={translate("findPlace")}
-                backgroundColor={colors.primary}
-              />
+              >
+                <Text style={styles.submitButtonText}>
+                  {translate("findPlaces")}
+                </Text>
+              </TouchableOpacity>
             </>
           )}
         </>
@@ -87,18 +99,34 @@ const TripRecommendationModal: React.FC<TripRecommendationModalProps> = ({
           <Text style={styles.recommendationTitle}>
             {translate("weRecommend")}
           </Text>
-          <Text style={styles.placeName}>{recommendedTrip?.name}</Text>
-          <Text style={styles.placeDescription}>
-            {recommendedTrip?.description}
+
+          <Carousel
+            onChangePage={setActiveIndex}
+            pageWidth={screenWidth * 0.8}
+            containerStyle={styles.carouselContainer}
+            pageControlPosition={Carousel.pageControlPositions.UNDER}
+            pageControlProps={{ onPagePress: setActiveIndex }}
+          >
+            {recommendedTrips.map((trip, index) =>
+              renderCarouselItem(trip, index)
+            )}
+          </Carousel>
+
+          <Text style={styles.placeName}>
+            {recommendedTrips[activeIndex]?.name}
           </Text>
+          <Text style={styles.placeDescription}>
+            {recommendedTrips[activeIndex]?.description}
+          </Text>
+
           <View style={styles.actionButtonsContainer}>
             <TouchableOpacity
               style={styles.actionButton}
               onPress={() =>
                 onViewMap(
-                  recommendedTrip?.latitude,
-                  recommendedTrip?.longitude,
-                  recommendedTrip?.name
+                  recommendedTrips[activeIndex]?.latitude,
+                  recommendedTrips[activeIndex]?.longitude,
+                  recommendedTrips[activeIndex]?.name
                 )
               }
             >
@@ -110,8 +138,8 @@ const TripRecommendationModal: React.FC<TripRecommendationModalProps> = ({
               style={styles.actionButton}
               onPress={() =>
                 onOpenUber(
-                  recommendedTrip?.latitude,
-                  recommendedTrip?.longitude
+                  recommendedTrips[activeIndex]?.latitude,
+                  recommendedTrips[activeIndex]?.longitude
                 )
               }
             >
@@ -120,6 +148,7 @@ const TripRecommendationModal: React.FC<TripRecommendationModalProps> = ({
               </Text>
             </TouchableOpacity>
           </View>
+
           <TouchableOpacity style={styles.closeButton} onPress={onClose}>
             <Text style={styles.closeButtonText}>{translate("back")}</Text>
           </TouchableOpacity>
@@ -130,38 +159,84 @@ const TripRecommendationModal: React.FC<TripRecommendationModalProps> = ({
 };
 
 const styles = StyleSheet.create({
+  modalTitle: {
+    fontSize: 22,
+    fontFamily: "marcellus",
+    color: colors.primary,
+    textAlign: "center",
+    marginVertical: 20,
+  },
+  loadingContainer: {
+    height: 100,
+    justifyContent: "center",
+    alignItems: "center",
+  },
   loadingText: {
     textAlign: "center",
     fontFamily: "marcellus",
     color: colors.primary,
     marginTop: 10,
   },
+  textInput: {
+    marginBottom: 20,
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    borderRadius: 10,
+    fontFamily: "marcellus",
+    color: colors.dark,
+  },
   submitButton: {
-    marginVertical: 8,
-    maxWidth: "80%",
-    alignSelf: "center",
+    backgroundColor: colors.primary,
+    borderRadius: 10,
+    padding: 15,
+    alignItems: "center",
+  },
+  submitButtonText: {
+    fontFamily: "marcellus",
+    color: colors.white,
+    fontSize: 18,
   },
   recommendationContainer: {
-    padding: 20,
     alignItems: "center",
+    backgroundColor: colors.background,
+    borderRadius: 10,
+    padding: 20,
   },
   recommendationTitle: {
     fontSize: 22,
-    fontWeight: "bold",
+    fontFamily: "marcellus",
     color: colors.primary,
-    marginBottom: 10,
+    marginBottom: 20,
+  },
+  carouselContainer: {
+    height: 200,
+    marginBottom: 20,
+  },
+  carouselItem: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 10,
+    overflow: "hidden",
+  },
+  carouselImage: {
+    width: "100%",
+    height: "100%",
   },
   placeName: {
     fontSize: 18,
     fontWeight: "600",
     color: colors.secondary,
     marginBottom: 10,
+    fontFamily: "marcellus",
   },
   placeDescription: {
     fontSize: 16,
     color: colors.dark,
     textAlign: "center",
     marginBottom: 20,
+    fontFamily: "marcellus",
   },
   actionButtonsContainer: {
     flexDirection: "row",
@@ -179,6 +254,7 @@ const styles = StyleSheet.create({
   actionButtonText: {
     color: colors.white,
     textAlign: "center",
+    fontFamily: "marcellus",
   },
   closeButton: {
     padding: 10,
@@ -186,6 +262,7 @@ const styles = StyleSheet.create({
   closeButtonText: {
     color: colors.secondary,
     textAlign: "center",
+    fontFamily: "marcellus",
   },
 });
 

@@ -110,7 +110,7 @@ export const styles = StyleSheet.create({
   countdownContainer: {
     position: "absolute",
     top: "50%",
-    end: "50%",
+    end: "15%",
     transform: [{ translateX: -50 }, { translateY: -50 }],
     alignItems: "center",
     zIndex: 1,

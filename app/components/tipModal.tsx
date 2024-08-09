@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, ActivityIndicator } from "react-native";
+import { View, Text, ActivityIndicator, StyleSheet } from "react-native";
 import { Picker } from "react-native-ui-lib";
-import { modalStyles, styles } from "@/app/screens/MainStyles";
+import { modalStyles, styles as globalStyles } from "@/app/screens/MainStyles";
 import GenericBottomSheet from "./GenericBottomSheet"; // Adjust the import path as needed
 import { useTranslations } from "@/hooks/ui/useTranslations";
+import { colors } from "@/app/theme";
 
 interface TipsModalProps {
   visible: boolean;
@@ -30,6 +31,7 @@ const TipsModal: React.FC<TipsModalProps> = ({
     { label: translate("cuisine"), value: "cuisine" },
     { label: translate("safety"), value: "safety" },
   ];
+
   useEffect(() => {
     setIsVisible(visible);
   }, [visible]);
@@ -51,9 +53,9 @@ const TipsModal: React.FC<TipsModalProps> = ({
       enableScroll={true}
       textToSpeak={result}
     >
-      <Text style={modalStyles.modalTitle}>{translate("selectTipType")}</Text>
+      <Text style={styles.title}>{translate("selectTipType")}</Text>
       <Picker
-        style={styles.picker}
+        style={globalStyles.picker}
         placeholder={translate("selectTipType")}
         value={selectedTipType}
         onChange={handleTipTypeChange}
@@ -66,16 +68,47 @@ const TipsModal: React.FC<TipsModalProps> = ({
           />
         ))}
       </Picker>
-      {isLoading ? (
-        <View style={[styles.loadingContainer, { height: 100 }]}>
-          <ActivityIndicator />
+      {isLoading && (
+        <View style={[globalStyles.loadingContainer, { height: 100 }]}>
+          <ActivityIndicator color={colors.primary} />
           <Text style={styles.loadingText}>{translate("fetchingTips")}</Text>
         </View>
-      ) : (
-        <Text style={modalStyles.modalText}>{result}</Text>
+      )}
+
+      {!!result && (
+        <View style={styles.resultContainer}>
+          <Text style={styles.resultText}>{result}</Text>
+        </View>
       )}
     </GenericBottomSheet>
   );
 };
+
+const styles = StyleSheet.create({
+  title: {
+    ...modalStyles.modalTitle,
+    fontFamily: "marcellus",
+    textAlign: "center",
+    marginBottom: 20,
+  },
+  loadingText: {
+    textAlign: "center",
+    fontFamily: "marcellus",
+    color: colors.primary,
+    marginTop: 10,
+  },
+  resultContainer: {
+    backgroundColor: colors.background,
+    borderRadius: 15,
+    padding: 20,
+    marginHorizontal: 10,
+    marginTop: 10,
+  },
+  resultText: {
+    ...modalStyles.modalText,
+    textAlign: "center",
+    fontFamily: "marcellus",
+  },
+});
 
 export default TipsModal;

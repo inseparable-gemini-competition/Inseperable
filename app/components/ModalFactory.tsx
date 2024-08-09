@@ -69,13 +69,13 @@ export const ModalFactory: React.FC<ModalFactoryProps> = ({
       visible={modals.userMoodModalVisible}
       onClose={() => {
         modals.setUserMoodModalVisible(false);
-        modalHandlers.setRecommendedTrip(null);
+        modalHandlers.setRecommendedTrips(null);
       }}
       userMoodAndDesires={modalHandlers.userMoodAndDesires}
       setUserMoodAndDesires={modalHandlers.setUserMoodAndDesires}
       onSubmit={modalHandlers.handleTripRecommendationSubmit}
       isLoading={modalHandlers.userMoodModalLoading}
-      recommendedTrip={modalHandlers.recommendedTrip as any}
+      recommendedTrips={modalHandlers.recommendedTrips as any}
       onViewMap={modalHandlers.openMapWithLocation}
       onOpenUber={modalHandlers.openUber}
     />

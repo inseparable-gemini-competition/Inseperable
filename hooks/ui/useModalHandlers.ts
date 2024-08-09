@@ -20,7 +20,7 @@ export const useModalHandlers = (
   const [userSituation, setUserSituation] = useState<string>("");
   const [userMoodAndDesires, setUserMoodAndDesires] = useState<string>("");
   const [userMoodModalLoading, setUserMoodModalLoading] = useState<boolean>(false);
-  const [recommendedTrip, setRecommendedTrip] = useState<RecommendedTrip | null>(null);
+  const [recommendedTrips, setRecommendedTrips] = useState<RecommendedTrip | null>(null);
   const { userData } = useStore();
   const { translate } = useTranslations();
   const { mutateAsync: updateUserScore } = useUpdateUserScore();
@@ -98,13 +98,11 @@ export const useModalHandlers = (
         "scheduleTrip"
       )({ userInput: {userMoodAndDesires, country: userData?.country} })) as any;
 
-      const { name, description, latitude, longitude } = result.data;
-
-      setRecommendedTrip({ name, description, latitude, longitude });
+      setRecommendedTrips(result.data);
       setUserMoodModalLoading(false);
     } catch (error) {
       setUserMoodModalLoading(false);
-      setRecommendedTrip(null);
+      setRecommendedTrips(null);
       Alert.alert(
         translate("unexpectedError"),
         error instanceof Error ? error.message : translate("unexpectedError")
@@ -121,9 +119,9 @@ export const useModalHandlers = (
     setUserMoodAndDesires,
     handleTripRecommendationSubmit,
     userMoodModalLoading,
-    recommendedTrip,
+    recommendedTrips,
     openMapWithLocation,
     openUber,
-    setRecommendedTrip,
+    setRecommendedTrips,
   };
 };

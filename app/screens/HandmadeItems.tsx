@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { FlatList, ListRenderItem, TouchableOpacity } from "react-native";
+import { FlatList, ListRenderItem, TouchableOpacity, Image, ViewStyle, TextStyle, ImageStyle } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { View, Text, Card, Button } from "react-native-ui-lib";
 import { useNavigation, NavigationProp } from "@react-navigation/native";
@@ -11,18 +11,19 @@ import Animated, {
   withRepeat,
   withTiming,
 } from "react-native-reanimated";
-import { colors } from "@/app/theme";
-import styles from "./HandMadeStyles";
-import { useTranslations } from "@/hooks/ui/useTranslations";
-import { convertMarkdownToPlainText } from "@/app/helpers/markdown";
+import { LinearGradient } from "expo-linear-gradient";
 import { useInfiniteQuery, useQueryClient } from "react-query";
-import { getFunctions, httpsCallable } from "firebase/functions";
+import { getFunctions, httpsCallable, HttpsCallableResult } from "firebase/functions";
 import {
   getFirestore,
   doc,
   onSnapshot,
   DocumentData,
 } from "firebase/firestore";
+
+import { colors } from "@/app/theme";
+import { useTranslations } from "@/hooks/ui/useTranslations";
+import { convertMarkdownToPlainText } from "@/app/helpers/markdown";
 import useStore from "@/app/store";
 
 interface HandmadeItem {
@@ -32,6 +33,7 @@ interface HandmadeItem {
   imageUrl: string;
   carbonFootprint: { original: string; translated?: string };
   ownerId: string;
+  description: { original: string; translated?: string };
 }
 
 interface FetchResponse {
@@ -44,6 +46,7 @@ interface TranslationUpdate {
     name?: string;
     price?: string;
     carbonFootprint?: string;
+    description?: string;
   };
 }
 
@@ -63,7 +66,7 @@ const fetchHandmadeItems = async ({
   country: string;
   language: string;
 }): Promise<FetchResponse> => {
-  const result = await getHandmadeItems({
+  const result: HttpsCallableResult<FetchResponse> = await getHandmadeItems({
     pageParam,
     language,
     country,
@@ -74,8 +77,7 @@ const fetchHandmadeItems = async ({
 const HandMade: React.FC = () => {
   const navigation = useNavigation<NavigationProp<any>>();
   const queryClient = useQueryClient();
-  const [translationUpdates, setTranslationUpdates] =
-    useState<TranslationUpdate>({});
+  const [translationUpdates, setTranslationUpdates] = useState<TranslationUpdate>({});
   const { userData } = useStore();
   const country = userData?.country || "";
   const { translate, isRTL, currentLanguage } = useTranslations();
@@ -84,7 +86,7 @@ const HandMade: React.FC = () => {
     useInfiniteQuery<FetchResponse, Error>({
       queryKey: ["handmadeItems", country],
       queryFn: ({ pageParam }) =>
-        fetchHandmadeItems({ pageParam, country, language: currentLanguage }),
+        fetchHandmadeItems({ pageParam: pageParam as string | undefined, country, language: currentLanguage }),
       getNextPageParam: (lastPage) => lastPage.lastVisible,
       staleTime: 1000,
     });
@@ -120,7 +122,7 @@ const HandMade: React.FC = () => {
   useEffect(() => {
     if (Object.keys(translationUpdates).length > 0) {
       queryClient.setQueryData<{ pages: { items: HandmadeItem[] }[] }>(
-        ["handmadeItems"],
+        ["handmadeItems", country],
         (oldData) => {
           if (!oldData) return oldData;
           return {
@@ -133,6 +135,12 @@ const HandMade: React.FC = () => {
                   ...item.name,
                   translated:
                     translationUpdates[item.id]?.name || item.name.translated,
+                },
+                description: {
+                  ...item.description,
+                  translated:
+                    translationUpdates[item.id]?.description ||
+                    item.description.translated,
                 },
                 price: {
                   ...item.price,
@@ -151,7 +159,7 @@ const HandMade: React.FC = () => {
         }
       );
     }
-  }, [translationUpdates, queryClient]);
+  }, [translationUpdates, queryClient, country]);
 
   const purchaseItem = (item: HandmadeItem) => {
     navigation.navigate("Chat", {
@@ -163,7 +171,8 @@ const HandMade: React.FC = () => {
   const TranslatingText: React.FC<{
     original: string;
     translated?: string;
-  }> = ({ original, translated }) => {
+    style?: TextStyle;
+  }> = ({ original, translated, style }) => {
     const [isTranslating, setIsTranslating] = useState(!translated);
 
     useEffect(() => {
@@ -175,44 +184,39 @@ const HandMade: React.FC = () => {
     if (isTranslating) {
       return (
         <View>
-          <Text>{original}</Text>
-          <Text>{translate("translating")}</Text>
+          <Text style={style}>{original}</Text>
+          <Text style={[style, { color: colors.translatedTextLight }]}>{translate("translating")}</Text>
         </View>
       );
     }
 
-    return <Text>{translated || original}</Text>;
+    return <Text style={style}>{translated || original}</Text>;
   };
 
   const renderItem: ListRenderItem<HandmadeItem> = ({ item }) => (
     <Animated.View style={[styles.itemContainer, fadeInUpStyle]}>
-      <Card style={styles.card}>
-        <Card.Section
-          imageSource={{ uri: item.imageUrl }}
-          imageStyle={styles.itemImage}
-        />
+      <Card style={styles.card} elevation={4}>
+        <View style={styles.imageContainer}>
+          <Image source={{ uri: item.imageUrl }} style={styles.itemImage} />
+          <View style={styles.priceTag}>
+            <TranslatingText
+              original={item.price.original}
+              translated={item.price.translated}
+              style={styles.priceText}
+            />
+          </View>
+        </View>
         <View style={styles.cardContent}>
           <TranslatingText
             original={item.name.original}
             translated={item.name.translated}
+            style={styles.itemName}
           />
           <View style={styles.itemRow}>
             <Ionicons
-              name="pricetag"
-              size={16}
-              color={colors.primary}
-              style={styles.icon}
-            />
-            <TranslatingText
-              original={item.price.original}
-              translated={item.price.translated}
-            />
-          </View>
-          <View style={styles.itemRow}>
-            <Ionicons
               name="leaf"
-              size={16}
-              color={colors.secondary}
+              size={18}
+              color={colors.success}
               style={styles.icon}
             />
             <View>
@@ -220,20 +224,30 @@ const HandMade: React.FC = () => {
                 {translate("carbonFootprint")}
               </Text>
               <TranslatingText
-                original={convertMarkdownToPlainText(
-                  item.carbonFootprint.original
-                )}
+                original={convertMarkdownToPlainText(item.carbonFootprint.original)}
                 translated={
                   item.carbonFootprint.translated &&
                   convertMarkdownToPlainText(item.carbonFootprint.translated)
                 }
+                style={styles.carbonFootprintText}
               />
             </View>
+          </View>
+          <View style={styles.descriptionContainer}>
+            <TranslatingText
+              original={convertMarkdownToPlainText(item.description.original)}
+              translated={
+                item.description.translated &&
+                convertMarkdownToPlainText(item.description.translated)
+              }
+              style={styles.descriptionText}
+            />
           </View>
           <Button
             label={translate("contactSeller")}
             onPress={() => purchaseItem(item)}
             style={styles.buyButton}
+            labelStyle={styles.buyButtonLabel}
           />
         </View>
       </Card>
@@ -303,56 +317,172 @@ const HandMade: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Animated.View style={[styles.header, fadeInDownStyle]}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={styles.backButton}
-        >
-          <Ionicons
-            name={isRTL ? "arrow-forward" : "arrow-back"}
-            size={24}
-            color={colors.white}
-          />
-        </TouchableOpacity>
-        <Text style={styles.title}>{translate("handmadeItems")}</Text>
-      </Animated.View>
-      {isLoading && (
-        <Animated.View style={[styles.loadingContainer, loadingAnimatedStyle]}>
-          <Ionicons name="reload" size={48} color={colors.primary} />
-          <Text style={styles.loadingText}>{translate("loading")}</Text>
+      <LinearGradient
+        colors={[colors.backgroundGradientStart, colors.backgroundGradientEnd]}
+        style={styles.gradient}
+      >
+        <Animated.View style={[styles.header, fadeInDownStyle]}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.backButton}
+          >
+            <Ionicons
+              name={isRTL ? "arrow-forward" : "arrow-back"}
+              size={24}
+              color={colors.white}
+            />
+          </TouchableOpacity>
+          <Text style={styles.title}>{translate("handmadeItems")}</Text>
         </Animated.View>
-      )}
-      {data && (
-        <FlatList
-          showsVerticalScrollIndicator={false}
-          data={data.pages.flatMap((page) => page.items)}
-          keyExtractor={(item) => item.id}
-          renderItem={renderItem}
-          onEndReached={() => {
-            if (hasNextPage && !isFetching) {
-              fetchNextPage();
+        {isLoading && (
+          <Animated.View style={[styles.loadingContainer, loadingAnimatedStyle]}>
+            <Ionicons name="reload" size={48} color={colors.primary} />
+            <Text style={styles.loadingText}>{translate("loading")}</Text>
+          </Animated.View>
+        )}
+        {data && (
+          <FlatList
+            showsVerticalScrollIndicator={false}
+            data={data.pages.flatMap((page) => page.items)}
+            keyExtractor={(item) => item.id}
+            renderItem={renderItem}
+            onEndReached={() => {
+              if (hasNextPage && !isFetching) {
+                fetchNextPage();
+              }
+            }}
+            onEndReachedThreshold={0.5}
+            ListFooterComponent={
+              isFetching ? (
+                <Animated.View style={[styles.loadingContainer, loadingAnimatedStyle]}>
+                  <Ionicons name="reload" size={48} color={colors.primary} />
+                  <Text style={styles.loadingText}>{translate("loadingMore")}</Text>
+                </Animated.View>
+              ) : null
             }
-          }}
-          onEndReachedThreshold={0.5}
-          ListFooterComponent={
-            isFetching ? (
-              <Animated.View
-                style={[styles.loadingContainer, loadingAnimatedStyle]}
-              >
-                <Ionicons name="reload" size={48} color={colors.primary} />
-                <Text style={styles.loadingText}>
-                  {translate("loadingMore")}
-                </Text>
-              </Animated.View>
-            ) : null
-          }
-        />
-      )}
-      {!data && !isLoading && (
-        <Text style={styles.noDataText}>{translate("noHandmadeItems")}</Text>
-      )}
+          />
+        )}
+        {!data && !isLoading && (
+          <Text style={styles.noDataText}>{translate("noHandmadeItems")}</Text>
+        )}
+      </LinearGradient>
     </SafeAreaView>
   );
+};
+
+const styles: {
+  [key: string]: ViewStyle | TextStyle | ImageStyle;
+} = {
+  container: {
+    flex: 1,
+  },
+  gradient: {
+    flex: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: colors.headerBackground,
+  },
+  backButton: {
+    marginEnd: 16,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: colors.white,
+  },
+  itemContainer: {
+    padding: 16,
+  },
+  card: {
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginBottom: 16,
+    backgroundColor: colors.white,
+  },
+  imageContainer: {
+    position: 'relative',
+  },
+  itemImage: {
+    width: '100%',
+    height: 200,
+    resizeMode: 'cover',
+  },
+  priceTag: {
+    position: 'absolute',
+    top: 10,
+    end: 10,
+    backgroundColor: colors.primary,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  priceText: {
+    color: colors.white,
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  cardContent: {
+    padding: 16,
+  },
+  itemName: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 8,
+    color: colors.dark,
+  },
+  itemRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  icon: {
+    marginEnd: 8,
+  },
+  itemCarbonFootprint: {
+    fontSize: 14,
+    color: colors.secondary,
+    marginBottom: 2,
+  },
+  carbonFootprintText: {
+    fontSize: 14,
+    color: colors.dark,
+  },
+  descriptionContainer: {
+    marginBottom: 16,
+  },
+  descriptionText: {
+    fontSize: 14,
+    color: colors.secondary,
+    lineHeight: 20,
+  },
+  buyButton: {
+    backgroundColor: colors.primary,
+    borderRadius: 8,
+  },
+  buyButtonLabel: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: colors.white,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: colors.secondary,
+  },
+  noDataText: {
+    fontSize: 16,
+    color: colors.secondary,
+    textAlign: 'center',
+    marginTop: 32,
+  },
 };
 
 export default HandMade;

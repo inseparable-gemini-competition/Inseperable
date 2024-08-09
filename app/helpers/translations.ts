@@ -50,7 +50,7 @@ export const translations = {
       fetchingResponse: "Fetching Response",
       fetchingDonationInfo: "Fetching Donation Info",
       fetchingTaboos: "Fetching Taboos",
-      whereAreYouBased: "Where are you based?",
+      whatIsYourOriginalCountry: "What is your original country?",
 
     },
     // Other languages can be added here

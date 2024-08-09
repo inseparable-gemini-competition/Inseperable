@@ -29,7 +29,7 @@ const Questionnaire = ({ onFinish }: Props) => {
   const [questions, setQuestions] = useState([
     {
       id: 1,
-      question: translate("whereAreYouBased"),
+      question: translate("whatIsYourOriginalCountry"),
       options: [],
       isOpenEnded: true,
     },
@@ -61,7 +61,7 @@ const Questionnaire = ({ onFinish }: Props) => {
         ];
         updatedQuestions[0] = {
           id: 1,
-          question: translate("whereAreYouBased"),
+          question: translate("whatIsYourOriginalCountry"),
           options: [],
           isOpenEnded: true,
         };

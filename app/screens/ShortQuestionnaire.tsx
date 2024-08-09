@@ -30,7 +30,7 @@ const Questionnaire = ({ onFinish }: Props) => {
   const [questions] = useState([
     {
       id: 1,
-      question: translate("whereAreYouNow"),
+      question: translate("whereAreYouTravelling"),
       options: [],
       isOpenEnded: true,
     },

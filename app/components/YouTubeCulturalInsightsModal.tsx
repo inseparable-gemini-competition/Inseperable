@@ -1,23 +1,26 @@
-import React, { useState, useCallback } from 'react';
-import { View, Text, ActivityIndicator, StyleSheet, Alert } from 'react-native';
-import { Button } from 'react-native-ui-lib';
-import { styles as globalStyles, modalStyles } from '@/app/screens/MainStyles';
-import GenericBottomSheet from './GenericBottomSheet';
-import { useTranslations } from '@/hooks/ui/useTranslations';
-import { colors } from '@/app/theme';
-import { Video } from 'expo-av';
-import * as ImagePicker from 'expo-image-picker';
-import { convertMarkdownToPlainText } from '@/app/helpers/markdown';
-import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
-import { httpsCallable } from 'firebase/functions';
-import {functions, storage} from '../helpers/firebaseConfig'
+import React, { useState, useCallback } from "react";
+import { View, Text, ActivityIndicator, StyleSheet, Alert } from "react-native";
+import { Button, ProgressBar } from "react-native-ui-lib";
+import { styles as globalStyles } from "@/app/screens/MainStyles";
+import GenericBottomSheet from "./GenericBottomSheet";
+import { useTranslations } from "@/hooks/ui/useTranslations";
+import { colors } from "@/app/theme";
+import { Video } from "expo-av";
+import * as ImagePicker from "expo-image-picker";
+import { convertMarkdownToPlainText } from "@/app/helpers/markdown";
+import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import { httpsCallable } from "firebase/functions";
+import { functions, storage } from "../helpers/firebaseConfig";
 
 interface VideoCulturalInsightsModalProps {
   visible: boolean;
   onClose: () => void;
 }
 
-const VideoCulturalInsightsModal: React.FC<VideoCulturalInsightsModalProps> = ({ visible, onClose }) => {
+const VideoCulturalInsightsModal: React.FC<VideoCulturalInsightsModalProps> = ({
+  visible,
+  onClose,
+}) => {
   const { translate, currentLanguage } = useTranslations();
   const [videoUri, setVideoUri] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
@@ -50,9 +53,11 @@ const VideoCulturalInsightsModal: React.FC<VideoCulturalInsightsModalProps> = ({
 
       const uploadTask = uploadBytesResumable(storageRef, blob);
 
-      uploadTask.on('state_changed', 
+      uploadTask.on(
+        "state_changed",
         (snapshot) => {
-          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          const progress =
+            (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
           setUploadProgress(progress);
         },
         (error) => {
@@ -62,7 +67,7 @@ const VideoCulturalInsightsModal: React.FC<VideoCulturalInsightsModalProps> = ({
         },
         async () => {
           const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-          console.log('File available at', downloadURL);
+          console.log("File available at", downloadURL);
           setIsUploading(false);
           analyzeVideo(downloadURL);
         }
@@ -74,19 +79,28 @@ const VideoCulturalInsightsModal: React.FC<VideoCulturalInsightsModalProps> = ({
     }
   }, [videoUri, translate]);
 
-  const analyzeVideo = useCallback(async (videoUrl: string) => {
-    setIsAnalyzing(true);
-    try {
-      const extractCulturalVideoAnalysis = httpsCallable(functions, 'extractCulturalVideoAnalysis');
-      const result = await extractCulturalVideoAnalysis({ videoUrl, language: currentLanguage });
-      setCulturalInsights(result.data.culturalInsights);
-    } catch (error) {
-      console.error("Analysis failed:", error);
-      Alert.alert(translate("errorTitle"), translate("analysisFailed"));
-    } finally {
-      setIsAnalyzing(false);
-    }
-  }, [currentLanguage, translate]);
+  const analyzeVideo = useCallback(
+    async (videoUrl: string) => {
+      setIsAnalyzing(true);
+      try {
+        const extractCulturalVideoAnalysis = httpsCallable(
+          functions,
+          "extractCulturalVideoAnalysis"
+        );
+        const result = await extractCulturalVideoAnalysis({
+          videoUrl,
+          language: currentLanguage,
+        });
+        setCulturalInsights(result.data.culturalInsights);
+      } catch (error) {
+        console.error("Analysis failed:", error);
+        Alert.alert(translate("errorTitle"), translate("analysisFailed"));
+      } finally {
+        setIsAnalyzing(false);
+      }
+    },
+    [currentLanguage, translate]
+  );
 
   const resetState = useCallback(() => {
     setVideoUri(null);
@@ -106,16 +120,34 @@ const VideoCulturalInsightsModal: React.FC<VideoCulturalInsightsModalProps> = ({
     >
       {!culturalInsights ? (
         <>
-          <Text style={modalStyles.modalTitle}>
+          <Text style={styles.modalTitle}>
             {translate("getCulturalContext")}
           </Text>
           {isUploading || isAnalyzing ? (
-            <View style={[globalStyles.loadingContainer, { height: 100 }]}>
-              <ActivityIndicator color={colors.primary} />
-              <Text style={styles.loadingText}>
-                {isUploading ? `${translate("uploadingVideo")} ${uploadProgress.toFixed(0)}%` : translate("analyzingVideo")}
-              </Text>
-            </View>
+            <>
+              {isUploading ? (
+                <ProgressBar
+                  progress={uploadProgress}
+                  progressColor={colors.warning}
+                  fullWidth
+                  style={{ width: "80%", alignSelf: "center" }}
+                />
+              ) : (
+                <ActivityIndicator size={"large"} />
+              )}
+
+              <View
+                style={[globalStyles.loadingContainer, styles.loadingContainer]}
+              >
+                <Text style={styles.loadingText}>
+                  {isUploading
+                    ? `${translate("uploadingVideo")} ${uploadProgress.toFixed(
+                        0
+                      )}%`
+                    : translate("analyzingVideo")}
+                </Text>
+              </View>
+            </>
           ) : (
             <>
               {videoUri && (
@@ -128,19 +160,23 @@ const VideoCulturalInsightsModal: React.FC<VideoCulturalInsightsModalProps> = ({
                   />
                 </View>
               )}
-              <Button
-                style={styles.button}
-                onPress={pickVideo}
-                label={translate("selectVideo")}
-                backgroundColor={colors.secondary}
-              />
-              <Button
-                style={styles.button}
-                onPress={uploadVideo}
-                label={translate("uploadAndAnalyze")}
-                backgroundColor={colors.primary}
-                disabled={!videoUri || isUploading}
-              />
+              {!videoUri && (
+                <Button
+                  style={styles.button}
+                  onPress={pickVideo}
+                  label={translate("selectVideo")}
+                  backgroundColor={colors.black}
+                />
+              )}
+              {videoUri && (
+                <Button
+                  style={[styles.button, styles.uploadButton]}
+                  onPress={uploadVideo}
+                  label={translate("uploadAndAnalyze")}
+                  backgroundColor={colors.primary}
+                  disabled={!videoUri || isUploading}
+                />
+              )}
             </>
           )}
         </>
@@ -153,10 +189,10 @@ const VideoCulturalInsightsModal: React.FC<VideoCulturalInsightsModalProps> = ({
             {convertMarkdownToPlainText(culturalInsights)}
           </Text>
           <Button
-            style={styles.button}
+            style={[styles.button, styles.analyzeButton]}
             onPress={resetState}
             label={translate("analyzeAnotherVideo")}
-            backgroundColor={colors.secondary}
+            backgroundColor={colors.black}
           />
         </View>
       )}
@@ -165,37 +201,69 @@ const VideoCulturalInsightsModal: React.FC<VideoCulturalInsightsModalProps> = ({
 };
 
 const styles = StyleSheet.create({
+  modalTitle: {
+    fontSize: 24,
+    color: colors.primary,
+    fontFamily: "marecllus",
+    textAlign: "center",
+    marginVertical: 20,
+  },
+  loadingContainer: {
+    height: 90,
+    justifyContent: "center",
+    alignItems: "center",
+  },
   loadingText: {
-    textAlign: 'center',
-    fontFamily: 'marcellus',
+    textAlign: "center",
+    fontFamily: "marcellus",
     color: colors.primary,
     marginTop: 10,
+    fontSize: 18,
   },
   button: {
-    marginVertical: 8,
-    maxWidth: '80%',
-    alignSelf: 'center',
+    marginVertical: 10,
+    maxWidth: "80%",
+    alignSelf: "center",
+    borderRadius: 25,
+    paddingVertical: 12,
+  },
+  uploadButton: {
+    backgroundColor: colors.primary,
+  },
+  analyzeButton: {
+    backgroundColor: colors.secondary,
   },
   insightsContainer: {
     padding: 20,
-    alignItems: 'center',
+    alignItems: "center",
+    backgroundColor: colors.background,
+    borderRadius: 15,
   },
   insightsTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
+    fontSize: 24,
+    fontWeight: "bold",
     color: colors.primary,
     marginBottom: 10,
+    textAlign: "center",
   },
   insightsText: {
     fontSize: 16,
     color: colors.dark,
-    textAlign: 'center',
+    fontFamily: "marcellus",
+    textAlign: "center",
     marginBottom: 20,
   },
   videoContainer: {
-    width: '100%',
+    width: "100%",
     aspectRatio: 16 / 9,
     marginBottom: 20,
+    borderRadius: 10,
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.8,
+    shadowRadius: 2,
+    elevation: 5,
   },
   video: {
     flex: 1,

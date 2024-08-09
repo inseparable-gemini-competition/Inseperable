@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   FlatList,
   ActivityIndicator,
@@ -12,7 +12,6 @@ import {
 } from "react-native";
 import { View, Text } from "react-native-ui-lib";
 import * as ImagePicker from "expo-image-picker";
-import { httpsCallable } from "firebase/functions";
 import {
   collection,
   query,
@@ -20,11 +19,14 @@ import {
   orderBy,
   limit,
   startAfter,
+  DocumentData,
+  QueryDocumentSnapshot,
+  onSnapshot,
   getDocs,
 } from "firebase/firestore";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
-import { useInfiniteQuery, useMutation } from "react-query";
-import { db, auth, functions, storage } from "@/app/helpers/firebaseConfig";
+import { useMutation } from "react-query";
+import { db, auth, storage, functions } from "@/app/helpers/firebaseConfig";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
 import { colors } from "@/app/theme";
@@ -33,6 +35,8 @@ import FastImage from "react-native-fast-image";
 import { convertMarkdownToPlainText } from "@/app/helpers/markdown";
 import { useTranslations } from "@/hooks/ui/useTranslations";
 import useStore from "@/app/store";
+import { debounce } from "@/app/helpers/debounce";
+import { httpsCallable } from "firebase/functions";
 
 // Types
 interface Photo {
@@ -43,54 +47,14 @@ interface Photo {
   timestamp: number;
 }
 
-interface PhotosResponse {
-  photos: Photo[];
-  lastVisible: any;
-}
-
-// API functions
-const fetchPhotos = async ({
-  pageParam = null,
-  userId,
-}: {
-  pageParam: any;
-  userId: string;
-}): Promise<PhotosResponse> => {
-  if (!auth.currentUser) {
-    throw new Error("User not authenticated");
-  }
-  if (!userId) {
-    throw new Error("userId is required for fetchPhotos");
-  }
-  const photosRef = collection(db, "photos");
-  let q = query(
-    photosRef,
-    where("userId", "==", userId),
-    orderBy("timestamp", "desc"),
-    limit(20)
-  );
-
-  if (pageParam) {
-    q = query(q, startAfter(pageParam));
-  }
-
-  const snapshot = await getDocs(q);
-  const photos = snapshot.docs.map(
-    (doc) => ({ id: doc.id, ...doc.data() } as Photo)
-  );
-
-  return {
-    photos,
-    lastVisible: snapshot.docs[snapshot.docs.length - 1],
-  };
-};
-
 const uploadAndAnalyzePhoto = async ({
   uri,
   userId,
+  setProgress,
 }: {
   uri: string;
   userId: string;
+  setProgress: (progress: number) => void;
 }): Promise<void> => {
   if (!auth.currentUser) {
     throw new Error("User not authenticated");
@@ -119,7 +83,11 @@ const uploadAndAnalyzePhoto = async ({
       uploadTask.on(
         "state_changed",
         (snapshot) => {
-          // Progress monitoring can be added here if needed
+          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          setProgress(progress);
+          if (progress === 100) {
+            resolve("Generating your beautiful captions...");
+          }
         },
         (error) => {
           reject(error);
@@ -141,107 +109,70 @@ const uploadAndAnalyzePhoto = async ({
   }
 };
 
-const searchPhotos = async ({
-  pageParam = null,
-  queryKey,
-  userId,
-}: {
-  pageParam: any;
-  userId: string;
-  queryKey: (string | null)[];
-}): Promise<PhotosResponse> => {
-  if (!userId) {
-    throw new Error("userId is required for searchPhotos");
-  }
-
-  const [_key, query] = queryKey;
-  const searchPhotosFunction = httpsCallable(functions, "searchPhotos");
-  const result = await searchPhotosFunction({
-    query,
-    lastVisible: pageParam,
-    userId,
-    pageSize: 20,
-  });
-  return result.data as PhotosResponse;
-};
-
-// Custom hook
-const usePhotos = (searchQuery: string) => {
-  const [internalLoading, setInternalLoading] = useState(false);
+const TravelPhotoScreen: React.FC = () => {
+  const [photos, setPhotos] = useState<Photo[]>([]);
+  const [originalPhotos, setOriginalPhotos] = useState<Photo[]>([]);
+  const [lastVisible, setLastVisible] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [uploading, setUploading] = useState<boolean>(false);
+  const [progress, setProgress] = useState<number>(0);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const { translate } = useTranslations();
   const { userData } = useStore();
 
-  const infiniteQuery = useInfiniteQuery<PhotosResponse, Error>(
-    ["photos", searchQuery, userData?.id],
-    ({ pageParam, queryKey }) => {
-      const [_, __, userId = "" as any] = queryKey;
-      if (!userId) throw new Error("User ID is not available");
+  useEffect(() => {
+    if (!userData?.id) return;
 
-      return searchQuery
-        ? searchPhotos({ pageParam, queryKey: [_, searchQuery], userId })
-        : fetchPhotos({ pageParam, userId });
-    },
+    setLoading(true);
+
+    const q = query(
+      collection(db, "photos"),
+      where("userId", "==", userData.id),
+      orderBy("timestamp", "desc"),
+      limit(10)
+    );
+
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const newPhotos = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as Photo[];
+        setPhotos(newPhotos);
+        setOriginalPhotos(newPhotos);
+        setLastVisible(snapshot.docs.length > 0 ? snapshot.docs[snapshot.docs.length - 1] : null);
+        setLoading(false);
+        setUploading(false);
+      },
+      (error) => {
+        console.error("Error fetching photos:", error);
+        setLoading(false);
+      }
+    );
+
+    return () => unsubscribe();
+  }, [userData?.id]);
+
+  const uploadMutation = useMutation(
+    (data: { uri: string; userId: string }) =>
+      uploadAndAnalyzePhoto({ ...data, setProgress }),
     {
-      getNextPageParam: (lastPage) => lastPage.lastVisible,
-      enabled: !!userData?.id,
+      onError: (error: any) => {
+        setUploading(false);
+        Alert.alert("Error", `Failed to upload image: ${error.message}`);
+      },
     }
   );
 
-  const uploadMutation = useMutation(uploadAndAnalyzePhoto, {
-    onSuccess: () => {
-      setInternalLoading(true);
-      setTimeout(() => {
-        infiniteQuery.refetch();
-        setInternalLoading(false);
-      }, 6000);
-    },
-    onError: (error: any) => {
-      Alert.alert("Error", `Failed to upload image: ${error.message}`);
-    },
-  });
-
-  return { ...infiniteQuery, uploadMutation, internalLoading };
-};
-
-// Component
-const TravelPhotoScreen: React.FC = () => {
-  const [searchQuery, setSearchQuery] = useState<string>("");
-  const [debouncedQuery, setDebouncedQuery] = useState<string>(searchQuery);
-  const { translate } = useTranslations();
-  const { userData } = useStore();
-  const {
-    data,
-    fetchNextPage,
-    hasNextPage,
-    isLoading,
-    isFetchingNextPage,
-    error,
-    uploadMutation,
-    isFetching,
-    internalLoading,
-  } = usePhotos(debouncedQuery);
-
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedQuery(searchQuery);
-    }, 500);
-
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [searchQuery]);
-
-  useEffect(() => {
-    (async () => {
-      const { status } =
-        await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (status !== "granted") {
-        Alert.alert(
-          "Permission needed",
-          "Sorry, we need camera roll permissions to upload photos."
-        );
-      }
-    })();
-  }, []);
+  let statusMessage = "";
+  if (loading) {
+    statusMessage = "Loading your beautiful memories...";
+  } else if (uploading) {
+    statusMessage = progress === 100 ? "Generating your beautiful captions..." : `Uploading your beautiful memories... ${progress.toFixed(2)}%`;
+  } else if (uploadMutation.isLoading) {
+    statusMessage = "Processing your upload...";
+  }
 
   const handleUploadImage = async (userId: string): Promise<void> => {
     try {
@@ -251,6 +182,7 @@ const TravelPhotoScreen: React.FC = () => {
       });
 
       if (!result.canceled && result.assets && result.assets[0].uri) {
+        setUploading(true);
         await uploadMutation.mutateAsync({
           uri: result.assets[0].uri,
           userId: userId,
@@ -270,12 +202,80 @@ const TravelPhotoScreen: React.FC = () => {
 
       const shareContent =
         Platform.OS === "android"
-          ? { message: `${message}\n${photo.url}` } // Combine message and URL for Android
+          ? { message: `${message}\n${photo.url}` }
           : { message: message, url: photo.url };
 
       await Share.share(shareContent);
     } catch (error: any) {
       Alert.alert("Error", error.message);
+    }
+  };
+
+  const searchPhotos = useCallback(
+    async (query: string) => {
+      if (!userData?.id) return;
+      setLoading(true);
+
+      try {
+        const searchPhotosCallable = httpsCallable(functions, "searchPhotos");
+        const response = await searchPhotosCallable({
+          query,
+          userId: userData.id,
+        });
+
+        const data = response.data as {
+          photos: Photo[];
+          lastVisible: string | null;
+        };
+
+        setPhotos(data.photos);
+        setLoading(false);
+      } catch (error: any) {
+        console.error("Error searching photos:", error);
+        setLoading(false);
+        Alert.alert("Error", "Failed to search photos");
+      }
+    },
+    [userData?.id]
+  );
+
+  const debouncedSearch = useCallback(debounce(searchPhotos, 500), [searchPhotos]);
+
+  useEffect(() => {
+    if (searchQuery.length > 3) {
+      debouncedSearch(searchQuery);
+    } else {
+      setPhotos(originalPhotos);
+    }
+  }, [searchQuery, debouncedSearch, originalPhotos]);
+
+  const loadMorePhotos = async () => {
+    if (loading || searchQuery.length > 3 || !lastVisible) return;
+
+    try {
+      setLoading(true);
+
+      const q = query(
+        collection(db, "photos"),
+        where("userId", "==", userData.id),
+        orderBy("timestamp", "desc"),
+        startAfter(lastVisible),
+        limit(10)
+      );
+
+      const snapshot = await getDocs(q);
+      const newPhotos = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as Photo[];
+
+      setPhotos((prevPhotos) => [...prevPhotos, ...newPhotos]);
+      setOriginalPhotos((prevPhotos) => [...prevPhotos, ...newPhotos]);
+      setLastVisible(snapshot.docs.length > 0 ? snapshot.docs[snapshot.docs.length - 1] : null);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error loading more photos:", error);
+      setLoading(false);
     }
   };
 
@@ -307,8 +307,6 @@ const TravelPhotoScreen: React.FC = () => {
       </TouchableOpacity>
     </View>
   );
-
-  const allPhotos = data ? data.pages.flatMap((page) => page.photos) : [];
 
   if (!userData?.id) {
     return (
@@ -353,59 +351,47 @@ const TravelPhotoScreen: React.FC = () => {
               value={searchQuery}
               onChangeText={setSearchQuery}
             />
-            <TouchableOpacity
-              onPress={() => setDebouncedQuery(searchQuery)}
-              style={styles.searchButton}
-            >
+            <TouchableOpacity style={styles.searchButton}>
               <Ionicons name="search" size={24} color={colors.primary} />
             </TouchableOpacity>
           </View>
         </View>
 
-        {(isLoading ||
-          uploadMutation.isLoading ||
-          isFetching ||
-          internalLoading) && (
-          <ActivityIndicator
-            size="large"
-            color={colors.primary}
-            style={styles.loader}
-          />
+        {(loading || uploading || uploadMutation.isLoading) && (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator
+              size="large"
+              color={colors.primary}
+              style={styles.loader}
+            />
+            <Text style={styles.loadingText}>
+              {statusMessage}
+            </Text>
+          </View>
         )}
 
-        {error && (
-          <Text style={styles.errorText}>
-            {error.message || translate("anErrorOccurred")}
-          </Text>
+        {photos.length === 0 && !loading && (
+          <View style={styles.noPhotosContainer}>
+            <Ionicons
+              name="images-outline"
+              size={50}
+              color={colors.secondary}
+            />
+            <Text style={styles.noPhotosText}>
+              {translate("noPhotosFound")}
+            </Text>
+          </View>
         )}
 
         <FlatList
-          data={allPhotos}
+          data={photos}
           renderItem={renderPhoto}
           keyExtractor={(item: Photo) => item.id}
           contentContainerStyle={styles.photoList}
-          ListEmptyComponent={
-            <View style={styles.noPhotosContainer}>
-              <Ionicons
-                name="images-outline"
-                size={50}
-                color={colors.secondary}
-              />
-              <Text style={styles.noPhotosText}>
-                {translate("noPhotosFound")}
-              </Text>
-            </View>
-          }
-          onEndReached={() => {
-            if (hasNextPage && !isFetchingNextPage) {
-              fetchNextPage();
-            }
-          }}
+          onEndReached={loadMorePhotos}
           onEndReachedThreshold={0.5}
           ListFooterComponent={
-            isFetchingNextPage ? (
-              <ActivityIndicator color={colors.primary} />
-            ) : null
+            loading ? <ActivityIndicator color={colors.primary} /> : null
           }
         />
       </LinearGradient>
@@ -480,6 +466,18 @@ const styles = StyleSheet.create({
   },
   loader: {
     marginTop: 20,
+  },
+  loadingContainer: {
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    marginVertical: 20,
+  },
+  loadingText: {
+    fontSize: 18,
+    color: colors.primary,
+    marginTop: 10,
+    fontFamily: "marcellus",
   },
   photoList: {
     padding: 16,

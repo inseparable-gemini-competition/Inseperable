@@ -20,16 +20,11 @@ const CategoryCard: React.FC<CategoryCardProps> = ({ title, imageUrl, onPress })
 const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.white,
-    borderRadius: 16,
-    width: '42%',
+    borderRadius: 17,
+    width: '45%',
     alignItems: 'center',
     padding: 16,
     marginBottom: 16,
-    // elevation: 5,
-    // shadowColor: colors.black,
-    // shadowOffset: { width: 0, height: 2 },
-    // shadowOpacity: 0.8,
-    // shadowRadius: 2,
   },
   cardImage: {
     width: '100%',
@@ -40,6 +35,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontSize: 18,
     fontFamily: 'marcellus',
+    textAlign: 'center',
   },
 });
 

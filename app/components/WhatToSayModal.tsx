@@ -1,11 +1,12 @@
 import React from "react";
-import { View, Text, ActivityIndicator } from "react-native";
+import { View, Text, ActivityIndicator, StyleSheet } from "react-native";
 import { Button } from "react-native-ui-lib";
 import { styles as globalStyles, modalStyles } from "@/app/screens/MainStyles";
 import GenericBottomSheet, {
   GenericBottomSheetTextInput,
 } from "./GenericBottomSheet"; // Adjust the import path as needed
 import { useTranslations } from "@/hooks/ui/useTranslations";
+import { colors } from "@/app/theme";
 
 interface WhatToSayModalProps {
   visible: boolean;
@@ -28,16 +29,16 @@ const WhatToSayModal: React.FC<WhatToSayModalProps> = ({
 }) => {
   const { translate } = useTranslations();
   return (
-    <GenericBottomSheet visible={visible} onClose={onClose} enableScroll={true}>
-      <Text
-        style={modalStyles.modalTitle}
-      >
+    <GenericBottomSheet visible={visible} onClose={onClose} enableScroll={true} textToSpeak={result || ""}>
+      <Text style={styles.title}>
         {translate("whatToSay")}
       </Text>
       {isLoading ? (
         <View style={[globalStyles.loadingContainer, { height: 100 }]}>
           <ActivityIndicator />
-          <Text style={{textAlign: 'center', fontFamily: 'marcellus'}}>{translate("fetchingResponse")}</Text>
+          <Text style={[modalStyles.modalText, styles.loadingText]}>
+            {translate("fetchingResponse")}
+          </Text>
         </View>
       ) : (
         <>
@@ -50,19 +51,52 @@ const WhatToSayModal: React.FC<WhatToSayModalProps> = ({
             style={modalStyles.textInput}
           />
           <Button
-            style={{ marginVertical: 8, maxWidth: '80%', alignSelf: 'center' }}
+            style={styles.submitButton}
             onPress={onSubmit}
             label={translate("submit")}
+            backgroundColor={colors.black}
           />
           {result && (
-            <Text style={{ textAlign: "center", fontFamily: "marcellus" }}>
-              {result}
-            </Text>
+            <View style={styles.resultContainer}>
+              <Text style={[modalStyles.modalText, styles.resultText]}>
+                {result}
+              </Text>
+            </View>
           )}    
         </>
       )}
     </GenericBottomSheet>
   );
 };
+
+const styles = StyleSheet.create({
+  title: {
+    ...modalStyles.modalTitle,
+    fontFamily: "marcellus",
+    textAlign: "center",
+    marginBottom: 20,
+  },
+  loadingText: {
+    textAlign: "center",
+    marginTop: 10,
+    fontFamily: "marcellus",
+  },
+  submitButton: {
+    marginVertical: 8,
+    maxWidth: "80%",
+    alignSelf: "center",
+  },
+  resultContainer: {
+    backgroundColor: colors.background,
+    borderRadius: 15,
+    padding: 20,
+    marginHorizontal: 10,
+    marginTop: 10,
+  },
+  resultText: {
+    textAlign: "center",
+    fontFamily: "marcellus",
+  },
+});
 
 export default WhatToSayModal;

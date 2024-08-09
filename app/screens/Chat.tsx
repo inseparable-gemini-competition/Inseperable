@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
 import {
-  View,
   StyleSheet,
   SafeAreaView,
   TouchableOpacity,
@@ -12,10 +11,11 @@ import {
 import {
   GiftedChat,
   IMessage,
-  MessageText,
   Bubble,
   InputToolbar,
+  Send,
   Actions,
+  MessageText,
 } from "react-native-gifted-chat";
 import {
   collection,
@@ -32,12 +32,37 @@ import {
 import { storage, db } from "@/app/helpers/firebaseConfig";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useRoute, RouteProp, useNavigation } from "@react-navigation/native";
-import { View as UILibView, Text as UILibText } from "react-native-ui-lib";
+import { View, Text } from "react-native-ui-lib";
 import { Ionicons } from "@expo/vector-icons";
-import { colors } from "@/app/theme";
-import { useTranslations } from "@/hooks/ui/useTranslations";
+import { LinearGradient } from 'expo-linear-gradient';
 import * as ImagePicker from "expo-image-picker";
 import useStore from "@/app/store";
+import { useTranslations } from "@/hooks/ui/useTranslations";
+
+// Color scheme
+const colors = {
+  primary: "#3c3e3b",
+  background: "#f5e8db",
+  secondary: "#6c757d",
+  success: "#28a745",
+  danger: "#dc3545",
+  warning: "#ffc107",
+  info: "#17a2b8",
+  light: "#f8f9fa",
+  dark: "#343a40",
+  white: "#fff",
+  black: "#000",
+  placeholder: "#6c757d",
+  backgroundGradientStart: "#f5e8db",
+  backgroundGradientEnd: "#f3d9c6",
+  headerBackground: "#343a40",
+  bubbleLeft: "#f8f9fa",
+  bubbleRight: "#3c3e3b",
+  translatedTextDark: "#B0BEC5",
+  translatedTextLight: "#455A64",
+  bubbleLeftText: "#000000",
+  bubbleRightText: "#FFFFFF",
+};
 
 type RootStackParamList = {
   ChatScreen: { recipientId: string; itemName: string };
@@ -60,9 +85,8 @@ const Chat: React.FC = () => {
   };
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loadingMore, setLoadingMore] = useState(false);
-  const {translate} = useTranslations();
-  const [lastVisible, setLastVisible] =
-    useState<QueryDocumentSnapshot<DocumentData> | null>(null);
+  const { translate } = useTranslations();
+  const [lastVisible, setLastVisible] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
   const PAGE_SIZE = 10;
 
   const { isRTL } = useTranslations();
@@ -137,10 +161,8 @@ const Chat: React.FC = () => {
 
     (async () => {
       if (Platform.OS !== "web") {
-        const { status: cameraStatus } =
-          await ImagePicker.requestCameraPermissionsAsync();
-        const { status: mediaLibraryStatus } =
-          await ImagePicker.requestMediaLibraryPermissionsAsync();
+        const { status: cameraStatus } = await ImagePicker.requestCameraPermissionsAsync();
+        const { status: mediaLibraryStatus } = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
         if (cameraStatus !== "granted" || mediaLibraryStatus !== "granted") {
           Alert.alert(
@@ -200,7 +222,7 @@ const Chat: React.FC = () => {
             translatedText: "",
             createdAt: new Date(),
             userId: userId,
-            userName: `User-${userId.substring(0, 6)}`,
+            userName: userData?.email ? userData.email.split('@')[0] : 'Unknown',
             audio: newMessage.audio || null,
             image: newMessage.image || null,
             video: newMessage.video || null,
@@ -211,7 +233,7 @@ const Chat: React.FC = () => {
         }
       }
     },
-    [userId, recipientId]
+    [userId, recipientId, userData]
   );
 
   const pickImage = async () => {
@@ -239,10 +261,7 @@ const Chat: React.FC = () => {
                   setImageUploading(true);
                   const response = await fetch(uri);
                   const blob = await response.blob();
-                  const fileRef = ref(
-                    storage,
-                    `media/${Date.now()}_${uri.split("/").pop()}`
-                  );
+                  const fileRef = ref(storage, `media/${Date.now()}_${uri.split("/").pop()}`);
                   await uploadBytes(fileRef, blob);
                   const downloadURL = await getDownloadURL(fileRef);
 
@@ -251,7 +270,7 @@ const Chat: React.FC = () => {
                     createdAt: new Date(),
                     user: {
                       _id: userId,
-                      name: `User-${userId.substring(0, 6)}`,
+                      name: userData?.email ? userData.email.split('@')[0] : 'Unknown',
                     },
                     image: downloadURL,
                   };
@@ -259,10 +278,7 @@ const Chat: React.FC = () => {
                   handleSend([newMediaMessage]);
                 } catch (error) {
                   console.error("Error picking or uploading image:", error);
-                  Alert.alert(
-                    "Error",
-                    `Failed to upload image: ${error.message}`
-                  );
+                  Alert.alert("Error", `Failed to upload image: ${error.message}`);
                 } finally {
                   setImageUploading(false);
                 }
@@ -278,197 +294,201 @@ const Chat: React.FC = () => {
     }
   };
 
-  const CustomInputToolbar = (props) => (
-    <InputToolbar
-      {...props}
-      containerStyle={styles.inputToolbar}
-      renderActions={() => (
-        <Actions
-          {...props}
-          containerStyle={styles.actions}
-          icon={() => (
-            <UILibView row>
-              {imageUploading ? (
-                <UILibView style={styles.loadingContainer}>
-                  <ActivityIndicator size="small" color={colors.primary} />
-                  <UILibText style={styles.loadingText}>Uploading...</UILibText>
-                </UILibView>
-              ) : (
-                <TouchableOpacity
-                  onPress={pickImage}
-                  style={styles.actionButton}
-                >
-                  <Ionicons name="image" size={24} color={colors.primary} />
-                  <UILibText style={styles.buttonText}>Image</UILibText>
-                </TouchableOpacity>
-              )}
-            </UILibView>
-          )}
-        />
-      )}
-    />
-  );
+  const renderBubble = (props: any) => {
+    return (
+      <Bubble
+        {...props}
+        wrapperStyle={{
+          left: {
+            backgroundColor: colors.bubbleLeft,
+            marginLeft: 10,
+          },
+          right: {
+            backgroundColor: colors.bubbleRight,
+            marginRight: 10,
+          },
+        }}
+        textStyle={{
+          left: {
+            color: colors.bubbleLeftText,
+          },
+          right: {
+            color: colors.bubbleRightText,
+          },
+        }}
+      />
+    );
+  };
 
-  const renderMessageImage = (props: any) => {
+  const renderMessageText = (props: any) => {
     const { currentMessage } = props;
     return (
-      <Image
-        source={{ uri: currentMessage.image }}
-        style={styles.imageMessage}
+      <View>
+        <MessageText {...props} />
+        {currentMessage.translatedText && (
+          <Text style={[
+            styles.translatedText,
+            { color: currentMessage.user._id === userId ? colors.translatedTextDark : colors.translatedTextLight }
+          ]}>
+            {currentMessage.translatedText}
+          </Text>
+        )}
+      </View>
+    );
+  };
+
+  const renderSend = (props: any) => {
+    return (
+      <Send {...props}>
+        <View style={styles.sendButton}>
+          <Ionicons name="send" size={24} color={colors.primary} />
+        </View>
+      </Send>
+    );
+  };
+
+  const renderActions = (props: any) => {
+    if (imageUploading) {
+      return (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="small" color={colors.primary} />
+        </View>
+      );
+    }
+    return (
+      <Actions
+        {...props}
+        containerStyle={styles.actionButton}
+        icon={() => (
+          <Ionicons name="image" size={24} color={colors.primary} />
+        )}
+        onPressActionButton={pickImage}
       />
     );
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={styles.backButton}
-        >
-          <Ionicons
-            name={isRTL ? "arrow-forward" : "arrow-back"}
-            size={24}
-            color={colors.primary}
-          />
-        </TouchableOpacity>
-        <UILibText style={styles.headerText}>
-          {translate("chatAbout")} {itemName}
-        </UILibText>
-      </View>
-      <UILibView flex>
+    <LinearGradient
+      colors={[colors.backgroundGradientStart, colors.backgroundGradientEnd]}
+      style={styles.container}
+    >
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Ionicons
+              name={isRTL ? "chevron-forward" : "chevron-back"}
+              size={24}
+              color={colors.white}
+            />
+          </TouchableOpacity>
+          <Text style={styles.headerText}>
+            {translate("chatAbout")} {itemName}
+          </Text>
+        </View>
         <GiftedChat
           messages={messages}
-          renderBubble={(props) => (
-            <Bubble
-              {...props}
-              wrapperStyle={{
-                left: {
-                  backgroundColor: colors.bubbleLeft,
-                  borderRadius: 20,
-                  marginTop: 10,
-                },
-                right: {
-                  borderRadius: 20,
-                },
-              }}
-              textStyle={{
-                right: {
-                  color: "white",
-                },
-              }}
-            />
-          )}
-          renderMessageText={(props) => (
-            <CustomMessageText {...props} currentUserId={userId} />
-          )}
-          renderMessageImage={renderMessageImage}
           onSend={handleSend}
           user={{
             _id: userId,
           }}
+          renderBubble={renderBubble}
+          renderMessageText={renderMessageText}
+          renderSend={renderSend}
+          renderActions={renderActions}
+          placeholder={translate("typeMessage")}
+          alwaysShowSend
+          scrollToBottom
+          infiniteScroll
           loadEarlier={!loadingMore && !!lastVisible}
           onLoadEarlier={fetchMoreMessages}
           isLoadingEarlier={loadingMore}
-          renderInputToolbar={(props) => <CustomInputToolbar {...props} />}
-          inverted={true}
-          listViewProps={{
-            onEndReached: fetchMoreMessages,
-            onEndReachedThreshold: 0.1,
-          }}
+          renderAvatarOnTop
+          renderUsernameOnMessage
+          showUserAvatar
+          showAvatarForEveryMessage
+          renderMessageImage={(props) => (
+            <Image
+              source={{ uri: props.currentMessage.image }}
+              style={styles.messageImage}
+            />
+          )}
+          messagesContainerStyle={styles.messagesContainer}
+          textInputStyle={styles.textInput}
+          bottomOffset={Platform.OS === 'ios' ? 30 : 0}
         />
-      </UILibView>
-    </SafeAreaView>
-  );
-};
-
-const CustomMessageText = (props: {
-  currentMessage: ChatMessage;
-  currentUserId: string;
-}) => {
-  const { currentMessage, currentUserId } = props;
-  const isRightBubble = currentMessage.user._id === currentUserId;
-  const textColor = isRightBubble ? "white" : colors.translatedTextLight;
-  const { translate } = useTranslations();
-
-  return (
-    <UILibView>
-      <MessageText {...props} />
-      {currentMessage.translatedText ? (
-        <UILibText style={[styles.translatedText, { color: textColor }]}>
-          {currentMessage.translatedText}
-        </UILibText>
-      ) : (
-        <UILibText style={[styles.translatedText, { color: textColor }]}>
-          {translate("Translating")}...
-        </UILibText>
-      )}
-    </UILibView>
+      </SafeAreaView>
+    </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+  },
+  safeArea: {
+    flex: 1,
   },
   header: {
-    flexDirection: "row",
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 10,
+    backgroundColor: colors.headerBackground,
   },
   backButton: {
-    paddingStart: 5,
-    marginEnd: 10,
+    padding: 5,
   },
   headerText: {
-    fontFamily: "marcellus",
-    fontSize: 22,
+    color: colors.white,
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginLeft: 10,
+  },
+  messagesContainer: {
+    paddingBottom: 10,
+  },
+  sendButton: {
+    marginRight: 10,
+    marginBottom: 5,
+  },
+  actionButton: {
+    width: 30,
+    height: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 10,
+    marginBottom: 5,
+  },
+  loadingContainer: {
+    width: 30,
+    height: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 10,
+    marginBottom: 5,
+  },
+  textInput: {
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: colors.secondary,
+    marginHorizontal: 10,
+    paddingHorizontal: 10,
+    paddingTop: 8,
+    paddingBottom: 8,
+  },
+  messageImage: {
+    width: 200,
+    height: 200,
+    borderRadius: 13,
+    margin: 3,
+    resizeMode: 'cover',
   },
   translatedText: {
     fontSize: 12,
+    fontStyle: 'italic',
     marginTop: 5,
-    marginStart: 10,
-    fontFamily: "marcellus",
-  },
-  inputToolbar: {
-    backgroundColor: colors.background,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-  },
-  actions: {
-    width: 80,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  actionButton: {
-    flexDirection: "column",
-    alignItems: "center",
-    marginHorizontal: 10,
-    padding: 5,
-  },
-  buttonText: {
-    fontSize: 12,
-    marginTop: 2,
-    color: colors.primary,
-  },
-  loadingContainer: {
-    flexDirection: "column",
-    alignItems: "center",
-    marginHorizontal: 10,
-  },
-  loadingText: {
-    fontSize: 10,
-    marginTop: 2,
-    color: colors.primary,
-  },
-  imageMessage: {
-    width: 200,
-    height: 150,
-    borderRadius: 10,
-    marginVertical: 5,
+    marginLeft: 10,
+    marginRight: 10,
   },
 });
-
 export default Chat;
+

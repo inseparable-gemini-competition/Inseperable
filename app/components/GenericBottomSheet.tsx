@@ -152,7 +152,8 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   speechIcon: {
-    marginBottom: 16,
+    top: 40,
+    end: 25,
   },
 });
 

@@ -9,6 +9,7 @@ import { useGenerateContent } from "@/hooks/gemini/useGeminiStream";
 import { useTranslations } from "@/hooks/ui/useTranslations";
 import useStore from "@/app/store";
 import { useUpdateUserScore } from "@/hooks/logic/useUserScore";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 type Props = {
   onFinish: (params?: { setLocalLoading: (loading: boolean) => void }) => void;
@@ -34,7 +35,7 @@ const EnvironmentalImpactQuestionnaire = ({ onFinish }: Props) => {
   ];
 
   const [questions, setQuestions] = useState(defaultQuestions);
-  const {mutateAsync: updateUserScore} = useUpdateUserScore();
+  const { mutateAsync: updateUserScore } = useUpdateUserScore();
 
   const {
     generate: generateEnvironmentalImpact,
@@ -45,12 +46,12 @@ const EnvironmentalImpactQuestionnaire = ({ onFinish }: Props) => {
     onSuccess: (data) => {
       updateUserScore({
         environmental: data?.impactScore,
-      })
-    }
+      });
+    },
   });
   const [localLoading, setLocalLoading] = useState(false);
 
-  const { userData} = useStore();
+  const { userData } = useStore();
 
   const { sendMessage: sendAnswer, isLoading: isLoadingNextQuestion } =
     useGenerateContent({
@@ -125,78 +126,80 @@ const EnvironmentalImpactQuestionnaire = ({ onFinish }: Props) => {
     );
   }
   return (
-    <ScrollView
-      contentContainerStyle={{
-        justifyContent: "center",
-        flexGrow: 1,
-        alignItems: "center",
-        backgroundColor: colors.background,
-        paddingVertical: 20,
-      }}
-      keyboardShouldPersistTaps={"handled"}
-    >
-      <View>
-        {!result?.impactScore && question ? (
-          <Question
-            key={question?.id}
-            question={question}
-            onAnswer={handleAnswer}
-            onNext={handleNext}
-            onPrevious={handlePrevious}
-            showPrevious={currentQuestionIndex > 0}
-            showNext={question?.isOpenEnded || false}
-            currentAnswer={answers[currentQuestionIndex] || ""}
-          />
-        ) : (
-          <>
-            <Text
-              style={{
-                fontSize: 20,
-                color: colors.black,
-                textAlign: "center",
-                padding: 10,
-                fontFamily: "marcellus",
-              }}
-            >
-              {translate("yourEnvironmentalImactScore")} {result?.impactScore}
-              /10
-            </Text>
-            <Text
-              style={{
-                fontSize: 15,
-                color: colors.black,
-                textAlign: "center",
-                fontFamily: "marcellus",
-                padding: 10,
-                paddingHorizontal: 30,
-              }}
-            >
-              {result?.scoreExplanation}
-              {"\n"}
-              {result?.recommendations}
-            </Text>
-
-            <Button
-              style={{ width: 300, alignSelf: "center" }}
-              label={translate("finish")}
-              backgroundColor={colors.primary}
-              onPress={() =>
-                onFinish({
-                  setLocalLoading,
-                })
-              }
+    <SafeAreaView style={{flex: 1}}>
+      <ScrollView
+        contentContainerStyle={{
+          justifyContent: "center",
+          flexGrow: 1,
+          alignItems: "center",
+          backgroundColor: colors.background,
+          paddingVertical: 20,
+        }}
+        keyboardShouldPersistTaps={"handled"}
+      >
+        <View>
+          {!result?.impactScore && question ? (
+            <Question
+              key={question?.id}
+              question={question}
+              onAnswer={handleAnswer}
+              onNext={handleNext}
+              onPrevious={handlePrevious}
+              showPrevious={currentQuestionIndex > 0}
+              showNext={question?.isOpenEnded || false}
+              currentAnswer={answers[currentQuestionIndex] || ""}
             />
-            {localLoading && (
-              <ActivityIndicator
-                size="large"
-                color={colors.primary}
-                style={{ marginBottom: 20 }}
+          ) : (
+            <>
+              <Text
+                style={{
+                  fontSize: 20,
+                  color: colors.black,
+                  textAlign: "center",
+                  padding: 10,
+                  fontFamily: "marcellus",
+                }}
+              >
+                {translate("yourEnvironmentalImactScore")} {result?.impactScore}
+                /10
+              </Text>
+              <Text
+                style={{
+                  fontSize: 15,
+                  color: colors.black,
+                  textAlign: "center",
+                  fontFamily: "marcellus",
+                  padding: 10,
+                  paddingHorizontal: 30,
+                }}
+              >
+                {result?.scoreExplanation}
+                {"\n"}
+                {result?.recommendations}
+              </Text>
+
+              <Button
+                style={{ width: 300, alignSelf: "center" }}
+                label={translate("finish")}
+                backgroundColor={colors.primary}
+                onPress={() =>
+                  onFinish({
+                    setLocalLoading,
+                  })
+                }
               />
-            )}
-          </>
-        )}
-      </View>
-    </ScrollView>
+              {localLoading && (
+                <ActivityIndicator
+                  size="large"
+                  color={colors.primary}
+                  style={{ marginBottom: 20 }}
+                />
+              )}
+            </>
+          )}
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
