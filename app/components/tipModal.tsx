@@ -5,6 +5,7 @@ import { modalStyles, styles as globalStyles } from "@/app/screens/MainStyles";
 import GenericBottomSheet from "./GenericBottomSheet"; // Adjust the import path as needed
 import { useTranslations } from "@/hooks/ui/useTranslations";
 import { colors } from "@/app/theme";
+import { CustomText } from "@/app/components/CustomText";
 
 interface TipsModalProps {
   visible: boolean;
@@ -53,13 +54,13 @@ const TipsModal: React.FC<TipsModalProps> = ({
       enableScroll={true}
       textToSpeak={result}
     >
-      <Text style={styles.title}>{translate("selectTipType")}</Text>
-      <Text style={{
+      <CustomText style={styles.title}>{translate("selectTipType")}</CustomText>
+      <CustomText style={{
         marginVertical: 5,
         fontFamily: "marcellus",
         textAlign: "center",
 
-      }}>{translate("pickAnyCategoryYouWantTipsAbout")}</Text>
+      }}>{translate("pickAnyCategoryYouWantTipsAbout")}</CustomText>
       <Picker
         style={globalStyles.picker}
         placeholder={translate("selectTipType")}
@@ -77,13 +78,13 @@ const TipsModal: React.FC<TipsModalProps> = ({
       {isLoading && (
         <View style={[globalStyles.loadingContainer, { height: 100 }]}>
           <ActivityIndicator color={colors.primary} />
-          <Text style={styles.loadingText}>{translate("fetchingTips")}</Text>
+          <CustomText style={styles.loadingText}>{translate("fetchingTips")}</CustomText>
         </View>
       )}
 
       {!!result && (
         <View style={styles.resultContainer}>
-          <Text style={styles.resultText}>{result}</Text>
+          <CustomText style={styles.resultText}>{result}</CustomText>
         </View>
       )}
     </GenericBottomSheet>
@@ -93,13 +94,11 @@ const TipsModal: React.FC<TipsModalProps> = ({
 const styles = StyleSheet.create({
   title: {
     ...modalStyles.modalTitle,
-    fontFamily: "marcellus",
     textAlign: "center",
     marginBottom: 20,
   },
   loadingText: {
     textAlign: "center",
-    fontFamily: "marcellus",
     color: colors.primary,
     marginTop: 10,
   },
@@ -113,7 +112,6 @@ const styles = StyleSheet.create({
   resultText: {
     ...modalStyles.modalText,
     textAlign: "center",
-    fontFamily: "marcellus",
   },
 });
 

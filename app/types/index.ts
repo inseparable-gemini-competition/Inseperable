@@ -33,6 +33,7 @@ export interface CategoryScreenProps {
   country: string;
   description: string;
   animatedStyle: ViewStyle;
+  handleFontSettings: () => void;
 }
 
 export interface CameraScreenProps {

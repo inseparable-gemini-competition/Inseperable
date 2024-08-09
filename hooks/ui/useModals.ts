@@ -6,6 +6,7 @@ export const useModals = () => {
   const [tipsModalVisible, setTipsModalVisible] = useState(false);
   const [donationModalVisible, setDonationModalVisible] = useState(false);
   const [userMoodModalVisible, setUserMoodModalVisible] = useState(false);
+  const [fontSettingsVisible, setFontSettingsVisible] = useState(false);
   const [
     youtubeCulturalInsightsModalVisible,
     setYoutubeCulturalInsightsModalVisible,
@@ -33,5 +34,7 @@ export const useModals = () => {
     noModalVisible,
     youtubeCulturalInsightsModalVisible,
     setYoutubeCulturalInsightsModalVisible,
+    fontSettingsVisible,
+    setFontSettingsVisible
   };
 };

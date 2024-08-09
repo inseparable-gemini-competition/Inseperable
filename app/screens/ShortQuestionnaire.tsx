@@ -5,6 +5,7 @@ import Question from "@/app/components/Question/Question";
 import { ActivityIndicator, ScrollView } from "react-native";
 import { useJsonControlledGeneration } from "@/hooks/gemini/useJsonControlledGeneration";
 import { useTranslations } from "@/hooks/ui/useTranslations";
+import { CustomText } from "@/app/components/CustomText";
 
 type Props = {
   onFinish: (params?: {
@@ -74,9 +75,9 @@ const Questionnaire = ({ onFinish }: Props) => {
         }}
       >
         <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={{ fontFamily: "marcellus" }}>
+        <CustomText>
           {translate("recommending")}
-        </Text>
+        </CustomText>
       </View>
     );
   }
@@ -106,24 +107,22 @@ const Questionnaire = ({ onFinish }: Props) => {
         ) : (
           <>
             {countryDataResult?.country !== "null" && (
-              <Text
+              <CustomText
                 style={{
                   fontSize: 70,
                   color: colors.black,
                   textAlign: "center",
                   padding: 10,
-                  fontFamily: "marcellus",
                 }}
               >
                 {countryDataResult?.country} {countryDataResult?.flag}
-              </Text>
+              </CustomText>
             )}
-            <Text
+            <CustomText
               style={{
                 fontSize: 15,
                 color: colors.black,
                 textAlign: "center",
-                fontFamily: "marcellus",
                 padding: 10,
                 paddingHorizontal: 30,
               }}
@@ -131,7 +130,7 @@ const Questionnaire = ({ onFinish }: Props) => {
               {countryDataResult?.description !== "null"
                 ? countryDataResult?.description
                 : ""}
-            </Text>
+            </CustomText>
 
             <Button
               style={{ width: 300, alignSelf: "center" }}

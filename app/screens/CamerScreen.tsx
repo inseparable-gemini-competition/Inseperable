@@ -3,7 +3,6 @@ import {
   View,
   Image,
   TouchableOpacity,
-  Text,
   ActivityIndicator,
   StyleSheet,
   ScrollView,
@@ -16,6 +15,7 @@ import { styles as globalStyles } from "@/app/screens/MainStyles";
 import CameraView from "@/app/components/CameraView";
 import { useTranslations } from "@/hooks/ui/useTranslations";
 import { useTextToSpeech } from "@/app/context/TextToSpeechContext";
+import { CustomText } from "@/app/components/CustomText";
 
 const CameraScreen: React.FC<CameraScreenProps> = ({
   showCamera,
@@ -77,7 +77,7 @@ const CameraScreen: React.FC<CameraScreenProps> = ({
             >
               <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color="#ffffff" />
-                <Text style={styles.loadingText}>{translate("analyzing")}</Text>
+                <CustomText style={styles.loadingText}>{translate("analyzing")}</CustomText>
               </View>
             </TouchableOpacity>
           )}
@@ -96,7 +96,7 @@ const CameraScreen: React.FC<CameraScreenProps> = ({
               <Ionicons name="close-circle" size={32} color="white" />
             </TouchableOpacity>
             <ScrollView style={styles.dialogContent}>
-              <Text style={styles.feedbackText}>{feedbackText}</Text>
+              <CustomText style={styles.feedbackText}>{feedbackText}</CustomText>
               <TouchableOpacity
                 style={styles.speechButton}
                 onPress={handleToggleSpeech}
@@ -106,9 +106,9 @@ const CameraScreen: React.FC<CameraScreenProps> = ({
                   size={24}
                   color="white"
                 />
-                <Text style={styles.speechButtonText}>
+                <CustomText style={styles.speechButtonText}>
                   {isSpeaking ? "Pause" : "Click to hear text"}
-                </Text>
+                </CustomText>
               </TouchableOpacity>
             </ScrollView>
           </Dialog>

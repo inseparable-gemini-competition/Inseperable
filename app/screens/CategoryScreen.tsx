@@ -10,10 +10,11 @@ const CategoryScreen: React.FC<CategoryScreenProps> = ({
   onCategoryPress,
   country,
   description,
-  animatedStyle
+  animatedStyle,
+  handleFontSettings
 }) => (
   <>
-    <HeaderDescription country={country} />
+    <HeaderDescription country={country} handleFontSettings={handleFontSettings} />
     <Animated.View style={[styles.content, animatedStyle]}>
       <CategoryList
         categories={categories}

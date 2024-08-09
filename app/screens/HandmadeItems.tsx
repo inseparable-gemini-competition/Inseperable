@@ -25,6 +25,7 @@ import { colors } from "@/app/theme";
 import { useTranslations } from "@/hooks/ui/useTranslations";
 import { convertMarkdownToPlainText } from "@/app/helpers/markdown";
 import useStore from "@/app/store";
+import { CustomText } from "@/app/components/CustomText";
 
 interface HandmadeItem {
   id: string;
@@ -184,13 +185,13 @@ const HandMade: React.FC = () => {
     if (isTranslating) {
       return (
         <View>
-          <Text style={style}>{original}</Text>
-          <Text style={[style, { color: colors.translatedTextLight }]}>{translate("translating")}</Text>
+          <CustomText style={style}>{original}</CustomText>
+          <CustomText style={[style, { color: colors.translatedTextLight }]}>{translate("translating")}</CustomText>
         </View>
       );
     }
 
-    return <Text style={style}>{translated || original}</Text>;
+    return <CustomText style={style}>{translated || original}</CustomText>;
   };
 
   const renderItem: ListRenderItem<HandmadeItem> = ({ item }) => (
@@ -220,9 +221,9 @@ const HandMade: React.FC = () => {
               style={styles.icon}
             />
             <View>
-              <Text style={styles.itemCarbonFootprint}>
+              <CustomText style={styles.itemCarbonFootprint}>
                 {translate("carbonFootprint")}
-              </Text>
+              </CustomText>
               <TranslatingText
                 original={convertMarkdownToPlainText(item.carbonFootprint.original)}
                 translated={
@@ -332,12 +333,12 @@ const HandMade: React.FC = () => {
               color={colors.white}
             />
           </TouchableOpacity>
-          <Text style={styles.title}>{translate("handmadeItems")}</Text>
+          <CustomText style={styles.title}>{translate("handmadeItems")}</CustomText>
         </Animated.View>
         {isLoading && (
           <Animated.View style={[styles.loadingContainer, loadingAnimatedStyle]}>
             <Ionicons name="reload" size={48} color={colors.primary} />
-            <Text style={styles.loadingText}>{translate("loading")}</Text>
+            <CustomText style={styles.loadingText}>{translate("loading")}</CustomText>
           </Animated.View>
         )}
         {data && (
@@ -356,14 +357,14 @@ const HandMade: React.FC = () => {
               isFetching ? (
                 <Animated.View style={[styles.loadingContainer, loadingAnimatedStyle]}>
                   <Ionicons name="reload" size={48} color={colors.primary} />
-                  <Text style={styles.loadingText}>{translate("loadingMore")}</Text>
+                  <CustomText style={styles.loadingText}>{translate("loadingMore")}</CustomText>
                 </Animated.View>
               ) : null
             }
           />
         )}
         {!data && !isLoading && (
-          <Text style={styles.noDataText}>{translate("noHandmadeItems")}</Text>
+          <CustomText style={styles.noDataText}>{translate("noHandmadeItems")}</CustomText>
         )}
       </LinearGradient>
     </SafeAreaView>

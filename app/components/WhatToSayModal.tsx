@@ -4,9 +4,10 @@ import { Button, ButtonSize } from "react-native-ui-lib";
 import { styles as globalStyles, modalStyles } from "@/app/screens/MainStyles";
 import GenericBottomSheet, {
   GenericBottomSheetTextInput,
-} from "./GenericBottomSheet"; // Adjust the import path as needed
+} from "./GenericBottomSheet";
 import { useTranslations } from "@/hooks/ui/useTranslations";
 import { colors } from "@/app/theme";
+import { CustomText } from "@/app/components/CustomText";
 
 interface WhatToSayModalProps {
   visible: boolean;
@@ -38,22 +39,21 @@ const WhatToSayModal: React.FC<WhatToSayModalProps> = ({
       enableScroll={true}
       textToSpeak={result || ""}
     >
-      <Text style={styles.title}>{translate("whatToSay")}</Text>
-      <Text
+      <CustomText style={styles.title}>{translate("whatToSay")}</CustomText>
+      <CustomText
         style={{
           marginBottom: 20,
-          fontFamily: "marcellus",
           textAlign: "center",
         }}
       >
         {translate("whateverSituationYouAreInWeWillHelp")}
-      </Text>
+      </CustomText>
       {isLoading ? (
         <View style={[globalStyles.loadingContainer, { height: 100 }]}>
           <ActivityIndicator />
-          <Text style={[modalStyles.modalText, styles.loadingText]}>
+          <CustomText style={[modalStyles.modalText, styles.loadingText]}>
             {translate("fetchingResponse")}
-          </Text>
+          </CustomText>
         </View>
       ) : (
         <>
@@ -87,9 +87,9 @@ const WhatToSayModal: React.FC<WhatToSayModalProps> = ({
             </>
           ) : (
             <View style={styles.resultContainer}>
-              <Text style={[modalStyles.modalText, styles.resultText]}>
+              <CustomText style={[modalStyles.modalText, styles.resultText]}>
                 {result}
-              </Text>
+              </CustomText>
             </View>
           )}
         </>
@@ -101,14 +101,12 @@ const WhatToSayModal: React.FC<WhatToSayModalProps> = ({
 const styles = StyleSheet.create({
   title: {
     ...modalStyles.modalTitle,
-    fontFamily: "marcellus",
     textAlign: "center",
     marginBottom: 20,
   },
   loadingText: {
     textAlign: "center",
     marginTop: 10,
-    fontFamily: "marcellus",
   },
   submitButton: {
     marginVertical: 8,
@@ -124,7 +122,6 @@ const styles = StyleSheet.create({
   },
   resultText: {
     textAlign: "center",
-    fontFamily: "marcellus",
   },
 });
 

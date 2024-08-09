@@ -12,6 +12,7 @@ import {
 } from "@/hooks";
 import TripRecommendationModal from "@/app/components/TripRecommendationModal";
 import YouTubeCulturalInsightsModal from "@/app/components/YouTubeCulturalInsightsModal";
+import FontSettingsContent from "@/app/components/FontSettings";
 
 interface ModalFactoryProps {
   modals: ReturnType<typeof useModals>;
@@ -94,6 +95,12 @@ export const ModalFactory: React.FC<ModalFactoryProps> = ({
       visible={modals.youtubeCulturalInsightsModalVisible}
       onClose={() => {
         modals.setYoutubeCulturalInsightsModalVisible(false);
+      }}
+    />
+    <FontSettingsContent
+      isVisible={modals.fontSettingsVisible}
+      onClose={() => {
+        modals.setFontSettingsVisible(false);
       }}
     />
   </>

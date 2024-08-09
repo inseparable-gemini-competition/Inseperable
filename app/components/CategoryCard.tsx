@@ -1,8 +1,9 @@
 // components/CategoryCard.tsx
+import { CustomText } from '@/app/components/CustomText';
 import { colors } from '@/app/theme';
 import React from 'react';
 import { StyleSheet, TouchableOpacity, Image } from 'react-native';
-import { Text } from 'react-native-ui-lib';
+
 
 interface CategoryCardProps {
   title: string;
@@ -13,7 +14,7 @@ interface CategoryCardProps {
 const CategoryCard: React.FC<CategoryCardProps> = ({ title, imageUrl, onPress }) => (
   <TouchableOpacity style={styles.card} onPress={onPress}>
     <Image source={imageUrl} style={styles.cardImage} />
-    <Text style={styles.cardText}>{title}</Text>
+    <CustomText style={styles.cardText}>{title}</CustomText>
   </TouchableOpacity>
 );
 
@@ -34,7 +35,6 @@ const styles = StyleSheet.create({
   cardText: {
     marginTop: 8,
     fontSize: 18,
-    fontFamily: 'marcellus',
     textAlign: 'center',
   },
 });

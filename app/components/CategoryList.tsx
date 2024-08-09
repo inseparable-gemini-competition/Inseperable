@@ -3,7 +3,6 @@ import React, { useState, memo } from "react";
 import {
   FlatList,
   View,
-  Text,
   TouchableOpacity,
   ActivityIndicator,
 } from "react-native";
@@ -12,6 +11,7 @@ import CategoryCard from "@/app/components/CategoryCard";
 import { styles } from "@/app/screens/MainStyles";
 import { useTranslations } from "@/hooks/ui/useTranslations";
 import { useGetUserScore } from "@/hooks/logic/useUserScore";
+import { CustomText } from "@/app/components/CustomText";
 
 interface CategoryListProps {
   categories: (translate: Function) => Category[];
@@ -29,29 +29,31 @@ const CategoryList: React.FC<CategoryListProps> = ({
   const { translate } = useTranslations();
   const { data, isRefetching,isLoading } = useGetUserScore();
 
+
+
   const renderHeader = () => (
     <View style={styles.headerContainer}>
       <View style={styles.environmentalScoreContainer}>
-        <Text style={styles.environmentalScoreLabel}>
+        <CustomText style={styles.environmentalScoreLabel}>
           {translate("impactScore")}:
-        </Text>
+        </CustomText>
         {!isRefetching || isLoading ? (
-          <Text style={styles.environmentalScoreValue}>
+          <CustomText style={styles.environmentalScoreValue}>
             {data?.overallScore?.toFixed(2) || 0}/10
-          </Text>
+          </CustomText>
         ) : (
           <ActivityIndicator />
         )}
       </View>
-      <Text style={styles.subtitle}>
+      <CustomText style={styles.subtitle}>
         {showFullDescription ? description : description.slice(0, 160) + "..."}
-      </Text>
+      </CustomText>
       <TouchableOpacity
         onPress={() => setShowFullDescription(!showFullDescription)}
       >
-        <Text style={styles.seeMoreText}>
+        <CustomText style={styles.seeMoreText}>
           {showFullDescription ? translate("seeLess") : translate("seeMore")}
-        </Text>
+        </CustomText>
       </TouchableOpacity>
     </View>
   );

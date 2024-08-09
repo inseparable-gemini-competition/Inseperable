@@ -10,6 +10,7 @@ import { Button, ButtonSize } from "react-native-ui-lib";
 import GenericBottomSheet from "./GenericBottomSheet";
 import { useTranslations } from "@/hooks/ui/useTranslations";
 import { colors } from "@/app/theme";
+import { CustomText } from "@/app/components/CustomText";
 
 interface DonationModalProps {
   visible: boolean;
@@ -51,27 +52,26 @@ const DonationModal: React.FC<DonationModalProps> = ({
       textToSpeak={result?.description}
     >
       <View style={styles.container}>
-        <Text style={styles.title}>{translate("donationInfo")}</Text>
-        <Text
+        <CustomText style={styles.title}>{translate("donationInfo")}</CustomText>
+        <CustomText
           style={{
             marginVertical: 5,
-            fontFamily: "marcellus",
             textAlign: "center",
           }}
         >
           {translate("weWillRecommendADonationEntityToYou")}
-        </Text>
+        </CustomText>
         {isLoading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={colors.primary} />
-            <Text style={styles.loadingText}>
+            <CustomText style={styles.loadingText}>
               {translate("fetchingDonationInfo")}
-            </Text>
+            </CustomText>
           </View>
         ) : (
           <View style={styles.contentContainer}>
-            <Text style={styles.name}>{result?.name}</Text>
-            <Text style={styles.description}>{result?.description}</Text>
+            <CustomText style={styles.name}>{result?.name}</CustomText>
+            <CustomText style={styles.description}>{result?.description}</CustomText>
             <Button
               size={ButtonSize.large}
               borderRadius={10}
@@ -111,7 +111,6 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "bold",
     color: colors.black,
-    fontFamily: "marcellus",
     textAlign: "center",
     marginBottom: 20,
   },
@@ -124,7 +123,6 @@ const styles = StyleSheet.create({
     marginTop: 15,
     fontSize: 16,
     color: colors.black,
-    fontFamily: "marcellus",
     textAlign: "center",
   },
   contentContainer: {
@@ -136,12 +134,10 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: colors.black,
     marginBottom: 10,
-    fontFamily: "marcellus",
   },
   description: {
     fontSize: 16,
     color: colors.black,
-    fontFamily: "marcellus",
     marginBottom: 20,
   },
   button: {

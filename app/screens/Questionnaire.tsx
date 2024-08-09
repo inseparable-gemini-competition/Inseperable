@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { View, Text, Button } from "react-native-ui-lib";
+import { View, Button } from "react-native-ui-lib";
 import { colors } from "../theme";
 import Question from "@/app/components/Question/Question";
 import { ActivityIndicator, ScrollView } from "react-native";
@@ -8,6 +8,7 @@ import { convertJSONToObject } from "@/app/helpers/questionnaireHelpers";
 import { useGenerateContent } from "@/hooks/gemini/useGeminiStream";
 import { useTranslations } from "@/hooks/ui/useTranslations";
 import { useNavigation } from "expo-router";
+import { CustomText } from "@/app/components/CustomText";
 
 type Props = {
   onFinish: (params?: {
@@ -173,11 +174,11 @@ const Questionnaire = ({ onFinish }: Props) => {
         }}
       >
         <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={{ fontFamily: "marcellus" }}>
+        <CustomText style={{ fontFamily: "marcellus" }}>
           {isLoadingPriorityTranslation
             ? translate("DetectingYourNativeLanguage")
             : translate("fetchingNextQuestion")}
-        </Text>
+        </CustomText>
       </View>
     );
   } else if (isLoading) {
@@ -191,9 +192,9 @@ const Questionnaire = ({ onFinish }: Props) => {
         }}
       >
         <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={{ fontFamily: "marcellus" }}>
+        <CustomText>
           {translate("recommending")}
-        </Text>
+        </CustomText>
       </View>
     );
   }
@@ -223,30 +224,28 @@ const Questionnaire = ({ onFinish }: Props) => {
         ) : (
           <>
             {result?.country !== "null" && (
-              <Text
+              <CustomText
                 style={{
                   fontSize: 70,
                   color: colors.black,
                   textAlign: "center",
                   padding: 10,
-                  fontFamily: "marcellus",
                 }}
               >
                 {result?.country} {result?.flag}
-              </Text>
+              </CustomText>
             )}
-            <Text
+            <CustomText
               style={{
                 fontSize: 15,
                 color: colors.black,
                 textAlign: "center",
-                fontFamily: "marcellus",
                 padding: 10,
                 paddingHorizontal: 30,
               }}
             >
               {result?.description !== "null" ? result?.description : ""}
-            </Text>
+            </CustomText>
 
             <Button
               style={{ width: 300, alignSelf: "center" }}

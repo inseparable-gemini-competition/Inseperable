@@ -17,6 +17,7 @@ import Animated, {
   withTiming,
   Easing,
 } from "react-native-reanimated";
+import { CustomText } from "@/app/components/CustomText";
 
 type Props = {
   onFinish: (params?: { setLocalLoading: (loading: boolean) => void }) => void;
@@ -128,9 +129,9 @@ const EnvironmentalImpactQuestionnaire = ({ onFinish }: Props) => {
         }}
       >
         <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={{ fontFamily: "marcellus" }}>
+        <CustomText style={{ fontFamily: "marcellus" }}>
           {translate("fetchingNextQuestion")}
-        </Text>
+        </CustomText>
       </View>
     );
   } else if (isLoading) {
@@ -144,9 +145,9 @@ const EnvironmentalImpactQuestionnaire = ({ onFinish }: Props) => {
         }}
       >
         <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={{ fontFamily: "marcellus" }}>
+        <CustomText style={{ fontFamily: "marcellus" }}>
           {translate("calculatingImpact")}
-        </Text>
+        </CustomText>
       </View>
     );
   }
@@ -164,7 +165,7 @@ const EnvironmentalImpactQuestionnaire = ({ onFinish }: Props) => {
             color={colors.white}
           />
         </TouchableOpacity>
-        <Text style={styles.title}>{translate("environmentalImpact")}</Text>
+        <CustomText style={styles.title}>{translate("environmentalImpact")}</CustomText>
       </Animated.View>
       <ScrollView
         contentContainerStyle={{
@@ -190,24 +191,22 @@ const EnvironmentalImpactQuestionnaire = ({ onFinish }: Props) => {
             />
           ) : (
             <>
-              <Text
+              <CustomText
                 style={{
                   fontSize: 20,
                   color: colors.black,
                   textAlign: "center",
                   padding: 10,
-                  fontFamily: "marcellus",
                 }}
               >
                 {translate("yourEnvironmentalImactScore")} {result?.impactScore}
                 /10
-              </Text>
-              <Text
+              </CustomText>
+              <CustomText
                 style={{
                   fontSize: 15,
                   color: colors.black,
                   textAlign: "center",
-                  fontFamily: "marcellus",
                   padding: 10,
                   paddingHorizontal: 30,
                 }}
@@ -215,7 +214,7 @@ const EnvironmentalImpactQuestionnaire = ({ onFinish }: Props) => {
                 {result?.scoreExplanation}
                 {"\n"}
                 {result?.recommendations}
-              </Text>
+              </CustomText>
 
               <Button
                 style={{ width: 300, alignSelf: "center" }}

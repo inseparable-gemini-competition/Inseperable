@@ -9,7 +9,6 @@ const styles = StyleSheet.create({
     },
     title: {
       fontSize: 24,
-      fontFamily: "marcellus",
       color: colors.white,
       marginBottom: 20,
       top: 10,
@@ -56,7 +55,6 @@ const styles = StyleSheet.create({
     },
     itemName: {
       fontSize: 20,
-      fontFamily: "marcellus",
       color: colors.black,
       marginBottom: 5,
     },

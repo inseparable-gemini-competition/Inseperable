@@ -4,6 +4,7 @@ import { CameraView as ExpoCameraView } from 'expo-camera';
 import { Ionicons } from '@expo/vector-icons';
 import {styles} from '@/app/screens/MainStyles';
 import { useTranslations } from '@/hooks/ui/useTranslations';
+import { CustomText } from '@/app/components/CustomText';
 
 interface CameraViewProps {
   facing: 'front' | 'back';
@@ -25,14 +26,14 @@ const CameraView: React.FC<CameraViewProps> = ({
     <View style={{ flex: 1, }}>
       {countdown !== 0 && (
         <View style={styles.countdownContainer}>
-          <Text style={styles.countdownText}>{countdown}</Text>
+          <CustomText style={styles.countdownText}>{countdown}</CustomText>
           <TouchableOpacity
             style={styles.cancelButton}
             onPress={onCancelCountdown}
           >
-            <Text style={styles.cancelText}>
+            <CustomText style={styles.cancelText}>
               {translate('cancelAutoCapture')}
-            </Text>
+            </CustomText>
           </TouchableOpacity>
         </View>
       )}

@@ -39,6 +39,7 @@ import { debounce } from "@/app/helpers/debounce";
 import { httpsCallable } from "firebase/functions";
 import Animated, { useAnimatedStyle, withTiming, Easing } from "react-native-reanimated";
 import { useNavigation } from "expo-router";
+import { CustomText } from "@/app/components/CustomText";
 
 // Types
 interface Photo {
@@ -286,12 +287,12 @@ const TravelPhotoScreen: React.FC = () => {
   const renderPhoto = ({ item }: { item: Photo }): React.ReactElement => (
     <View style={styles.photoCard}>
       <FastImage source={{ uri: item.url }} style={styles.photoImage} />
-      <Text style={styles.photoDescription}>
+      <CustomText style={styles.photoDescription}>
         {convertMarkdownToPlainText(item.description)}
-      </Text>
+      </CustomText>
       {item.captions?.map((caption: string, index: number) => (
         <View key={index} style={styles.captionContainer}>
-          <Text style={styles.photoCaption}>{caption}</Text>
+          <CustomText style={styles.photoCaption}>{caption}</CustomText>
           <TouchableOpacity
             onPress={() => handleShare(item, caption)}
             style={styles.shareCaptionButton}
@@ -300,9 +301,9 @@ const TravelPhotoScreen: React.FC = () => {
           </TouchableOpacity>
         </View>
       ))}
-      <Text style={styles.photoTimestamp}>
+      <CustomText style={styles.photoTimestamp}>
         {new Date(item.timestamp).toLocaleString()}
-      </Text>
+      </CustomText>
       <TouchableOpacity
         onPress={() => handleShare(item)}
         style={styles.shareButton}
@@ -315,9 +316,9 @@ const TravelPhotoScreen: React.FC = () => {
   if (!userData?.id) {
     return (
       <View style={styles.noPhotosContainer}>
-        <Text style={styles.noPhotosText}>
+        <CustomText style={styles.noPhotosText}>
           {translate("userDataNotAvailable")}
-        </Text>
+        </CustomText>
       </View>
     );
   }
@@ -356,7 +357,7 @@ const TravelPhotoScreen: React.FC = () => {
               color={colors.white}
             />
           </TouchableOpacity>
-          <Text style={styles.title}>{translate("travelMemories")}</Text>
+          <CustomText style={styles.title}>{translate("travelMemories")}</CustomText>
         </Animated.View>
 
         <View style={styles.actionContainer}>
@@ -369,9 +370,9 @@ const TravelPhotoScreen: React.FC = () => {
               size={24}
               color={colors.white}
             />
-            <Text style={styles.uploadButtonText}>
+            <CustomText style={styles.uploadButtonText}>
               {translate("uploadPhoto")}
-            </Text>
+            </CustomText>
           </TouchableOpacity>
 
           <View style={styles.searchContainer}>
@@ -395,9 +396,9 @@ const TravelPhotoScreen: React.FC = () => {
               color={colors.primary}
               style={styles.loader}
             />
-            <Text style={styles.loadingText}>
+            <CustomText style={styles.loadingText}>
               {statusMessage}
-            </Text>
+            </CustomText>
           </View>
         )}
 
@@ -408,9 +409,9 @@ const TravelPhotoScreen: React.FC = () => {
               size={50}
               color={colors.secondary}
             />
-            <Text style={styles.noPhotosText}>
+            <CustomText style={styles.noPhotosText}>
               {translate("noPhotosFound")}
-            </Text>
+            </CustomText>
           </View>
         )}
 
@@ -473,7 +474,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
     marginLeft: 8,
-    fontFamily: "marcellus",
   },
   searchContainer: {
     flex: 1,
@@ -511,7 +511,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: colors.primary,
     marginTop: 10,
-    fontFamily: "marcellus",
   },
   photoList: {
     padding: 16,
@@ -541,7 +540,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: colors.black,
     marginBottom: 8,
-    fontFamily: "marcellus",
     padding: 16,
   },
   captionContainer: {
@@ -552,9 +550,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   photoCaption: {
-    fontSize: 16,
     color: colors.black,
-    fontFamily: "marcellus",
     flex: 1,
   },
   shareCaptionButton: {
@@ -567,7 +563,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.light,
     marginTop: 8,
-    fontFamily: "marcellus",
   },
   shareButton: {
     position: "absolute",
@@ -592,13 +587,11 @@ const styles = StyleSheet.create({
     color: colors.secondary,
     fontSize: 18,
     marginTop: 10,
-    fontFamily: "marcellus",
   },
   errorText: {
     color: colors.danger,
     textAlign: "center",
     marginVertical: 10,
-    fontFamily: "marcellus",
   },
 });
 

@@ -50,8 +50,8 @@ export const useModalHandlers = (
   };
 
   const openMapWithLocation = async (
-    latitude: string,
-    longitude: string,
+    latitude: number,
+    longitude: number,
     name: string
   ) => {
     const encodedName = encodeURIComponent(name);
@@ -69,7 +69,7 @@ export const useModalHandlers = (
     }
   };
 
-  const openUber = async (latitude: string, longitude: string) => {
+  const openUber = async (latitude: number, longitude: number) => {
     const uberUrl = `uber://?action=setPickup&pickup=my_location&dropoff[latitude]=${latitude}&dropoff[longitude]=${longitude}`;
 
     try {

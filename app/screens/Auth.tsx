@@ -13,6 +13,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "@/hooks/logic/useAuth";
 import { useTranslations } from "@/hooks/ui/useTranslations";
 import { colors } from "@/app/theme";
+import { CustomText } from "@/app/components/CustomText";
 
 const LoadingAnimation = ({ text }: {text: string}) => {
   const [rotation] = useState(new Animated.Value(0));
@@ -36,7 +37,7 @@ const LoadingAnimation = ({ text }: {text: string}) => {
   return (
     <View style={styles.loadingContainer}>
       <Animated.View style={[styles.loadingCircle, { transform: [{ rotate: spin }] }]} />
-      <Text style={styles.loadingText}>{text}</Text>
+      <CustomText style={styles.loadingText}>{text}</CustomText>
     </View>
   );
 };
@@ -89,9 +90,9 @@ export default function AuthScreen() {
       style={styles.container}
     >
       <View style={styles.contentContainer}>
-        <Text style={styles.title}>
+        <CustomText style={styles.title}>
           {isLogin ? translate("login") : translate("signUp")}
-        </Text>
+        </CustomText>
         <View style={styles.inputContainer}>
           <Ionicons
             name="mail-outline"
@@ -130,9 +131,9 @@ export default function AuthScreen() {
           onPress={handleAuth}
           disabled={isLoading}
         >
-          <Text style={styles.buttonText}>
+          <CustomText style={styles.buttonText}>
             {isLogin ? translate("login") : translate("signUp")}
-          </Text>
+          </CustomText>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.biometricButton}
@@ -144,14 +145,14 @@ export default function AuthScreen() {
             size={24}
             color={colors.white}
           />
-          <Text style={styles.biometricButtonText}>
+          <CustomText style={styles.biometricButtonText}>
             {translate("biometricLogin")}
-          </Text>
+          </CustomText>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => setIsLogin(!isLogin)}>
-          <Text style={styles.switchText}>
+          <CustomText style={styles.switchText}>
             {isLogin ? translate("needAccount") : translate("haveAccount")}
-          </Text>
+          </CustomText>
         </TouchableOpacity>
       </View>
     </LinearGradient>

@@ -12,7 +12,6 @@ import {
   GiftedChat,
   IMessage,
   Bubble,
-  InputToolbar,
   Send,
   Actions,
   MessageText,
@@ -38,31 +37,9 @@ import { LinearGradient } from 'expo-linear-gradient';
 import * as ImagePicker from "expo-image-picker";
 import useStore from "@/app/store";
 import { useTranslations } from "@/hooks/ui/useTranslations";
+import { colors } from "@/app/theme";
+import { CustomText } from "@/app/components/CustomText";
 
-// Color scheme
-const colors = {
-  primary: "#3c3e3b",
-  background: "#f5e8db",
-  secondary: "#6c757d",
-  success: "#28a745",
-  danger: "#dc3545",
-  warning: "#ffc107",
-  info: "#17a2b8",
-  light: "#f8f9fa",
-  dark: "#343a40",
-  white: "#fff",
-  black: "#000",
-  placeholder: "#6c757d",
-  backgroundGradientStart: "#f5e8db",
-  backgroundGradientEnd: "#f3d9c6",
-  headerBackground: "#343a40",
-  bubbleLeft: "#f8f9fa",
-  bubbleRight: "#3c3e3b",
-  translatedTextDark: "#B0BEC5",
-  translatedTextLight: "#455A64",
-  bubbleLeftText: "#000000",
-  bubbleRightText: "#FFFFFF",
-};
 
 type RootStackParamList = {
   ChatScreen: { recipientId: string; itemName: string };
@@ -326,12 +303,12 @@ const Chat: React.FC = () => {
       <View>
         <MessageText {...props} />
         {currentMessage.translatedText && (
-          <Text style={[
+          <CustomText style={[
             styles.translatedText,
             { color: currentMessage.user._id === userId ? colors.translatedTextDark : colors.translatedTextLight }
           ]}>
             {currentMessage.translatedText}
-          </Text>
+          </CustomText>
         )}
       </View>
     );
@@ -381,9 +358,9 @@ const Chat: React.FC = () => {
               color={colors.white}
             />
           </TouchableOpacity>
-          <Text style={styles.headerText}>
+          <CustomText style={styles.headerText}>
             {translate("chatAbout")} {itemName}
-          </Text>
+          </CustomText>
         </View>
         <GiftedChat
           messages={messages}

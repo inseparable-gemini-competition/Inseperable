@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import {
   View,
-  Text,
   StyleSheet,
   TouchableOpacity,
   TextInput,
@@ -12,6 +11,7 @@ import { StackScreenProps } from "@react-navigation/stack";
 import { colors } from "@/app/theme";
 import { useTranslations } from "@/hooks/ui/useTranslations";
 import { useGenerateContent } from "@/hooks";
+import { CustomText } from "@/app/components/CustomText";
 
 type RootStackParamList = {
   ChatScreenModal: { placeName: string };
@@ -53,7 +53,7 @@ const ChatScreenModal: React.FC<ChatScreenModalProps> = ({ navigation, route }) 
   return (
     <View style={styles.container}>
       <TouchableOpacity onPress={() => navigation.goBack()} style={styles.closeButton}>
-        <Text style={styles.closeButtonText}>{translate("back")}</Text>
+        <CustomText style={styles.closeButtonText}>{translate("back")}</CustomText>
       </TouchableOpacity>
 
       <ScrollView style={styles.chatContainer}>
@@ -65,7 +65,7 @@ const ChatScreenModal: React.FC<ChatScreenModalProps> = ({ navigation, route }) 
               chat.isUser ? styles.userBubble : styles.aiBubble,
             ]}
           >
-            <Text style={styles.chatText}>{chat.text}</Text>
+            <CustomText style={styles.chatText}>{chat.text}</CustomText>
           </View>
         ))}
         {isLoading && (
@@ -84,7 +84,7 @@ const ChatScreenModal: React.FC<ChatScreenModalProps> = ({ navigation, route }) 
           onChangeText={setInputText}
         />
         <TouchableOpacity style={styles.sendButton} onPress={handleSend}>
-          <Text style={styles.sendButtonText}>{translate("send")}</Text>
+          <CustomText style={styles.sendButtonText}>{translate("send")}</CustomText>
         </TouchableOpacity>
       </View>
     </View>
@@ -104,7 +104,6 @@ const styles = StyleSheet.create({
   closeButtonText: {
     color: colors.primary,
     fontSize: 18,
-    fontFamily: "marcellus",
   },
   chatContainer: {
     flex: 1,
@@ -126,7 +125,6 @@ const styles = StyleSheet.create({
   },
   chatText: {
     color: colors.white,
-    fontFamily: "marcellus",
   },
   loadingResponse: {
     marginVertical: 10,
@@ -154,7 +152,6 @@ const styles = StyleSheet.create({
   },
   sendButtonText: {
     color: colors.white,
-    fontFamily: "marcellus",
   },
 });
 

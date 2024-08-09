@@ -18,6 +18,7 @@ import { useTipSelection } from "@/hooks/ui/useTipsSelection";
 import { useVoiceActivation } from "@/hooks/ui/useVoiceActivation";
 import { useTranslations } from "@/hooks/ui/useTranslations";
 import useStore from "@/app/store";
+import { CustomText } from "@/app/components/CustomText";
 
 interface MainPresentationProps {
   modals: ReturnType<typeof useModals>;
@@ -45,11 +46,13 @@ const MainPresentation: React.FC<MainPresentationProps> = ({
   if (imageCapture.showCamera && !imageCapture.permission?.granted) {
     return (
       <View style={styles.permissionContainer}>
-        <Text style={styles.permissionText}>{translate("permissionText")}</Text>
+        <CustomText style={styles.permissionText}>
+          {translate("permissionText")}
+        </CustomText>
         <Button
           onPress={imageCapture.requestPermission}
           label={translate("grantPermission")}
-          labelStyle={{fontFamily: "marcellus"}}
+          labelStyle={{ fontFamily: "marcellus" }}
         />
       </View>
     );
@@ -86,6 +89,7 @@ const MainPresentation: React.FC<MainPresentationProps> = ({
             <>
               <CategoryScreen
                 categories={categories as any}
+                handleFontSettings={() => modals.setFontSettingsVisible(true)}
                 onCategoryPress={(category) => handleCommand(category)}
                 country={userData?.country || ""}
                 description={userData?.description || ""}

@@ -22,6 +22,7 @@ import { useNavigation } from "expo-router";
 import { useTranslations } from "@/hooks/ui/useTranslations";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import useStore from "@/app/store";
+import { CustomText } from "@/app/components/CustomText";
 
 const { width, height } = Dimensions.get("window");
 
@@ -82,7 +83,7 @@ const VisitingIndicator: React.FC<VisitingIndicatorProps> = React.memo(
     if (!visible) return null;
     return (
       <Animated.View style={[styles.visitingIndicator, style]}>
-        <Text style={styles.visitingIndicatorText}>{text}</Text>
+        <CustomText style={styles.visitingIndicatorText}>{text}</CustomText>
       </Animated.View>
     );
   }
@@ -129,15 +130,15 @@ const CategoryCard: React.FC<CategoryCardProps> = React.memo(
           style={styles.card}
         />
         <View style={styles.infoContainer}>
-          <Text style={styles.currentLocation}>{item?.time}</Text>
-          <Text style={styles.museumName}>{item?.name}</Text>
-          <Text
+          <CustomText style={styles.currentLocation}>{item?.time}</CustomText>
+          <CustomText style={styles.museumName}>{item?.name}</CustomText>
+          <CustomText
             style={styles.description}
             numberOfLines={3}
             ellipsizeMode="tail"
           >
             {item?.description}
-          </Text>
+          </CustomText>
           <Button
             label={translate("openInGoogleMaps")}
             backgroundColor="#FFC107"
@@ -347,7 +348,7 @@ const Plan: React.FC = () => {
       {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#FFC107" />
-          <Text style={styles.loadingText}>{translate("loading")}</Text>
+          <CustomText style={styles.loadingText}>{translate("loading")}</CustomText>
         </View>
       ) : categoryData.length > 0 ? (
         <View style={styles.swiperContainer}>
@@ -392,7 +393,7 @@ const Plan: React.FC = () => {
         </View>
       ) : (
         <View style={styles.noDataContainer}>
-          <Text style={styles.noDataText}>{translate("noDataAvailable")}</Text>
+          <CustomText style={styles.noDataText}>{translate("noDataAvailable")}</CustomText>
         </View>
       )}
     </SafeAreaView>
@@ -505,7 +506,6 @@ const styles = StyleSheet.create({
   noDataText: {
     fontSize: 18,
     color: colors.primary,
-    fontFamily: "marcellus",
     textAlign: "center",
   },
   visitingIndicator: {

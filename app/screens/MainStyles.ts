@@ -45,13 +45,11 @@ export const styles = StyleSheet.create({
   },
   title: {
     fontSize: 48,
-    fontFamily: "marcellus",
     marginTop: 16,
     textAlign: 'left',
   },
   subtitle: {
     fontSize: 18,
-    fontFamily: "marcellus",
     marginVertical: 16,
     textAlign: 'left',
   },
@@ -105,7 +103,6 @@ export const styles = StyleSheet.create({
   cardText: {
     marginTop: 8,
     fontSize: 18,
-    fontFamily: "marcellus",
   },
   countdownContainer: {
     position: "absolute",
@@ -126,7 +123,6 @@ export const styles = StyleSheet.create({
   countdownText: {
     fontSize: 48,
     color: "white",
-    fontFamily: "marcellus",
     textShadowColor: "rgba(0, 0, 0, 0.75)",
     textShadowOffset: { width: -1, height: 1 },
     textShadowRadius: 10,
@@ -134,7 +130,6 @@ export const styles = StyleSheet.create({
   recognizing: {
     fontSize: 14,
     color: "white",
-    fontFamily: "marcellus",
     fontWeight: "bold",
     textShadowColor: "rgba(0, 0, 0, 0.75)",
     textShadowOffset: { width: -1, height: 1 },
@@ -148,7 +143,6 @@ export const styles = StyleSheet.create({
   },
   cancelText: {
     color: "white",
-    fontFamily: "marcellus",
     fontSize: 18,
   },
   captureButton: {
@@ -187,14 +181,12 @@ export const styles = StyleSheet.create({
     color: "#ffffff",
     fontSize: 24,
     marginStart: 10,
-    fontFamily: "marcellus",
   },
   feedbackText: {
     color: "#ffffff",
     fontSize: 18,
     textAlign: "center",
     paddingHorizontal: 20,
-    fontFamily: "marcellus",
   },
   permissionContainer: {
     flex: 1,
@@ -232,7 +224,6 @@ export const styles = StyleSheet.create({
   resetButtonText: {
     color: "white",
     fontSize: 18,
-    fontFamily: "marcellus",
     textAlign: 'left'
   },
 });
@@ -254,19 +245,16 @@ export const modalStyles = StyleSheet.create({
     fontSize: 30,
     color: "black",
     marginBottom: 10,
-    fontFamily: "marcellus",
   },
   modalRecognizing: {
     fontSize: 18,
     color: "grey",
     marginBottom: 10,
-    fontFamily: "marcellus",
   },
   modalCommandText: {
     fontSize: 24,
     color: "black",
     marginBottom: 20,
-    fontFamily: "marcellus",
   },
   modalCancelButton: {
     backgroundColor: "red",
@@ -277,11 +265,9 @@ export const modalStyles = StyleSheet.create({
   modalCancelText: {
     color: "white",
     fontSize: 18,
-    fontFamily: "marcellus",
   },
   modalTitle: {
     fontSize: 25,
-    fontFamily: "marcellus",
     textAlign: "center",
     marginBottom: 10,
   },
@@ -289,7 +275,6 @@ export const modalStyles = StyleSheet.create({
     fontSize: 18,
     marginBottom: 20,
     textAlign: "center",
-    fontFamily: "marcellus",
   },
   modalButton: {
     backgroundColor: "#4CAF50",
@@ -301,7 +286,6 @@ export const modalStyles = StyleSheet.create({
   modalButtonText: {
     color: "white",
     fontSize: 18,
-    fontFamily: "marcellus",
   },
   modalCloseButton: {
     backgroundColor: "#f44336",
@@ -312,7 +296,6 @@ export const modalStyles = StyleSheet.create({
   modalCloseButtonText: {
     color: "white",
     fontSize: 18,
-    fontFamily: "marcellus",
   },
   textInput: {
     width: 340,
@@ -341,14 +324,6 @@ export const modalStyles = StyleSheet.create({
     color: "#333",
     marginBottom: 20,
   },
-  modalContent: {
-    backgroundColor: "white",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 20,
-    alignItems: "center",
-    maxHeight: "80%",
-  },
   closeIcon: {
     position: "absolute",
     top: 20,
@@ -371,7 +346,6 @@ export const modalStyles = StyleSheet.create({
   pickerText: {
     fontSize: 16,
     color: "#333",
-    fontFamily: "marcellus",
   },
   dialogContainer: {
     backgroundColor: 'white',

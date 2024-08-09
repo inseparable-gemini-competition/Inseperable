@@ -127,7 +127,6 @@ const styles = StyleSheet.create({
     minHeight: "100%",
   },
   text: {
-    fontFamily: "marcellus",
     fontSize: 16,
     color: "#333",
   },

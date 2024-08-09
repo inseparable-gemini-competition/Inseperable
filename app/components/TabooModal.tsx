@@ -9,6 +9,7 @@ import {
 import { useTranslations } from "@/hooks/ui/useTranslations";
 import GenericBottomSheet from "./GenericBottomSheet";
 import { colors } from "@/app/theme";
+import { CustomText } from "@/app/components/CustomText";
 
 interface TabooModalProps {
   visible: boolean;
@@ -33,27 +34,26 @@ const TabooModal: React.FC<TabooModalProps> = ({
       textToSpeak={result}
     >
       <View style={styles.container}>
-      <Text style={styles.modalTitle}>{translate("taboo")}</Text>
-        <Text
+      <CustomText style={styles.modalTitle}>{translate("taboo")}</CustomText>
+        <CustomText
           style={{
             marginBottom: 20,
-            fontFamily: "marcellus",
             textAlign: "center",
           }}
         >
           {translate("KnowAllTheTaboosYouNeedToAvoid")}
-        </Text>
+        </CustomText>
         {isLoading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={colors.primary} />
-            <Text style={styles.loadingText}>
+            <CustomText style={styles.loadingText}>
               {translate("fetchingTaboos")}
-            </Text>
+            </CustomText>
           </View>
         ) : (
           <>
             <View style={styles.resultContainer}>
-              <Text style={styles.resultText}>{result}</Text>
+              <CustomText style={styles.resultText}>{result}</CustomText>
             </View>
           </>
         )}
@@ -82,14 +82,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.secondary,
     fontWeight: "600",
-    fontFamily: "marcellus",
   },
   modalTitle: {
     fontSize: 24,
     fontWeight: "bold",
     color: colors.primary,
     textAlign: "center",
-    fontFamily: "marcellus",
     marginBottom: 20,
   },
   resultContainer: {
@@ -105,7 +103,6 @@ const styles = StyleSheet.create({
   resultText: {
     fontSize: 18,
     color: colors.dark,
-    fontFamily: "marcellus",
     lineHeight: 24,
     textAlign: "center",
   },

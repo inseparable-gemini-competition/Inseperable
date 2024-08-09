@@ -1,8 +1,10 @@
 import React, { useState } from "react";
-import { View, Text, TextField, Button } from "react-native-ui-lib";
+import { View, TextField, Button } from "react-native-ui-lib";
 import Option from "./Option/Option";
 import { colors } from "@/app/theme";
 import { useTranslations } from "@/hooks/ui/useTranslations";
+import { CustomText } from "@/app/components/CustomText";
+
 
 type Props = {
   question: {
@@ -39,17 +41,16 @@ const Question = ({
 
   return (
     <View key={question?.id}>
-      <Text
+      <CustomText
         style={{
           fontSize: 35,
           margin: 15,
           color: colors.black,
-          fontFamily: "marcellus",
           textAlign: 'left'
         }}
       >
         {question?.question}
-      </Text>
+      </CustomText>
       <View
         style={{
           flexDirection: "row",

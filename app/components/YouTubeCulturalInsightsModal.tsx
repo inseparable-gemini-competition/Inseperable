@@ -11,6 +11,7 @@ import { convertMarkdownToPlainText } from "@/app/helpers/markdown";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { httpsCallable } from "firebase/functions";
 import { functions, storage } from "../helpers/firebaseConfig";
+import { CustomText } from "@/app/components/CustomText";
 
 interface VideoCulturalInsightsModalProps {
   visible: boolean;
@@ -120,18 +121,17 @@ const VideoCulturalInsightsModal: React.FC<VideoCulturalInsightsModalProps> = ({
     >
       {!culturalInsights ? (
         <>
-          <Text style={styles.modalTitle}>
+          <CustomText style={styles.modalTitle}>
             {translate("getCulturalContext")}
-          </Text>
-          <Text
+          </CustomText>
+          <CustomText
             style={{
               marginBottom: 20,
-              fontFamily: "marcellus",
               textAlign: "center",
             }}
           >
             {translate("weWillAnalyzeYourVideoCulturally")}
-          </Text>
+          </CustomText>
           {isUploading || isAnalyzing ? (
             <>
               {isUploading ? (
@@ -148,13 +148,13 @@ const VideoCulturalInsightsModal: React.FC<VideoCulturalInsightsModalProps> = ({
               <View
                 style={[globalStyles.loadingContainer, styles.loadingContainer]}
               >
-                <Text style={styles.loadingText}>
+                <CustomText style={styles.loadingText}>
                   {isUploading
                     ? `${translate("uploadingVideo")} ${uploadProgress.toFixed(
                         0
                       )}%`
                     : translate("analyzingVideo")}
-                </Text>
+                </CustomText>
               </View>
             </>
           ) : (
@@ -200,13 +200,13 @@ const VideoCulturalInsightsModal: React.FC<VideoCulturalInsightsModalProps> = ({
                   backgroundColor={colors.primary}
                   disabled={!videoUri || isUploading}
                   labelStyle={{
-                    color: 'white',
+                    color: "white",
                     fontSize: 18,
-                    fontWeight: 'normal',
+                    fontWeight: "normal",
                     fontFamily: "marcellus",
                     textShadowOffset: { width: 0, height: 0.1 },
                     textShadowRadius: 0.1,
-                    textShadowColor: 'rgba(0, 0, 0, 0.3)'
+                    textShadowColor: "rgba(0, 0, 0, 0.3)",
                   }}
                   style={{
                     height: 50,
@@ -219,12 +219,12 @@ const VideoCulturalInsightsModal: React.FC<VideoCulturalInsightsModalProps> = ({
         </>
       ) : (
         <View style={styles.insightsContainer}>
-          <Text style={styles.insightsTitle}>
+          <CustomText style={styles.insightsTitle}>
             {translate("culturalInsights")}
-          </Text>
-          <Text style={styles.insightsText}>
+          </CustomText>
+          <CustomText style={styles.insightsText}>
             {convertMarkdownToPlainText(culturalInsights)}
-          </Text>
+          </CustomText>
           <Button
             onPress={resetState}
             size={ButtonSize.large}
@@ -266,7 +266,6 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     textAlign: "center",
-    fontFamily: "marcellus",
     color: colors.primary,
     marginTop: 10,
     fontSize: 18,
@@ -297,9 +296,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   insightsText: {
-    fontSize: 16,
     color: colors.dark,
-    fontFamily: "marcellus",
     textAlign: "center",
     marginBottom: 20,
   },

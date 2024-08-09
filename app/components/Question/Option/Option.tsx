@@ -9,6 +9,8 @@ import Animated, {
   withSequence,
 } from "react-native-reanimated";
 import { colors } from "@/app/theme";
+import { CustomText } from "@/app/components/CustomText";
+
 
 type Props = {
   option: string;
@@ -41,9 +43,9 @@ const Option = ({ option, onChoose, isSelected }: Props) => {
           style={styles.option}
           onPress={() => onChoose(option)}
         >
-          <Text style={styles.text} numberOfLines={2} adjustsFontSizeToFit>
+          <CustomText style={styles.text} numberOfLines={2} adjustsFontSizeToFit>
             {option}
-          </Text>
+          </CustomText>
         </TouchableOpacity>
       </View>
     </Animated.View>

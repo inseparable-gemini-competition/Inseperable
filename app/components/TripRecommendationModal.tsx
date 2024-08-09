@@ -1,20 +1,19 @@
 import React, { useState } from "react";
 import {
   View,
-  Text,
   ActivityIndicator,
   StyleSheet,
   TouchableOpacity,
   Dimensions,
   Image,
-  TextInput,
-  ScrollView,
 } from "react-native";
 import { Carousel } from "react-native-ui-lib";
 import { colors } from "@/app/theme";
 import { useTranslations } from "@/hooks/ui/useTranslations";
 import { useNavigation } from "@react-navigation/native";
 import GenericBottomSheet, { GenericBottomSheetTextInput } from "./GenericBottomSheet";
+import { CustomText } from "@/app/components/CustomText";
+
 
 const { width: screenWidth } = Dimensions.get("window");
 
@@ -89,18 +88,18 @@ const TripRecommendationModal: React.FC<TripRecommendationModalProps> = ({
     >
       {!recommendedTrips ? (
         <>
-          <Text style={styles.modalTitle}>{translate("tellUsYourMood")}</Text>
-          <Text style={styles.descriptionText}>
+          <CustomText style={styles.modalTitle}>{translate("tellUsYourMood")}</CustomText>
+          <CustomText style={styles.descriptionText}>
             {translate(
               "basedOnYourMoodAndDesiresWeWillRecommendBestDestination"
             )}
-          </Text>
+          </CustomText>
           {isLoading ? (
             <View style={styles.loadingContainer}>
               <ActivityIndicator color={colors.primary} />
-              <Text style={styles.loadingText}>
+              <CustomText style={styles.loadingText}>
                 {translate("findingPerfectPlaces")}
-              </Text>
+              </CustomText>
             </View>
           ) : (
             <>
@@ -113,18 +112,18 @@ const TripRecommendationModal: React.FC<TripRecommendationModalProps> = ({
                 style={styles.textInput}
               />
               <TouchableOpacity style={styles.submitButton} onPress={onSubmit}>
-                <Text style={styles.submitButtonText}>
+                <CustomText style={styles.submitButtonText}>
                   {translate("findPlaces")}
-                </Text>
+                </CustomText>
               </TouchableOpacity>
             </>
           )}
         </>
       ) : (
         <View style={styles.recommendationContainer}>
-          <Text style={styles.recommendationTitle}>
+          <CustomText style={styles.recommendationTitle}>
             {translate("weRecommend")}
-          </Text>
+          </CustomText>
 
           <Carousel
             onChangePage={setActiveIndex}
@@ -138,12 +137,12 @@ const TripRecommendationModal: React.FC<TripRecommendationModalProps> = ({
             )}
           </Carousel>
 
-          <Text style={styles.placeName}>
+          <CustomText style={styles.placeName}>
             {recommendedTrips[activeIndex]?.name}
-          </Text>
-          <Text style={styles.placeDescription}>
+          </CustomText>
+          <CustomText style={styles.placeDescription}>
             {recommendedTrips[activeIndex]?.description}
-          </Text>
+          </CustomText>
 
           <View style={styles.actionButtonsContainer}>
             <TouchableOpacity
@@ -156,9 +155,9 @@ const TripRecommendationModal: React.FC<TripRecommendationModalProps> = ({
                 )
               }
             >
-              <Text style={styles.actionButtonText}>
+              <CustomText style={styles.actionButtonText}>
                 {translate("viewOnMap")}
-              </Text>
+              </CustomText>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.actionButton}
@@ -169,18 +168,18 @@ const TripRecommendationModal: React.FC<TripRecommendationModalProps> = ({
                 )
               }
             >
-              <Text style={styles.actionButtonText}>
+              <CustomText style={styles.actionButtonText}>
                 {translate("openInUber")}
-              </Text>
+              </CustomText>
             </TouchableOpacity>
           </View>
 
           <TouchableOpacity onPress={handleChatOpen}>
-            <Text style={styles.askQuestionText}>{translate("askQuestion")}</Text>
+            <CustomText style={styles.askQuestionText}>{translate("askQuestion")}</CustomText>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <Text style={styles.closeButtonText}>{translate("back")}</Text>
+            <CustomText style={styles.closeButtonText}>{translate("back")}</CustomText>
           </TouchableOpacity>
         </View>
       )}
@@ -191,14 +190,12 @@ const TripRecommendationModal: React.FC<TripRecommendationModalProps> = ({
 const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 22,
-    fontFamily: "marcellus",
     color: colors.primary,
     textAlign: "center",
     marginVertical: 20,
   },
   descriptionText: {
     marginVertical: 5,
-    fontFamily: "marcellus",
     textAlign: "center",
     marginBottom: 10,
   },
@@ -209,7 +206,6 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     textAlign: "center",
-    fontFamily: "marcellus",
     color: colors.primary,
     marginTop: 10,
   },
@@ -230,7 +226,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   submitButtonText: {
-    fontFamily: "marcellus",
     color: colors.white,
     fontSize: 18,
   },
@@ -242,7 +237,6 @@ const styles = StyleSheet.create({
   },
   recommendationTitle: {
     fontSize: 22,
-    fontFamily: "marcellus",
     color: colors.primary,
     marginBottom: 20,
   },
@@ -265,14 +259,12 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: colors.secondary,
     marginBottom: 10,
-    fontFamily: "marcellus",
   },
   placeDescription: {
     fontSize: 16,
     color: colors.dark,
     textAlign: "center",
     marginBottom: 20,
-    fontFamily: "marcellus",
   },
   actionButtonsContainer: {
     flexDirection: "row",
@@ -290,12 +282,10 @@ const styles = StyleSheet.create({
   actionButtonText: {
     color: colors.white,
     textAlign: "center",
-    fontFamily: "marcellus",
   },
   askQuestionText: {
     color: colors.primary,
     textAlign: "center",
-    fontFamily: "marcellus",
     marginVertical: 10,
   },
   closeButton: {
@@ -304,7 +294,6 @@ const styles = StyleSheet.create({
   closeButtonText: {
     color: colors.secondary,
     textAlign: "center",
-    fontFamily: "marcellus",
   },
 });
 
