@@ -423,7 +423,7 @@ const TravelPhotoScreen: React.FC = () => {
           onEndReached={loadMorePhotos}
           onEndReachedThreshold={0.5}
           ListFooterComponent={
-            loading ? <ActivityIndicator color={colors.primary} /> : null
+            loading && photos.length ? <ActivityIndicator color={colors.primary} /> : null
           }
         />
       </LinearGradient>

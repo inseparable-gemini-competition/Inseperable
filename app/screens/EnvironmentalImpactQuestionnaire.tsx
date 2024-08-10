@@ -31,7 +31,7 @@ const EnvironmentalImpactQuestionnaire = ({ onFinish }: Props) => {
   const defaultQuestions = [
     {
       id: 1,
-      question: translate("Whattransportationdidyouusetoday"),
+      question: translate("WhatTransportationDidYouUseToday"),
       options: [
         { id: 1, option: translate("airplane") },
         { id: 2, option: translate("car") },

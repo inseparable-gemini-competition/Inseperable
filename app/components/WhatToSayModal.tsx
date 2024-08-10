@@ -33,6 +33,7 @@ const WhatToSayModal: React.FC<WhatToSayModalProps> = ({
   return (
     <GenericBottomSheet
       visible={visible}
+      snapPoints={["75%", "75%"]}
       onClose={() => {
         onClose();
         setUserSituation("");
