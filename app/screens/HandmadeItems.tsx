@@ -377,6 +377,9 @@ const HandMade: React.FC = () => {
             showsVerticalScrollIndicator={false}
             data={data.pages.flatMap((page) => page.items)}
             keyExtractor={(item) => item.id}
+            ListEmptyComponent={ <CustomText style={styles.noDataText}>
+            {translate("noHandmadeItems")}
+          </CustomText>}
             renderItem={renderItem}
             onEndReached={() => {
               if (hasNextPage && !isFetching) {
@@ -398,11 +401,7 @@ const HandMade: React.FC = () => {
             }
           />
         )}
-        {!data && !isLoading && (
-          <CustomText style={styles.noDataText}>
-            {translate("noHandmadeItems")}
-          </CustomText>
-        )}
+      
       </LinearGradient>
     </SafeAreaView>
   );
