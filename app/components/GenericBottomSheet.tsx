@@ -117,7 +117,7 @@ const GenericBottomSheet: React.FC<GenericBottomSheetProps> = ({
         nestedScrollEnabled
       >
         <View style={styles.iconContainer}>
-          {textToSpeak && (
+          {Boolean(textToSpeak) && (
             <SpeechControlIcon
               isSpeaking={isSpeaking}
               onToggle={handleToggleSpeech}
