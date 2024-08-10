@@ -6,6 +6,7 @@ import { CustomText } from "@/app/components/CustomText";
 import { colors } from "@/app/theme";
 import GenericBottomSheet from "./GenericBottomSheet";
 import { useFont } from "@/app/context/fontContext";
+import { useTranslations } from "@/hooks/ui/useTranslations";
 
 interface FontSettingsContentProps {
   isVisible: boolean;
@@ -16,16 +17,28 @@ const FontSettingsContent: React.FC<FontSettingsContentProps> = ({
   isVisible,
   onClose,
 }) => {
-  const { selectedFont, fontSize, fontSizeRatio, setSelectedFont, setFontSize, setFontSizeRatio } = useFont();
+  const {
+    selectedFont,
+    fontSize,
+    fontSizeRatio,
+    setSelectedFont,
+    setFontSize,
+    setFontSizeRatio,
+  } = useFont();
+  const { translate } = useTranslations();
 
   const fontOptions = ["marcellus", "SpaceMono", "OpenDyslexic"];
 
   const content = (
     <View style={styles.container}>
-      <CustomText style={styles.title}>Font and Theme Settings</CustomText>
+      <CustomText style={styles.title}>
+        {translate("fontAndThemeSettings")}
+      </CustomText>
 
       <View style={styles.section}>
-        <CustomText style={styles.sectionTitle}>Font Family</CustomText>
+        <CustomText style={styles.sectionTitle}>
+          {translate("fontFamily")}
+        </CustomText>
         {fontOptions.map((font) => (
           <TouchableOpacity
             key={font}
@@ -50,7 +63,7 @@ const FontSettingsContent: React.FC<FontSettingsContentProps> = ({
 
       <View style={styles.section}>
         <CustomText style={styles.sectionTitle}>
-          Font Size: {fontSize}
+          {translate("fontSize")}: {fontSize}
         </CustomText>
         <View style={styles.fontSizeControls}>
           <TouchableOpacity
@@ -59,7 +72,9 @@ const FontSettingsContent: React.FC<FontSettingsContentProps> = ({
           >
             <CustomText style={styles.fontSizeButtonText}>-</CustomText>
           </TouchableOpacity>
-          <CustomText style={{ fontSize, textAlign: 'center' }}>Experiment</CustomText>
+          <CustomText style={{ fontSize, textAlign: "center" }}>
+            {translate("experiment")}
+          </CustomText>
           <TouchableOpacity
             style={styles.fontSizeButton}
             onPress={() => setFontSize(Math.min(30, fontSize + 2))}
@@ -71,7 +86,7 @@ const FontSettingsContent: React.FC<FontSettingsContentProps> = ({
 
       <View style={styles.section}>
         <CustomText style={styles.sectionTitle}>
-          Font Size Ratio: {fontSizeRatio.toFixed(2)}
+          {translate("fontSizeRatio")}: {fontSizeRatio.toFixed(2)}
         </CustomText>
         <View style={styles.fontSizeControls}>
           <TouchableOpacity
@@ -80,7 +95,9 @@ const FontSettingsContent: React.FC<FontSettingsContentProps> = ({
           >
             <CustomText style={styles.fontSizeButtonText}>-</CustomText>
           </TouchableOpacity>
-          <CustomText style={{ fontSize, textAlign: 'center' }}>Adjust Ratio</CustomText>
+          <CustomText style={{ fontSize, textAlign: "center" }}>
+            {translate("adjustRatio")}
+          </CustomText>
           <TouchableOpacity
             style={styles.fontSizeButton}
             onPress={() => setFontSizeRatio(Math.min(2, fontSizeRatio + 0.1))}
@@ -103,7 +120,6 @@ const FontSettingsContent: React.FC<FontSettingsContentProps> = ({
     </GenericBottomSheet>
   );
 };
-
 
 const styles = StyleSheet.create({
   container: {

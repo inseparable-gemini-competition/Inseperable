@@ -74,7 +74,6 @@ export const styles = StyleSheet.create({
   },
   environmentalScoreValue: {
     fontSize: 18,
-    color: colors.success,
   },
   cardContainer: {
     justifyContent: "space-between",

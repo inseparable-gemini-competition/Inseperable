@@ -12,6 +12,7 @@ import { styles } from "@/app/screens/MainStyles";
 import { useTranslations } from "@/hooks/ui/useTranslations";
 import { useGetUserScore } from "@/hooks/logic/useUserScore";
 import { CustomText } from "@/app/components/CustomText";
+import { colors } from "@/app/theme";
 
 interface CategoryListProps {
   categories: (translate: Function) => Category[];
@@ -26,9 +27,9 @@ const CategoryList: React.FC<CategoryListProps> = ({
 }) => {
   const [showFullDescription, setShowFullDescription] = useState(false);
   const { translate } = useTranslations();
-  const { data, isRefetching,isLoading } = useGetUserScore();
-
-
+  const { data, isRefetching, isLoading } = useGetUserScore();
+  const scoreColor =
+    (data?.overallScore || 0) > 5 ? colors.success : colors.danger;
 
   const renderHeader = () => (
     <View style={styles.headerContainer}>
@@ -37,7 +38,14 @@ const CategoryList: React.FC<CategoryListProps> = ({
           {translate("impactScore")}:
         </CustomText>
         {!isRefetching || isLoading ? (
-          <CustomText style={styles.environmentalScoreValue}>
+          <CustomText
+            style={[
+              styles.environmentalScoreValue,
+              {
+                color: scoreColor,
+              },
+            ]}
+          >
             {data?.overallScore?.toFixed(2) || 0}/10
           </CustomText>
         ) : (

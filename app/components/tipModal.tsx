@@ -65,7 +65,7 @@ const TipsModal: React.FC<TipsModalProps> = ({
         style={globalStyles.picker}
         placeholder={translate("selectTipType")}
         value={selectedTipType}
-        onChange={handleTipTypeChange}
+        onChange={handleTipTypeChange as any}
       >
         {tipTypes.map((item) => (
           <Picker.Item

@@ -120,35 +120,69 @@ const EnvironmentalImpactQuestionnaire = ({ onFinish }: Props) => {
 
   if (isLoadingNextQuestion) {
     return (
-      <View
-        style={{
-          flex: 1,
-          justifyContent: "center",
-          alignItems: "center",
-          backgroundColor: colors.background,
-        }}
-      >
-        <ActivityIndicator size="large" color={colors.primary} />
-        <CustomText style={{ fontFamily: "marcellus" }}>
-          {translate("fetchingNextQuestion")}
-        </CustomText>
-      </View>
+      <SafeAreaView style={{flex: 1}}>
+        <Animated.View style={[styles.header as any, fadeInDownStyle]}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.backButton}
+          >
+            <Ionicons
+              name={isRTL ? "arrow-forward" : "arrow-back"}
+              size={24}
+              color={colors.white}
+            />
+          </TouchableOpacity>
+          <CustomText style={styles.title}>
+            {translate("environmentalImpact")}
+          </CustomText>
+        </Animated.View>
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: colors.background,
+          }}
+        >
+          <ActivityIndicator size="large" color={colors.primary} />
+          <CustomText style={{ fontFamily: "marcellus" }}>
+            {translate("fetchingNextQuestion")}
+          </CustomText>
+        </View>
+      </SafeAreaView>
     );
   } else if (isLoading) {
     return (
-      <View
-        style={{
-          flex: 1,
-          justifyContent: "center",
-          alignItems: "center",
-          backgroundColor: colors.background,
-        }}
-      >
-        <ActivityIndicator size="large" color={colors.primary} />
-        <CustomText style={{ fontFamily: "marcellus" }}>
-          {translate("calculatingImpact")}
-        </CustomText>
-      </View>
+      <SafeAreaView style={{flex: 1}}>
+        <Animated.View style={[styles.header as any, fadeInDownStyle]}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.backButton}
+          >
+            <Ionicons
+              name={isRTL ? "arrow-forward" : "arrow-back"}
+              size={24}
+              color={colors.white}
+            />
+          </TouchableOpacity>
+          <CustomText style={styles.title}>
+            {translate("environmentalImpact")}
+          </CustomText>
+        </Animated.View>
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: colors.background,
+          }}
+        >
+          <ActivityIndicator size="large" color={colors.primary} />
+          <CustomText style={{ fontFamily: "marcellus" }}>
+            {translate("calculatingImpact")}
+          </CustomText>
+        </View>
+      </SafeAreaView>
     );
   }
 
@@ -165,7 +199,9 @@ const EnvironmentalImpactQuestionnaire = ({ onFinish }: Props) => {
             color={colors.white}
           />
         </TouchableOpacity>
-        <CustomText style={styles.title}>{translate("environmentalImpact")}</CustomText>
+        <CustomText style={styles.title}>
+          {translate("environmentalImpact")}
+        </CustomText>
       </Animated.View>
       <ScrollView
         contentContainerStyle={{
@@ -194,9 +230,12 @@ const EnvironmentalImpactQuestionnaire = ({ onFinish }: Props) => {
               <CustomText
                 style={{
                   fontSize: 20,
-                  color: colors.black,
                   textAlign: "center",
                   padding: 10,
+                  color:
+                    (result?.impactScore || 0) > 5
+                      ? colors.success
+                      : colors.danger,
                 }}
               >
                 {translate("yourEnvironmentalImactScore")} {result?.impactScore}
