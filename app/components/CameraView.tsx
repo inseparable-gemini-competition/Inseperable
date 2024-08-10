@@ -1,13 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, TouchableOpacity } from 'react-native';
 import { CameraView as ExpoCameraView } from 'expo-camera';
 import { Ionicons } from '@expo/vector-icons';
-import {styles} from '@/app/screens/MainStyles';
+import { styles } from '@/app/screens/MainStyles';
 import { useTranslations } from '@/hooks/ui/useTranslations';
 import { CustomText } from '@/app/components/CustomText';
 
 interface CameraViewProps {
-  facing: 'front' | 'back';
   countdown: number | null;
   cameraRef: React.RefObject<ExpoCameraView>;
   onManualCapture: () => void;
@@ -15,15 +14,20 @@ interface CameraViewProps {
 }
 
 const CameraView: React.FC<CameraViewProps> = ({
-  facing,
   countdown,
   cameraRef,
   onManualCapture,
   onCancelCountdown,
 }) => {
   const { translate } = useTranslations();
+  const [facing, setFacing] = useState<'front' | 'back'>('back'); // Initial camera facing direction
+
+  const flipCamera = () => {
+    setFacing((prevFacing) => (prevFacing === 'back' ? 'front' : 'back'));
+  };
+
   return (
-    <View style={{ flex: 1, }}>
+    <View style={{ flex: 1 }}>
       {countdown !== 0 && (
         <View style={styles.countdownContainer}>
           <CustomText style={styles.countdownText}>{countdown}</CustomText>
@@ -45,6 +49,12 @@ const CameraView: React.FC<CameraViewProps> = ({
           <Ionicons name="camera" size={40} color="black" />
         </TouchableOpacity>
       </ExpoCameraView>
+      <TouchableOpacity
+        style={styles.flipButton} 
+        onPress={flipCamera}
+      >
+        <Ionicons name="sync-outline" size={40} color="black" />
+      </TouchableOpacity>
     </View>
   );
 };

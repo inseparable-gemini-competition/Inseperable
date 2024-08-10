@@ -16,6 +16,14 @@ export const styles = StyleSheet.create({
     color: "#333",
     marginBottom: 10,
   },
+  flipButton: {
+    position: "absolute",
+    top: 20,
+    right: 20,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    borderRadius: 25,
+    padding: 10,
+  },
   container: {
     flex: 1,
     backgroundColor: "rgba(255, 255, 255, 0.75)",

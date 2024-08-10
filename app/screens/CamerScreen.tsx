@@ -60,7 +60,6 @@ const CameraScreen: React.FC<CameraScreenProps> = ({
       {showCamera ? (
         <Animated.View style={[{ flex: 1 }, cameraAnimatedStyle]}>
           <CameraView
-            facing={facing}
             countdown={countdown}
             cameraRef={cameraRef}
             onManualCapture={onManualCapture}
@@ -77,7 +76,9 @@ const CameraScreen: React.FC<CameraScreenProps> = ({
             >
               <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color="#ffffff" />
-                <CustomText style={styles.loadingText}>{translate("analyzing")}</CustomText>
+                <CustomText style={styles.loadingText}>
+                  {translate("analyzing")}
+                </CustomText>
               </View>
             </TouchableOpacity>
           )}
@@ -87,7 +88,6 @@ const CameraScreen: React.FC<CameraScreenProps> = ({
             overlayBackgroundColor="rgba(0, 0, 0, 0.5)"
             onDismiss={onCloseFeedback}
             ignoreBackgroundPress
-            // panDirection={PanningProvider.Directions.DOWN}
           >
             <TouchableOpacity
               style={styles.closeButton}
@@ -96,7 +96,9 @@ const CameraScreen: React.FC<CameraScreenProps> = ({
               <Ionicons name="close-circle" size={32} color="white" />
             </TouchableOpacity>
             <ScrollView style={styles.dialogContent}>
-              <CustomText style={styles.feedbackText}>{feedbackText}</CustomText>
+              <CustomText style={styles.feedbackText}>
+                {feedbackText}
+              </CustomText>
               <TouchableOpacity
                 style={styles.speechButton}
                 onPress={handleToggleSpeech}
@@ -124,7 +126,7 @@ const styles = StyleSheet.create({
     backgroundColor: "black",
   },
   closeButton: {
-    position: 'absolute',
+    position: "absolute",
     top: 10,
     right: 10,
     zIndex: 1,
