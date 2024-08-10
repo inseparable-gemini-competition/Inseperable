@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { FlatList, ListRenderItem, TouchableOpacity, Image, ViewStyle, TextStyle, ImageStyle } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { View, Text, Card, Button } from "react-native-ui-lib";
+import { View, Card, Button } from "react-native-ui-lib";
 import { useNavigation, NavigationProp } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import Animated, {

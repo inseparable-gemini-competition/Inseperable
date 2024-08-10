@@ -92,7 +92,7 @@ const TripRecommendationModal: React.FC<TripRecommendationModalProps> = ({
       }}
       textToSpeak={recommendedTrips?.[activeIndex]?.description}
     >
-      {!recommendedTrips ? (
+      {!recommendedTrips?.[0]?.name ? (
         <>
           <CustomText style={styles.modalTitle}>
             {translate("tellUsYourMood")}
@@ -138,6 +138,7 @@ const TripRecommendationModal: React.FC<TripRecommendationModalProps> = ({
 
           <Carousel
             data={recommendedTrips}
+            style={{marginBottom: 20}}
             width={screenWidth * 0.8}
             height={200}
             renderItem={({ item, index }) => renderCarouselItem(item, index)}
