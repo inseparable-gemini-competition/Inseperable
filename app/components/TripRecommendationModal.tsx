@@ -62,12 +62,13 @@ const TripRecommendationModal: React.FC<TripRecommendationModalProps> = ({
   const handleChatOpen = () => {
     if (recommendedTrips?.[activeIndex]) {
       navigation.navigate("ChatScreenModal", {
-        placeName: recommendedTrips[activeIndex]?.name,
+        subject: recommendedTrips[activeIndex]?.name,
+        promptType: "aiQuestion"
       });
     }
   };
 
-  const renderCarouselItem = ({ item: trip, index }: { item: RecommendedTrip; index: number }) => (
+  const renderCarouselItem: any = ({ item: trip, index }: { item: RecommendedTrip; index: number }) => (
     <View key={index} style={styles.carouselItem}>
       <FastImage
         style={styles.carouselImage}
