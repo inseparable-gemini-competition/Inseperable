@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   View,
   ActivityIndicator,
@@ -6,7 +6,11 @@ import {
   TouchableOpacity,
   Dimensions,
 } from "react-native";
-import Carousel from "react-native-reanimated-carousel";
+import Carousel, {
+  ICarouselInstance,
+  Pagination,
+} from "react-native-reanimated-carousel";
+import { useSharedValue } from "react-native-reanimated";
 import { colors } from "@/app/theme";
 import { useTranslations } from "@/hooks/ui/useTranslations";
 import { useNavigation } from "@react-navigation/native";
@@ -14,7 +18,6 @@ import GenericBottomSheet, {
   GenericBottomSheetTextInput,
 } from "./GenericBottomSheet";
 import { CustomText } from "@/app/components/CustomText";
-import Pagination from "@/app/components/Pagination"; // Import the Pagination component
 import FastImage from "react-native-fast-image";
 
 const { width: screenWidth } = Dimensions.get("window");
@@ -34,13 +37,7 @@ interface TripRecommendationModalProps {
   onSubmit: (mood?: string) => void;
   userMoodAndDesires: string;
   setUserMoodAndDesires: (input: string) => void;
-  recommendedTrips: Array<{
-    name: string;
-    description: string;
-    latitude: number;
-    longitude: number;
-    imageUrl: string;
-  }> | null;
+  recommendedTrips: Array<RecommendedTrip> | null;
   onViewMap: (latitude: number, longitude: number, name: string) => void;
   onOpenUber: (latitude: number, longitude: number) => void;
 }
@@ -56,9 +53,11 @@ const TripRecommendationModal: React.FC<TripRecommendationModalProps> = ({
   onViewMap,
   onOpenUber,
 }) => {
-  const { translate } = useTranslations();
+  const { translate, translations } = useTranslations();
   const [activeIndex, setActiveIndex] = useState(0);
   const navigation = useNavigation<any>();
+  const progress = useSharedValue<number>(0);
+  const ref = useRef<ICarouselInstance>(null);
 
   const handleChatOpen = () => {
     if (recommendedTrips?.[activeIndex]) {
@@ -68,7 +67,7 @@ const TripRecommendationModal: React.FC<TripRecommendationModalProps> = ({
     }
   };
 
-  const renderCarouselItem = (trip: RecommendedTrip, index: number) => (
+  const renderCarouselItem = ({ item: trip, index }: { item: RecommendedTrip; index: number }) => (
     <View key={index} style={styles.carouselItem}>
       <FastImage
         style={styles.carouselImage}
@@ -77,6 +76,13 @@ const TripRecommendationModal: React.FC<TripRecommendationModalProps> = ({
       />
     </View>
   );
+
+  const onPressPagination = (index: number) => {
+    ref.current?.scrollTo({
+      count: index - progress.value,
+      animated: true,
+    });
+  };
 
   return (
     <GenericBottomSheet
@@ -137,19 +143,28 @@ const TripRecommendationModal: React.FC<TripRecommendationModalProps> = ({
           </CustomText>
 
           <Carousel
+            ref={ref}
             data={recommendedTrips}
-            style={{marginBottom: 20}}
+            style={styles.carousel}
             width={screenWidth * 0.8}
             height={200}
-            renderItem={({ item, index }) => renderCarouselItem(item, index)}
+            renderItem={renderCarouselItem}
+            onProgressChange={progress as any}
             onSnapToItem={setActiveIndex}
             loop={false}
           />
 
-          {/* <Pagination
-            dotsLength={recommendedTrips.length}
-            activeDotIndex={activeIndex}
-          /> */}
+          <Pagination.Basic
+            progress={progress}
+            data={recommendedTrips}
+            dotStyle={styles.paginationDot}
+            activeDotStyle={styles.paginationDotActive}
+            containerStyle={[
+              styles.paginationContainer,
+              translations?.isRTL ? { transform: [{ scaleX: -1 }] } : {}
+          ]}
+            onPress={onPressPagination}
+          />
 
           <CustomText style={styles.placeName}>
             {recommendedTrips[activeIndex]?.name}
@@ -259,6 +274,9 @@ const styles = StyleSheet.create({
     color: colors.primary,
     marginBottom: 20,
   },
+  carousel: {
+    marginBottom: 20,
+  },
   carouselItem: {
     width: "100%",
     height: "100%",
@@ -268,6 +286,25 @@ const styles = StyleSheet.create({
   carouselImage: {
     width: "100%",
     height: "100%",
+  },
+  paginationContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 10,
+    marginBottom: 20,
+
+  
+  },
+  paginationDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "rgba(0,0,0,0.2)",
+    marginHorizontal: 4,
+  },
+  paginationDotActive: {
+    backgroundColor: colors.primary,
   },
   placeName: {
     fontSize: 18,

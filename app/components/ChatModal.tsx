@@ -23,10 +23,9 @@ import { useGenerateContent } from "@/hooks";
 import { CustomText } from "@/app/components/CustomText";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { colors } from "@/app/theme";
-import { useNavigation } from "expo-router";
 
 type RootStackParamList = {
-  ChatScreenModal: { placeName: string };
+  ChatScreenModal: { promptType: string; subject: string };
   TripRecommendationModal: undefined;
 };
 
@@ -48,21 +47,24 @@ interface StylesProps {
   aiBubble: ViewStyle;
   userBubbleText: TextStyle;
   aiBubbleText: TextStyle;
+  sendIconRTL: TextStyle;
 }
 
 const HEADER_HEIGHT = 60;
 
-const ChatScreenModal: React.FC<ChatScreenModalProps> = () => {
-  const { navigation, route } = useNavigation<ChatScreenModalProps>();
-  const { placeName } = route.params;
+const ChatScreenModal: React.FC<ChatScreenModalProps> = ({
+  navigation,
+  route,
+}) => {
+  const { promptType, subject } = route.params;
   const { translate, isRTL } = useTranslations();
   const [messages, setMessages] = useState<IMessage[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   const { sendMessage } = useGenerateContent({
-    promptType: "placeQuestion",
-    inputData: { place: placeName, chatHistory: JSON.stringify(messages) },
+    promptType: promptType,
+    inputData: { subject, chatHistory: JSON.stringify(messages) },
     onSuccess: (result: string) => {
       const aiMessage: IMessage = {
         _id: Date.now().toString(),
@@ -102,9 +104,7 @@ const ChatScreenModal: React.FC<ChatScreenModalProps> = () => {
   const renderSend = (props: SendProps<IMessage>) => {
     return (
       <Send {...props} containerStyle={styles.sendContainer}>
-        <CustomText style={styles.sendButtonText}>
-          {translate("send")}
-        </CustomText>
+        <Ionicons name="send" size={20} style={[isRTL && styles.sendIconRTL]} />
       </Send>
     );
   };
@@ -218,11 +218,13 @@ const styles = StyleSheet.create<StylesProps>({
     marginHorizontal: 10,
     marginBottom: 10,
   },
+  sendIconRTL: {
+    transform: [{ scaleX: -1 }],
+  },
   sendContainer: {
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 10,
-    marginBottom: 10,
+    marginHorizontal: 10,
   },
   sendButtonText: {
     color: colors.primary,
@@ -239,7 +241,7 @@ const styles = StyleSheet.create<StylesProps>({
     color: colors.bubbleRightText,
   },
   aiBubbleText: {
-    color: colors.bubbleLeftText,
+    color: colors.black,
   },
 });
 

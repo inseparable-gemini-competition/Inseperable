@@ -16,6 +16,8 @@ import CameraView from "@/app/components/CameraView";
 import { useTranslations } from "@/hooks/ui/useTranslations";
 import { useTextToSpeech } from "@/app/context/TextToSpeechContext";
 import { CustomText } from "@/app/components/CustomText";
+import { useNavigation } from "@react-navigation/native";
+import { colors } from "@/app/theme";
 
 const CameraScreen: React.FC<CameraScreenProps> = ({
   showCamera,
@@ -25,7 +27,6 @@ const CameraScreen: React.FC<CameraScreenProps> = ({
   onCancelCountdown,
   onBackPress,
   cameraAnimatedStyle,
-  facing,
   countdown,
   isLoadingFromGemini,
   feedbackText,
@@ -35,6 +36,7 @@ const CameraScreen: React.FC<CameraScreenProps> = ({
   const { translate, isRTL } = useTranslations();
   const [isSpeaking, setIsSpeaking] = useState(false);
   const { speak, stop } = useTextToSpeech();
+  const navigation = useNavigation<any>();
 
   const handleToggleSpeech = () => {
     if (isSpeaking) {
@@ -44,6 +46,15 @@ const CameraScreen: React.FC<CameraScreenProps> = ({
       speak(feedbackText);
       setIsSpeaking(true);
     }
+  };
+
+  const handleNavigateToChatScreenModal = () => {
+    navigation.navigate("ChatScreenModal", {
+      subject: feedbackText,
+      promptType: "aiQuestion",
+      fromCamera: true,
+    });
+    onCloseFeedback();
   };
 
   return (
@@ -99,19 +110,30 @@ const CameraScreen: React.FC<CameraScreenProps> = ({
               <CustomText style={styles.feedbackText}>
                 {feedbackText}
               </CustomText>
-              <TouchableOpacity
-                style={styles.speechButton}
-                onPress={handleToggleSpeech}
-              >
-                <Ionicons
-                  name={isSpeaking ? "pause" : "volume-high"}
-                  size={24}
-                  color="white"
-                />
-                <CustomText style={styles.speechButtonText}>
-                  {isSpeaking ? "Pause" : "Click to hear text"}
-                </CustomText>
-              </TouchableOpacity>
+              <View style={styles.buttonContainer}>
+                <TouchableOpacity
+                  style={styles.speechButton}
+                  onPress={handleToggleSpeech}
+                >
+                  <Ionicons
+                    name={isSpeaking ? "pause" : "volume-high"}
+                    size={24}
+                    color={colors.white}
+                  />
+                  <CustomText style={styles.speechButtonText}>
+                    {isSpeaking ? translate("pause") : translate("hear")}
+                  </CustomText>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.speechButton} // Using the same style for consistency
+                  onPress={handleNavigateToChatScreenModal}
+                >
+                  <Ionicons name="arrow-forward" size={24} color={colors.white} />
+                  <CustomText style={styles.speechButtonText}>
+                    {translate("askMore")}
+                  </CustomText>
+                </TouchableOpacity>
+              </View>
             </ScrollView>
           </Dialog>
         </View>
@@ -168,6 +190,12 @@ const styles = StyleSheet.create({
     ...globalStyles.feedbackText,
     marginBottom: 16,
   },
+  buttonContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginTop: 16,
+  },
   speechButton: {
     flexDirection: "row",
     alignItems: "center",
@@ -175,7 +203,8 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 20,
     justifyContent: "center",
-    marginBottom: 50,
+    flex: 1,
+    marginHorizontal: 5,
   },
   speechButtonText: {
     color: "white",

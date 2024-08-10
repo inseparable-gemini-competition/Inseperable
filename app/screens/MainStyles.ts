@@ -306,7 +306,6 @@ export const modalStyles = StyleSheet.create({
     width: 340,
     alignSelf: "center",
     height: 100,
-    borderColor: colors.info,
     borderWidth: 1,
     borderRadius: 10,
     padding: 10,

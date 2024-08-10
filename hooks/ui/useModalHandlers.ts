@@ -102,9 +102,6 @@ export const useModalHandlers = (
   const handleTripRecommendationSubmit = async (voiceMood: string = "") => {
     try {
       setUserMoodModalLoading(true);
-      updateUserScore({
-        cultural: 10,
-      });
       const functions = getFunctions();
       const result = (await httpsCallable(
         functions,
@@ -118,6 +115,9 @@ export const useModalHandlers = (
 
       setRecommendedTrips(result.data);
       setUserMoodModalLoading(false);
+      updateUserScore({
+        cultural: 10,
+      });
     } catch (error) {
       setUserMoodModalLoading(false);
       setRecommendedTrips(null);

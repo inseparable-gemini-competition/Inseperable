@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { View, Text, ActivityIndicator, StyleSheet } from "react-native";
 import { Button, ButtonSize } from "react-native-ui-lib";
 import { styles as globalStyles, modalStyles } from "@/app/screens/MainStyles";
