@@ -42,17 +42,27 @@ const MenuButton: React.FC<MenuButtonProps> = React.memo(
   )
 );
 
+interface ICard {
+  name: string;
+  photoUrl: string;
+  time: string;
+  description: string;
+  latitude: number;
+  longitude: number;
+}
+
 interface CustomImageProps {
   source: { uri: string };
-  style: any;
+  style: ICard;
 }
+
 
 const CustomImage: React.FC<CustomImageProps> = React.memo(
   ({ source, style }) => {
     const [imageLoaded, setImageLoaded] = useState(false);
 
     return (
-      <View style={[style, styles.imageContainer]}>
+      <View style={[style as any, styles.imageContainer]}>
         <FastImage
           source={{
             uri: "https://via.placeholder.com/400x600?text=Loading...",
@@ -106,7 +116,7 @@ const CategoryCard: React.FC<CategoryCardProps> = React.memo(
               item?.photoUrl ||
               "https://via.placeholder.com/400x600?text=No+Image",
           }}
-          style={styles.card}
+          style={styles.card as any}
         />
         <View style={styles.infoContainer}>
           <CustomText style={styles.currentLocation}>{item?.time}</CustomText>
