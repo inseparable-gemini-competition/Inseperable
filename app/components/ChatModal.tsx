@@ -23,6 +23,7 @@ import { useGenerateContent } from "@/hooks";
 import { CustomText } from "@/app/components/CustomText";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { colors } from "@/app/theme";
+import { convertMarkdownToPlainText } from "@/app/helpers/markdown";
 
 type RootStackParamList = {
   ChatScreenModal: { promptType: string; subject: string };
@@ -68,7 +69,7 @@ const ChatScreenModal: React.FC<ChatScreenModalProps> = ({
     onSuccess: (result: string) => {
       const aiMessage: IMessage = {
         _id: Date.now().toString(),
-        text: result,
+        text: convertMarkdownToPlainText(result),
         createdAt: new Date(),
         user: {
           _id: 2,
