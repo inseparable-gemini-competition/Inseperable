@@ -2,7 +2,6 @@ import React from "react";
 import {
   useModals,
   useTipSelection,
-  useNavigationAndUser,
   useDonation,
   useTextFeedback,
   useCamera,

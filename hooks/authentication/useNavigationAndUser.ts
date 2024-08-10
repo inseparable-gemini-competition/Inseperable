@@ -1,13 +1,10 @@
-import { NavigationProp } from "@react-navigation/native";
 import { signOut } from "firebase/auth";
-import { useNavigation } from "expo-router";
 import useStore from "@/app/store";
 import { auth } from "@/app/helpers/firebaseConfig";
 import { I18nManager } from "react-native";
 import * as Updates from "expo-updates";
 
 export const useNavigationAndUser = () => {
-  const navigation = useNavigation<NavigationProp<any>>();
   const {
     userData,
     setUserData,
@@ -34,16 +31,14 @@ export const useNavigationAndUser = () => {
 
   const handleRecommendation = async () => {
     try {
-      setUserData({...userData, country: null, travelPlan: []});
+      setUserData({ ...userData, country: null, travelPlan: [] });
     } catch (error) {
       console.error("Error logging out:", error);
     }
   };
 
   return {
-    navigation,
-    userData,
     handleResetAndLogout,
-    handleRecommendation
+    handleRecommendation,
   };
 };
