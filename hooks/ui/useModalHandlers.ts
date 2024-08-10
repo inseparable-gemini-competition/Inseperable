@@ -15,7 +15,8 @@ interface RecommendedTrip {
 
 export const useModalHandlers = (
   mutateAsync: any,
-  setTabooModalVisible: (visible: boolean) => void
+  setTabooModalVisible: (visible: boolean) => void,
+  setFontSettingsVisible: (visible: boolean) => void
 ) => {
   const [userSituation, setUserSituation] = useState<string>("");
   const [userMoodAndDesires, setUserMoodAndDesires] = useState<string>("");
@@ -38,6 +39,9 @@ export const useModalHandlers = (
     updateUserScore({
       cultural: 10,
     });
+  };
+  const handleFontSettings = () => {
+    setFontSettingsVisible(true);
   };
 
   const handleTabooSubmit = async () => {
@@ -95,7 +99,7 @@ export const useModalHandlers = (
     }
   };
 
-  const handleTripRecommendationSubmit = async (voiceMood) => {
+  const handleTripRecommendationSubmit = async (voiceMood: string) => {
     try {
       setUserMoodModalLoading(true);
       updateUserScore({
@@ -106,7 +110,10 @@ export const useModalHandlers = (
         functions,
         "scheduleTrip"
       )({
-        userInput: { userMoodAndDesires : userMoodAndDesires || voiceMood, country: userData?.country },
+        userInput: {
+          userMoodAndDesires: userMoodAndDesires || voiceMood,
+          country: userData?.country,
+        },
       })) as any;
 
       setRecommendedTrips(result.data);
@@ -134,5 +141,6 @@ export const useModalHandlers = (
     openMapWithLocation,
     openUber,
     setRecommendedTrips,
+    handleFontSettings,
   };
 };

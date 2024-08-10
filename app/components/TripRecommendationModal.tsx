@@ -80,7 +80,7 @@ const TripRecommendationModal: React.FC<TripRecommendationModalProps> = ({
 
   return (
     <GenericBottomSheet
-      snapPoints={["75%", "75%"]}
+      snapPoints={["60%", "75%"]}
       visible={visible}
       onClose={() => {
         onClose();
@@ -92,7 +92,7 @@ const TripRecommendationModal: React.FC<TripRecommendationModalProps> = ({
       }}
       textToSpeak={recommendedTrips?.[activeIndex]?.description}
     >
-      {!recommendedTrips?.[0]?.name ? (
+      {!isLoading || !recommendedTrips?.length ? (
         <>
           <CustomText style={styles.modalTitle}>
             {translate("tellUsYourMood")}
@@ -121,7 +121,7 @@ const TripRecommendationModal: React.FC<TripRecommendationModalProps> = ({
               />
               <TouchableOpacity
                 style={styles.submitButton}
-                onPress={() => onSubmit()}
+                onPress={onSubmit as any}
               >
                 <CustomText style={styles.submitButtonText}>
                   {translate("findPlaces")}

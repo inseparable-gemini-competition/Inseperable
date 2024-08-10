@@ -89,7 +89,7 @@ const MainPresentation: React.FC<MainPresentationProps> = ({
             <>
               <CategoryScreen
                 categories={categories as any}
-                handleFontSettings={() => modals.setFontSettingsVisible(true)}
+                handleFontSettings={modalHandlers.handleFontSettings}
                 onCategoryPress={(category) => handleCommand(category)}
                 country={userData?.country || ""}
                 description={userData?.description || ""}

@@ -15,14 +15,15 @@ import { useCommandHandler } from "@/hooks/ui/useCommandHandler";
 
 const MainContainer: React.FC = () => {
   const modals = useModals();
-  const textFeedBack = useTextFeedback({noModalVisible: modals.noModalVisible});
+  const textFeedBack = useTextFeedback();
   const imageCapture = useCamera(
     textFeedBack.mutateAsync,
     textFeedBack.setCurrentPromptType
   );
   const modalHandlers = useModalHandlers(
     textFeedBack.mutateAsync,
-    modals.setTabooModalVisible
+    modals.setTabooModalVisible,
+    modals.setFontSettingsVisible,
   );
   const tipSelection = useTipSelection(textFeedBack.mutateAsync);
   const donation = useDonation(
