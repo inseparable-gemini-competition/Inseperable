@@ -105,6 +105,7 @@ export default function TabLayout() {
       const updatedUserData = {
         ...result,
         id: userData?.id,
+        email: userData?.email,
         mostFamousLandmark: landmarkUri || "",
       };
       // Save updated user data to Firestore
