@@ -90,33 +90,13 @@ const VisitingIndicator: React.FC<VisitingIndicatorProps> = React.memo(
 
 interface CategoryCardProps {
   item: any;
-  cardIndex: number;
-  currentIndex: number;
-  scaleAnim: Animated.Value;
-  rotateAnim: Animated.Value;
   onPressMap: () => void;
 }
 
 const CategoryCard: React.FC<CategoryCardProps> = React.memo(
-  ({ item, cardIndex, currentIndex, scaleAnim, rotateAnim, onPressMap }) => {
+  ({ item, onPressMap }) => {
     const { translate } = useTranslations();
-    const isCurrentCard = cardIndex === currentIndex;
-    const cardStyle = [
-      styles.cardContainer,
-      isCurrentCard
-        ? {
-            transform: [
-              { scale: scaleAnim },
-              {
-                rotate: rotateAnim.interpolate({
-                  inputRange: [-300, 0, 300],
-                  outputRange: ["-30deg", "0deg", "30deg"],
-                }),
-              },
-            ],
-          }
-        : {},
-    ];
+    const cardStyle = [styles.cardContainer];
 
     return (
       <Animated.View style={cardStyle}>
@@ -166,7 +146,6 @@ const Plan: React.FC = () => {
   const [showVisitingIndicator, setShowVisitingIndicator] = useState(false);
   const [showNotVisitingIndicator, setShowNotVisitingIndicator] =
     useState(false);
-  const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const rotateAnim = useRef(new Animated.Value(0)).current;
   const visitingOpacity = useRef(new Animated.Value(0)).current;
@@ -301,19 +280,15 @@ const Plan: React.FC = () => {
   }, [resetIndicators]);
 
   const renderCard = useCallback(
-    (card: any, cardIndex: number) => {
+    (card: any) => {
       return (
         <CategoryCard
           item={card}
-          cardIndex={cardIndex}
-          currentIndex={currentCardIndex}
-          scaleAnim={scaleAnim}
-          rotateAnim={rotateAnim}
           onPressMap={() => openGoogleMaps(card?.latitude, card?.longitude)}
         />
       );
     },
-    [currentCardIndex, scaleAnim, rotateAnim]
+    [scaleAnim, rotateAnim]
   );
 
   return (
@@ -354,8 +329,7 @@ const Plan: React.FC = () => {
             cardVerticalMargin={0}
             cardHorizontalMargin={0}
             renderCard={renderCard}
-            onSwiped={(cardIndex) => {
-              setCurrentCardIndex(cardIndex);
+            onSwiped={() => {
               resetCardAnimation();
             }}
             onSwipedAll={() => console.log("onSwipedAll")}
