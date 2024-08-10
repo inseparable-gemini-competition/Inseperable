@@ -54,15 +54,6 @@ interface FetchResponse {
   lastVisible: string | null;
 }
 
-interface TranslationUpdate {
-  [key: string]: {
-    name?: string;
-    price?: string;
-    carbonFootprint?: string;
-    description?: string;
-  };
-}
-
 const functions = getFunctions();
 const getHandmadeItems = httpsCallable<
   { pageParam?: string; language: string; country: string },
@@ -90,8 +81,6 @@ const fetchHandmadeItems = async ({
 const HandMade: React.FC = () => {
   const navigation = useNavigation<NavigationProp<any>>();
   const queryClient = useQueryClient();
-  const [translationUpdates, setTranslationUpdates] =
-    useState<TranslationUpdate>({});
   const { userData } = useStore();
   const country = userData?.country || "";
   const { translate, isRTL, currentLanguage } = useTranslations();
@@ -113,72 +102,26 @@ const HandMade: React.FC = () => {
   useEffect(() => {
     const unsubscribes: (() => void)[] = [];
 
-    if (data) {
-      data.pages
-        .flatMap((page) => page.items)
-        .forEach((item) => {
-          const unsubscribe = onSnapshot(
-            doc(db, "products", item.id),
-            (doc) => {
-              const updatedData = doc.data() as DocumentData | undefined;
-              if (updatedData && updatedData.translations) {
-                setTranslationUpdates((prev) => ({
-                  ...prev,
-                  [item.id]: updatedData.translations[currentLanguage],
-                }));
-              }
+    data?.pages
+      ?.flatMap((page) => page.items)
+      ?.forEach((item) => {
+        const unsubscribe = onSnapshot(
+          doc(db, "products", item.id),
+          (doc) => {
+            const updatedData = doc.data() as DocumentData | undefined;
+            if (updatedData && updatedData.translations) {
+              // Invalidate the query to refetch data
+              queryClient.invalidateQueries(["handmadeItems", country]);
             }
-          );
-          unsubscribes.push(unsubscribe);
-        });
-    }
+          }
+        );
+        unsubscribes.push(unsubscribe);
+      });
 
     return () => {
       unsubscribes.forEach((unsubscribe) => unsubscribe());
     };
-  }, [data, currentLanguage]);
-
-  useEffect(() => {
-    if (Object.keys(translationUpdates).length > 0) {
-      queryClient.setQueryData<{ pages: { items: HandmadeItem[] }[] }>(
-        ["handmadeItems", country],
-        (oldData: any) => {
-          if (!oldData) return oldData;
-          return {
-            ...oldData,
-            pages: oldData.pages.map((page: any) => ({
-              ...page,
-              items: page.items.map((item: any) => ({
-                ...item,
-                name: {
-                  ...item.name,
-                  translated:
-                    translationUpdates[item.id]?.name || item.name.translated,
-                },
-                description: {
-                  ...item.description,
-                  translated:
-                    translationUpdates[item.id]?.description ||
-                    item.description.translated,
-                },
-                price: {
-                  ...item.price,
-                  translated:
-                    translationUpdates[item.id]?.price || item.price.translated,
-                },
-                carbonFootprint: {
-                  ...item.carbonFootprint,
-                  translated:
-                    translationUpdates[item.id]?.carbonFootprint ||
-                    item.carbonFootprint.translated,
-                },
-              })),
-            })),
-          };
-        }
-      );
-    }
-  }, [translationUpdates, queryClient, country]);
+  }, [data, currentLanguage, queryClient, country]);
 
   const purchaseItem = (item: HandmadeItem) => {
     navigation.navigate("Chat", {
@@ -401,7 +344,6 @@ const HandMade: React.FC = () => {
             }
           />
         )}
-      
       </LinearGradient>
     </SafeAreaView>
   );
