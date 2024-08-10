@@ -154,7 +154,7 @@ const EnvironmentalImpactQuestionnaire = ({ onFinish }: Props) => {
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
-      <Animated.View style={[styles.header, fadeInDownStyle]}>
+      <Animated.View style={[styles.header as any, fadeInDownStyle]}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
           style={styles.backButton}
@@ -255,7 +255,6 @@ const styles = {
   },
   title: {
     fontSize: 20,
-    fontWeight: "bold",
     color: colors.white,
   },
 };

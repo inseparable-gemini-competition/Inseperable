@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { FlatList, ListRenderItem, TouchableOpacity, Image, ViewStyle, TextStyle, ImageStyle } from "react-native";
+import { FlatList, ListRenderItem, TouchableOpacity, Image, TextStyle, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { View, Card, Button } from "react-native-ui-lib";
 import { useNavigation, NavigationProp } from "@react-navigation/native";
@@ -124,13 +124,13 @@ const HandMade: React.FC = () => {
     if (Object.keys(translationUpdates).length > 0) {
       queryClient.setQueryData<{ pages: { items: HandmadeItem[] }[] }>(
         ["handmadeItems", country],
-        (oldData) => {
+        (oldData: any) => {
           if (!oldData) return oldData;
           return {
             ...oldData,
-            pages: oldData.pages.map((page) => ({
+            pages: oldData.pages.map((page: any) => ({
               ...page,
-              items: page.items.map((item) => ({
+              items: page.items.map((item: any) => ({
                 ...item,
                 name: {
                   ...item.name,
@@ -371,9 +371,7 @@ const HandMade: React.FC = () => {
   );
 };
 
-const styles: {
-  [key: string]: ViewStyle | TextStyle | ImageStyle;
-} = {
+const styles =  StyleSheet.create({
   container: {
     flex: 1,
   },
@@ -484,6 +482,6 @@ const styles: {
     textAlign: 'center',
     marginTop: 32,
   },
-};
+});
 
 export default HandMade;

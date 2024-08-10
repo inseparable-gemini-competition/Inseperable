@@ -58,7 +58,7 @@ const uploadAndAnalyzePhoto = async ({
   uri: string;
   userId: string;
   setProgress: (progress: number) => void;
-}): Promise<void> => {
+}): Promise<string> => {
   if (!auth.currentUser) {
     throw new Error("User not authenticated");
   }
@@ -99,7 +99,7 @@ const uploadAndAnalyzePhoto = async ({
           try {
             const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
             console.log("File available at", downloadURL);
-            resolve(downloadURL);
+            resolve(downloadURL as any);
           } catch (error) {
             reject(error);
           }

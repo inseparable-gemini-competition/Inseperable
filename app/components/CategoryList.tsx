@@ -17,7 +17,6 @@ interface CategoryListProps {
   categories: (translate: Function) => Category[];
   onCategoryPress: (category: string) => void;
   description: string;
-  environmentalImpactScore: number;
 }
 
 const CategoryList: React.FC<CategoryListProps> = ({

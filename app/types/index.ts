@@ -13,6 +13,7 @@ export interface Category {
   title: string;
   imageUrl: string;
   openCamera: boolean;
+  command: string;
 }
 
 export interface ModalProps {
@@ -28,7 +29,7 @@ export interface MainLayoutProps {
 }
 
 export interface CategoryScreenProps {
-  categories: Category[];
+  categories: (translate: Function) => Category[];
   onCategoryPress: (category: string) => void;
   country: string;
   description: string;

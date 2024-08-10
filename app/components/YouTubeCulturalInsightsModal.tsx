@@ -1,11 +1,11 @@
 import React, { useState, useCallback } from "react";
-import { View, Text, ActivityIndicator, StyleSheet, Alert } from "react-native";
+import { View, ActivityIndicator, StyleSheet, Alert } from "react-native";
 import { Button, ButtonSize, ProgressBar } from "react-native-ui-lib";
 import { styles as globalStyles } from "@/app/screens/MainStyles";
 import GenericBottomSheet from "./GenericBottomSheet";
 import { useTranslations } from "@/hooks/ui/useTranslations";
 import { colors } from "@/app/theme";
-import { Video } from "expo-av";
+import { ResizeMode, Video } from "expo-av";
 import * as ImagePicker from "expo-image-picker";
 import { convertMarkdownToPlainText } from "@/app/helpers/markdown";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
@@ -18,6 +18,11 @@ interface VideoCulturalInsightsModalProps {
   onClose: () => void;
 }
 
+interface CulturalAnalysisResult {
+  data?: {
+    culturalInsights: string;
+  };
+}
 const VideoCulturalInsightsModal: React.FC<VideoCulturalInsightsModalProps> = ({
   visible,
   onClose,
@@ -88,11 +93,12 @@ const VideoCulturalInsightsModal: React.FC<VideoCulturalInsightsModalProps> = ({
           functions,
           "extractCulturalVideoAnalysis"
         );
-        const result = await extractCulturalVideoAnalysis({
+        const result = (await extractCulturalVideoAnalysis({
           videoUrl,
           language: currentLanguage,
-        });
-        setCulturalInsights(result.data.culturalInsights);
+        })) as CulturalAnalysisResult;
+
+        setCulturalInsights(result?.data?.culturalInsights || "");
       } catch (error) {
         console.error("Analysis failed:", error);
         Alert.alert(translate("errorTitle"), translate("analysisFailed"));
@@ -165,7 +171,7 @@ const VideoCulturalInsightsModal: React.FC<VideoCulturalInsightsModalProps> = ({
                     source={{ uri: videoUri }}
                     style={styles.video}
                     useNativeControls
-                    resizeMode="contain"
+                    resizeMode={ResizeMode.CONTAIN}
                   />
                 </View>
               )}
