@@ -16,10 +16,10 @@ const colors = {
   headerBackground: "#343a40",
   bubbleLeft: "#f8f9fa",
   bubbleRight: "#3c3e3b",
-  translatedTextDark: "#B0BEC5", // Light text for dark background
-  translatedTextLight: "#455A64", // Dark text for light background
-  bubbleLeftText: "#ffffff", // Text color for left chat bubble
-  bubbleRightText: "#FFFFFF", // Text color for right chat bubble
+  translatedTextDark: "#B0BEC5",
+  translatedTextLight: "#455A64", 
+  bubbleLeftText: "#455A64", 
+  bubbleRightText: "#FFFFFF", 
 };
 
 export { colors };
