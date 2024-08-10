@@ -108,7 +108,8 @@ const GenericBottomSheet: React.FC<GenericBottomSheetProps> = ({
       keyboardBlurBehavior="restore"
       android_keyboardInputMode="adjustResize"
       enablePanDownToClose
-      enableContentPanningGesture={false}
+      overDragResistanceFactor={10} // This should increase resistance
+
     >
       <ContentComponent
         contentContainerStyle={[styles.contentContainer, contentContainerStyle]}
