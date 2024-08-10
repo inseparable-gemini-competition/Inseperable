@@ -37,7 +37,11 @@ import { useTranslations } from "@/hooks/ui/useTranslations";
 import useStore from "@/app/store";
 import { debounce } from "@/app/helpers/debounce";
 import { httpsCallable } from "firebase/functions";
-import Animated, { useAnimatedStyle, withTiming, Easing } from "react-native-reanimated";
+import Animated, {
+  useAnimatedStyle,
+  withTiming,
+  Easing,
+} from "react-native-reanimated";
 import { useNavigation } from "expo-router";
 import { CustomText } from "@/app/components/CustomText";
 
@@ -86,7 +90,8 @@ const uploadAndAnalyzePhoto = async ({
       uploadTask.on(
         "state_changed",
         (snapshot) => {
-          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          const progress =
+            (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
           setProgress(progress);
           if (progress === 100) {
             resolve("Generating your beautiful captions...");
@@ -115,16 +120,16 @@ const uploadAndAnalyzePhoto = async ({
 const TravelPhotoScreen: React.FC = () => {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [originalPhotos, setOriginalPhotos] = useState<Photo[]>([]);
-  const [lastVisible, setLastVisible] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
+  const [lastVisible, setLastVisible] =
+    useState<QueryDocumentSnapshot<DocumentData> | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [uploading, setUploading] = useState<boolean>(false);
   const [progress, setProgress] = useState<number>(0);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const { translate, translations } = useTranslations();
   const { userData } = useStore();
-  const {goBack} = useNavigation();
+  const { goBack } = useNavigation();
 
-  
   useEffect(() => {
     if (!userData?.id) return;
 
@@ -146,7 +151,11 @@ const TravelPhotoScreen: React.FC = () => {
         })) as Photo[];
         setPhotos(newPhotos);
         setOriginalPhotos(newPhotos);
-        setLastVisible(snapshot.docs.length > 0 ? snapshot.docs[snapshot.docs.length - 1] : null);
+        setLastVisible(
+          snapshot.docs.length > 0
+            ? snapshot.docs[snapshot.docs.length - 1]
+            : null
+        );
         setLoading(false);
         setUploading(false);
       },
@@ -172,11 +181,14 @@ const TravelPhotoScreen: React.FC = () => {
 
   let statusMessage = "";
   if (loading) {
-    statusMessage = "Loading your beautiful memories...";
+    statusMessage = translate("loadingYourBeautifulMemories");
   } else if (uploading) {
-    statusMessage = progress === 100 ? "Generating your beautiful captions..." : `Uploading your beautiful memories... ${progress.toFixed(2)}%`;
+    statusMessage =
+      progress === 100
+        ? translate("generatingYourBeautifulCaptions")
+        : `${translate("loadingYourBeautifulMemories")} ${progress.toFixed(2)}%`;
   } else if (uploadMutation.isLoading) {
-    statusMessage = "Processing your upload...";
+    statusMessage = translate("processingYourUpload");
   }
 
   const handleUploadImage = async (userId: string): Promise<void> => {
@@ -244,7 +256,9 @@ const TravelPhotoScreen: React.FC = () => {
     [userData?.id]
   );
 
-  const debouncedSearch = useCallback(debounce(searchPhotos, 500), [searchPhotos]);
+  const debouncedSearch = useCallback(debounce(searchPhotos, 500), [
+    searchPhotos,
+  ]);
 
   useEffect(() => {
     if (searchQuery.length > 3) {
@@ -276,7 +290,11 @@ const TravelPhotoScreen: React.FC = () => {
 
       setPhotos((prevPhotos) => [...prevPhotos, ...newPhotos]);
       setOriginalPhotos((prevPhotos) => [...prevPhotos, ...newPhotos]);
-      setLastVisible(snapshot.docs.length > 0 ? snapshot.docs[snapshot.docs.length - 1] : null);
+      setLastVisible(
+        snapshot.docs.length > 0
+          ? snapshot.docs[snapshot.docs.length - 1]
+          : null
+      );
       setLoading(false);
     } catch (error) {
       console.error("Error loading more photos:", error);
@@ -347,17 +365,16 @@ const TravelPhotoScreen: React.FC = () => {
         style={styles.container}
       >
         <Animated.View style={[styles.header, fadeInDownStyle]}>
-          <TouchableOpacity
-            onPress={goBack}
-            style={styles.backButton}
-          >
+          <TouchableOpacity onPress={goBack} style={styles.backButton}>
             <Ionicons
               name={translations?.isRTL ? "arrow-forward" : "arrow-back"}
               size={24}
               color={colors.white}
             />
           </TouchableOpacity>
-          <CustomText style={styles.title}>{translate("travelMemories")}</CustomText>
+          <CustomText style={styles.title}>
+            {translate("travelMemories")}
+          </CustomText>
         </Animated.View>
 
         <View style={styles.actionContainer}>
@@ -396,9 +413,7 @@ const TravelPhotoScreen: React.FC = () => {
               color={colors.primary}
               style={styles.loader}
             />
-            <CustomText style={styles.loadingText}>
-              {statusMessage}
-            </CustomText>
+            <CustomText style={styles.loadingText}>{statusMessage}</CustomText>
           </View>
         )}
 
@@ -423,7 +438,9 @@ const TravelPhotoScreen: React.FC = () => {
           onEndReached={loadMorePhotos}
           onEndReachedThreshold={0.5}
           ListFooterComponent={
-            loading && photos.length ? <ActivityIndicator color={colors.primary} /> : null
+            loading && photos.length ? (
+              <ActivityIndicator color={colors.primary} />
+            ) : null
           }
         />
       </LinearGradient>
@@ -438,8 +455,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: 16,
     backgroundColor: colors.headerBackground,
   },
@@ -448,7 +465,6 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 20,
-    fontWeight: 'bold',
     color: colors.white,
   },
   actionContainer: {

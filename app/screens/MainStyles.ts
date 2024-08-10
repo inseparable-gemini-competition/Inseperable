@@ -105,9 +105,10 @@ export const styles = StyleSheet.create({
   countdownContainer: {
     position: "absolute",
     top: "50%",
-    end: "15%",
-    transform: [{ translateX: -50 }, { translateY: -50 }],
+    left: 0,
+    right: 0,
     alignItems: "center",
+    justifyContent: "center",
     zIndex: 1,
   },
   voicedownContainer: {
@@ -135,7 +136,7 @@ export const styles = StyleSheet.create({
   cancelButton: {
     marginTop: 20,
     padding: 10,
-    backgroundColor: colors.info,
+    backgroundColor: colors.warning,
     borderRadius: 15,
   },
   cancelText: {
