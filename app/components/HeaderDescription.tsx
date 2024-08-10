@@ -16,44 +16,53 @@ const HeaderDescription: React.FC<HeaderDescriptionProps> = ({
 }) => {
   const { handleRecommendation, handleResetAndLogout } = useNavigationAndUser();
   return (
-    <>
-      <View style={styles.container}>
-        <CustomText style={styles.title}>{country}</CustomText>
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity
-            style={styles.iconButton}
-            onPress={handleFontSettings}
-          >
-            <Ionicons name="text" size={24} color={colors.white} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.iconButton}
-            onPress={handleResetAndLogout}
-          >
-            <Ionicons name="log-out" size={24} color={colors.white} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.iconButton}
-            onPress={handleRecommendation}
-          >
-            <Ionicons name="refresh" size={24} color={colors.white} />
-          </TouchableOpacity>
-        </View>
+    <View style={styles.container}>
+      <View style={styles.titleContainer}>
+        <CustomText 
+          style={styles.title}
+          numberOfLines={2}
+          ellipsizeMode="tail"
+        >
+          {country}
+        </CustomText>
       </View>
-    </>
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity
+          style={styles.iconButton}
+          onPress={handleFontSettings}
+        >
+          <Ionicons name="text" size={24} color={colors.white} />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.iconButton}
+          onPress={handleResetAndLogout}
+        >
+          <Ionicons name="log-out" size={24} color={colors.white} />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.iconButton}
+          onPress={handleRecommendation}
+        >
+          <Ionicons name="refresh" size={24} color={colors.white} />
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 16,
-    alignSelf: "flex-start",
     flexDirection: "row",
     width: "100%",
     justifyContent: "space-between",
     backgroundColor: colors.headerBackground,
     paddingVertical: 10,
     alignItems: "center",
+  },
+  titleContainer: {
+    flex: 1,
+    marginRight: 16,
   },
   title: {
     fontSize: 50,
@@ -62,6 +71,7 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     flexDirection: "row",
+    flexShrink: 0,
   },
   iconButton: {
     marginLeft: 16,
