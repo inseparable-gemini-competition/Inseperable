@@ -27,7 +27,7 @@ export const useTranslations = () => {
   };
 
   const translate = (key: string, language?: string): string => {
-    const translation = translations[language || currentLanguage]?.[key] || formatKey(key);
+    const translation = (translations[language || currentLanguage] as { [key: string]: string })?.[key] || formatKey(key);
     return capitalizeIfApplicable(translation);
   };
 
