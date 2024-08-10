@@ -121,14 +121,14 @@ export const styles = StyleSheet.create({
   },
   countdownText: {
     fontSize: 48,
-    color: "white",
+    color: colors.white,
     textShadowColor: "rgba(0, 0, 0, 0.75)",
     textShadowOffset: { width: -1, height: 1 },
     textShadowRadius: 10,
   },
   recognizing: {
     fontSize: 14,
-    color: "white",
+    color: colors.white,
     textShadowColor: "rgba(0, 0, 0, 0.75)",
     textShadowOffset: { width: -1, height: 1 },
     textShadowRadius: 10,
