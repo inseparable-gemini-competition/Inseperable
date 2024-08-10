@@ -486,6 +486,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: colors.primary,
     textAlign: "center",
+    maxWidth: '70%'
   },
   visitingIndicator: {
     position: "absolute",

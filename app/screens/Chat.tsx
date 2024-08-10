@@ -31,15 +31,14 @@ import {
 import { storage, db } from "@/app/helpers/firebaseConfig";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useRoute, RouteProp, useNavigation } from "@react-navigation/native";
-import { View, Text } from "react-native-ui-lib";
+import { View } from "react-native-ui-lib";
 import { Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from 'expo-linear-gradient';
+import { LinearGradient } from "expo-linear-gradient";
 import * as ImagePicker from "expo-image-picker";
 import useStore from "@/app/store";
 import { useTranslations } from "@/hooks/ui/useTranslations";
 import { colors } from "@/app/theme";
 import { CustomText } from "@/app/components/CustomText";
-
 
 type RootStackParamList = {
   ChatScreen: { recipientId: string; itemName: string };
@@ -64,7 +63,8 @@ const Chat: React.FC = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loadingMore, setLoadingMore] = useState(false);
   const { translate } = useTranslations();
-  const [lastVisible, setLastVisible] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
+  const [lastVisible, setLastVisible] =
+    useState<QueryDocumentSnapshot<DocumentData> | null>(null);
   const PAGE_SIZE = 10;
 
   const { isRTL } = useTranslations();
@@ -139,8 +139,10 @@ const Chat: React.FC = () => {
 
     (async () => {
       if (Platform.OS !== "web") {
-        const { status: cameraStatus } = await ImagePicker.requestCameraPermissionsAsync();
-        const { status: mediaLibraryStatus } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        const { status: cameraStatus } =
+          await ImagePicker.requestCameraPermissionsAsync();
+        const { status: mediaLibraryStatus } =
+          await ImagePicker.requestMediaLibraryPermissionsAsync();
 
         if (cameraStatus !== "granted" || mediaLibraryStatus !== "granted") {
           Alert.alert(
@@ -200,7 +202,9 @@ const Chat: React.FC = () => {
             translatedText: "",
             createdAt: new Date(),
             userId: userId,
-            userName: userData?.email ? userData.email.split('@')[0] : 'Unknown',
+            userName: userData?.email
+              ? userData.email.split("@")[0]
+              : "Unknown",
             audio: newMessage.audio || null,
             image: newMessage.image || null,
             video: newMessage.video || null,
@@ -239,7 +243,10 @@ const Chat: React.FC = () => {
                   setImageUploading(true);
                   const response = await fetch(uri);
                   const blob = await response.blob();
-                  const fileRef = ref(storage, `media/${Date.now()}_${uri.split("/").pop()}`);
+                  const fileRef = ref(
+                    storage,
+                    `media/${Date.now()}_${uri.split("/").pop()}`
+                  );
                   await uploadBytes(fileRef, blob);
                   const downloadURL = await getDownloadURL(fileRef);
 
@@ -248,7 +255,9 @@ const Chat: React.FC = () => {
                     createdAt: new Date(),
                     user: {
                       _id: userId,
-                      name: userData?.email ? userData.email.split('@')[0] : 'Unknown',
+                      name: userData?.email
+                        ? userData.email.split("@")[0]
+                        : "Unknown",
                     },
                     image: downloadURL,
                     text: "",
@@ -257,7 +266,10 @@ const Chat: React.FC = () => {
                   handleSend([newMediaMessage]);
                 } catch (error: any) {
                   console.error("Error picking or uploading image:", error);
-                  Alert.alert("Error", `Failed to upload image: ${error.message}`);
+                  Alert.alert(
+                    "Error",
+                    `Failed to upload image: ${error.message}`
+                  );
                 } finally {
                   setImageUploading(false);
                 }
@@ -304,12 +316,33 @@ const Chat: React.FC = () => {
     return (
       <View>
         <MessageText {...props} />
-        {currentMessage.translatedText && (
-          <CustomText style={[
-            styles.translatedText,
-            { color: currentMessage.user._id === userId ? colors.translatedTextDark : colors.translatedTextLight }
-          ]}>
-            {currentMessage.translatedText}
+        {currentMessage.translatedText ? (
+          <CustomText
+            style={[
+              styles.translatedText,
+              {
+                color:
+                  currentMessage.user._id === userId
+                    ? colors.translatedTextDark
+                    : colors.translatedTextLight,
+              },
+            ]}
+          >
+            {currentMessage.translatedText}:
+          </CustomText>
+        ) : (
+          <CustomText
+            style={[
+              styles.translatedText,
+              {
+                color:
+                  currentMessage.user._id === userId
+                    ? colors.translatedTextDark
+                    : colors.translatedTextLight,
+              },
+            ]}
+          >
+            {translate("translating")}:
           </CustomText>
         )}
       </View>
@@ -338,9 +371,7 @@ const Chat: React.FC = () => {
       <Actions
         {...props}
         containerStyle={styles.actionButton}
-        icon={() => (
-          <Ionicons name="image" size={24} color={colors.primary} />
-        )}
+        icon={() => <Ionicons name="image" size={24} color={colors.primary} />}
         onPressActionButton={pickImage}
       />
     );
@@ -353,7 +384,10 @@ const Chat: React.FC = () => {
     >
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.backButton}
+          >
             <Ionicons
               name={isRTL ? "chevron-forward" : "chevron-back"}
               size={24}
@@ -392,7 +426,7 @@ const Chat: React.FC = () => {
             />
           )}
           messagesContainerStyle={styles.messagesContainer}
-          bottomOffset={Platform.OS === 'ios' ? 30 : 0}
+          bottomOffset={Platform.OS === "ios" ? 30 : 0}
         />
       </SafeAreaView>
     </LinearGradient>
@@ -407,8 +441,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: 10,
     backgroundColor: colors.headerBackground,
   },
@@ -418,7 +452,7 @@ const styles = StyleSheet.create({
   headerText: {
     color: colors.white,
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginLeft: 10,
   },
   messagesContainer: {
@@ -431,16 +465,16 @@ const styles = StyleSheet.create({
   actionButton: {
     width: 30,
     height: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginLeft: 10,
     marginBottom: 5,
   },
   loadingContainer: {
     width: 30,
     height: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginLeft: 10,
     marginBottom: 5,
   },
@@ -458,15 +492,14 @@ const styles = StyleSheet.create({
     height: 200,
     borderRadius: 13,
     margin: 3,
-    resizeMode: 'cover',
+    resizeMode: "cover",
   },
   translatedText: {
     fontSize: 12,
-    fontStyle: 'italic',
+    fontStyle: "italic",
     marginTop: 5,
     marginLeft: 10,
     marginRight: 10,
   },
 });
 export default Chat;
-
