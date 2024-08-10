@@ -4,7 +4,6 @@ import {
   View,
   SafeAreaView,
   TouchableOpacity,
-  Text,
   Dimensions,
   Linking,
   ActivityIndicator,
@@ -38,7 +37,7 @@ const MenuButton: React.FC<MenuButtonProps> = React.memo(
       style={[styles.button, selected && styles.selected]}
       onPress={onPress}
     >
-      <MaterialIcons name={iconName} size={20} color="white" />
+      <MaterialIcons name={iconName as any} size={20} color="white" />
     </TouchableOpacity>
   )
 );
@@ -141,11 +140,11 @@ const CategoryCard: React.FC<CategoryCardProps> = React.memo(
           </CustomText>
           <Button
             label={translate("openInGoogleMaps")}
-            backgroundColor="#FFC107"
+            backgroundColor={colors.warning}
             color="white"
             onPress={onPressMap}
             style={styles.mapsButton}
-            labelStyle={{fontFamily: 'marcellus'}}
+            labelStyle={{ fontFamily: "marcellus" }}
           />
         </View>
       </Animated.View>
@@ -160,10 +159,9 @@ const openGoogleMaps = (latitude: number, longitude: number) => {
 
 const Plan: React.FC = () => {
   const [categoryData, setCategoryData] = useState<any[]>([]);
-  const { reset } = useNavigation();
+  const { reset } = useNavigation<any>();
   const [loading, setLoading] = useState<boolean>(true);
   const { userData } = useStore();
-  const [currentItem, setCurrentItem] = useState<any>();
   const [fadeAnim] = useState(new Animated.Value(0));
   const [showVisitingIndicator, setShowVisitingIndicator] = useState(false);
   const [showNotVisitingIndicator, setShowNotVisitingIndicator] =
@@ -220,9 +218,6 @@ const Plan: React.FC = () => {
           const travelPlan = userData?.travelPlan || {};
           const data = travelPlan[selectedCategory] || [];
           setCategoryData(data);
-          if (data.length > 0) {
-            setCurrentItem(data[0]);
-          }
         } else {
           setCategoryData([]);
         }
@@ -347,8 +342,10 @@ const Plan: React.FC = () => {
       </View>
       {loading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#FFC107" />
-          <CustomText style={styles.loadingText}>{translate("loading")}</CustomText>
+          <ActivityIndicator size="large" color={colors.warning} />
+          <CustomText style={styles.loadingText}>
+            {translate("loading")}
+          </CustomText>
         </View>
       ) : categoryData.length > 0 ? (
         <View style={styles.swiperContainer}>
@@ -358,7 +355,6 @@ const Plan: React.FC = () => {
             cardHorizontalMargin={0}
             renderCard={renderCard}
             onSwiped={(cardIndex) => {
-              setCurrentItem(categoryData[cardIndex]);
               setCurrentCardIndex(cardIndex);
               resetCardAnimation();
             }}
@@ -376,9 +372,7 @@ const Plan: React.FC = () => {
             containerStyle={styles.swiperContainer}
             cardStyle={styles.card}
             swipeAnimationDuration={250}
-            swipeBackAnimationDuration={250}
             verticalSwipe={false}
-            swipeThreshold={80}
           />
           <VisitingIndicator
             visible={showVisitingIndicator}
@@ -393,7 +387,9 @@ const Plan: React.FC = () => {
         </View>
       ) : (
         <View style={styles.noDataContainer}>
-          <CustomText style={styles.noDataText}>{translate("noDataAvailable")}</CustomText>
+          <CustomText style={styles.noDataText}>
+            {translate("noDataAvailable")}
+          </CustomText>
         </View>
       )}
     </SafeAreaView>
@@ -438,7 +434,7 @@ const styles = StyleSheet.create({
   },
   selected: {
     borderWidth: 2,
-    borderColor: "#FFC107",
+    borderColor: colors.info,
   },
   cardContainer: {
     width: width,
@@ -467,16 +463,16 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   currentLocation: {
-    color: "#FFF",
+    color: colors.white,
     fontSize: 14,
   },
   museumName: {
-    color: "#FFF",
+    color: colors.white,
     fontSize: 32,
     fontWeight: "bold",
   },
   description: {
-    color: "#FFF",
+    color: colors.white,
     fontSize: 14,
     marginTop: 5,
     marginBottom: 10,
@@ -496,7 +492,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 10,
     fontSize: 16,
-    color: "#FFC107",
+    color: colors.warning,
   },
   noDataContainer: {
     flex: 1,
@@ -516,7 +512,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   visitingIndicatorText: {
-    color: "#FFF",
+    color: colors.white,
     fontSize: 24,
     fontWeight: "bold",
   },
