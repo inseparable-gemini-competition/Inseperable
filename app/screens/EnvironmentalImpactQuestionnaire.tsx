@@ -1,23 +1,30 @@
 import React, { useState } from "react";
-import { View, Text, Button } from "react-native-ui-lib";
-import { colors } from "../theme";
+import { View, Button } from "react-native-ui-lib";
+import {
+  ActivityIndicator,
+  ScrollView,
+  TouchableOpacity,
+  StyleSheet,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
+import Animated, {
+  useAnimatedStyle,
+  withTiming,
+  Easing,
+} from "react-native-reanimated";
+
 import Question from "@/app/components/Question/Question";
-import { ActivityIndicator, ScrollView, TouchableOpacity } from "react-native";
+import { CustomText } from "@/app/components/CustomText";
 import { useJsonControlledGeneration } from "@/hooks/gemini/useJsonControlledGeneration";
 import { convertJSONToObject } from "@/app/helpers/environmentalQuestionnaireHelpers";
 import { useGenerateContent } from "@/hooks/gemini/useGeminiStream";
 import { useTranslations } from "@/hooks/ui/useTranslations";
 import useStore from "@/app/store";
 import { useUpdateUserScore } from "@/hooks/logic/useUserScore";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
+import { convertMarkdownToPlainText } from "@/app/helpers/markdown";
+import { colors } from "@/app/theme";
 import { useNavigation } from "expo-router";
-import Animated, {
-  useAnimatedStyle,
-  withTiming,
-  Easing,
-} from "react-native-reanimated";
-import { CustomText } from "@/app/components/CustomText";
 
 type Props = {
   onFinish: (params?: { setLocalLoading: (loading: boolean) => void }) => void;
@@ -26,12 +33,13 @@ type Props = {
 const EnvironmentalImpactQuestionnaire = ({ onFinish }: Props) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<string[]>([]);
+  const [localLoading, setLocalLoading] = useState(false);
   const { translate, isRTL } = useTranslations();
-  const navigation = useNavigation();
+
   const defaultQuestions = [
     {
       id: 1,
-      question: translate("WhatTransportationDidYouUseToday"),
+      question: translate("WhatTransportationDidYouUseToday?"),
       options: [
         { id: 1, option: translate("airplane") },
         { id: 2, option: translate("car") },
@@ -44,6 +52,13 @@ const EnvironmentalImpactQuestionnaire = ({ onFinish }: Props) => {
   ];
 
   const [questions, setQuestions] = useState(defaultQuestions);
+
+  const [question, setQuestion] = useState(questions[0]);
+
+  useNavigation;
+  const { userData } = useStore();
+  const navigation = useNavigation<any>();
+
   const { mutateAsync: updateUserScore } = useUpdateUserScore();
 
   const {
@@ -58,9 +73,6 @@ const EnvironmentalImpactQuestionnaire = ({ onFinish }: Props) => {
       });
     },
   });
-  const [localLoading, setLocalLoading] = useState(false);
-
-  const { userData } = useStore();
 
   const { sendMessage: sendAnswer, isLoading: isLoadingNextQuestion } =
     useGenerateContent({
@@ -73,8 +85,6 @@ const EnvironmentalImpactQuestionnaire = ({ onFinish }: Props) => {
         setQuestion(updatedQuestions[currentQuestionIndex + 1]);
       },
     });
-
-  const [question, setQuestion] = useState(questions[0]);
 
   const handleAnswer = (answer: string) => {
     const updatedAnswers = [...answers];
@@ -101,16 +111,16 @@ const EnvironmentalImpactQuestionnaire = ({ onFinish }: Props) => {
     }
   };
 
-  const fadeInDownStyle = useAnimatedStyle(() => {
+  const fadeInUpStyle = useAnimatedStyle(() => {
     return {
       opacity: withTiming(1, {
-        duration: 500,
+        duration: 700,
         easing: Easing.out(Easing.exp),
       }),
       transform: [
         {
           translateY: withTiming(0, {
-            duration: 500,
+            duration: 700,
             easing: Easing.out(Easing.exp),
           }),
         },
@@ -120,8 +130,8 @@ const EnvironmentalImpactQuestionnaire = ({ onFinish }: Props) => {
 
   if (isLoadingNextQuestion) {
     return (
-      <SafeAreaView style={{flex: 1}}>
-        <Animated.View style={[styles.header as any, fadeInDownStyle]}>
+      <SafeAreaView style={{ flex: 1 }}>
+        <Animated.View style={[styles.header as any, fadeInUpStyle]}>
           <TouchableOpacity
             onPress={() => navigation.goBack()}
             style={styles.backButton}
@@ -153,8 +163,8 @@ const EnvironmentalImpactQuestionnaire = ({ onFinish }: Props) => {
     );
   } else if (isLoading) {
     return (
-      <SafeAreaView style={{flex: 1}}>
-        <Animated.View style={[styles.header as any, fadeInDownStyle]}>
+      <SafeAreaView style={{ flex: 1 }}>
+        <Animated.View style={[styles.header as any, fadeInUpStyle]}>
           <TouchableOpacity
             onPress={() => navigation.goBack()}
             style={styles.backButton}
@@ -188,7 +198,7 @@ const EnvironmentalImpactQuestionnaire = ({ onFinish }: Props) => {
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
-      <Animated.View style={[styles.header as any, fadeInDownStyle]}>
+      <Animated.View style={[styles.header as any, fadeInUpStyle]}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
           style={styles.backButton}
@@ -204,13 +214,7 @@ const EnvironmentalImpactQuestionnaire = ({ onFinish }: Props) => {
         </CustomText>
       </Animated.View>
       <ScrollView
-        contentContainerStyle={{
-          justifyContent: "center",
-          flexGrow: 1,
-          alignItems: "center",
-          backgroundColor: colors.background,
-          paddingVertical: 20,
-        }}
+        contentContainerStyle={styles.contentContainer}
         keyboardShouldPersistTaps={"handled"}
       >
         <View>
@@ -226,37 +230,50 @@ const EnvironmentalImpactQuestionnaire = ({ onFinish }: Props) => {
               currentAnswer={answers[currentQuestionIndex] || ""}
             />
           ) : (
-            <>
-              <CustomText
+            <Animated.View style={[styles.resultContainer, fadeInUpStyle]}>
+              <View
                 style={{
-                  fontSize: 20,
-                  textAlign: "center",
-                  padding: 10,
-                  color:
+                  width: 150,
+                  height: 150,
+                  borderRadius: 75,
+                  borderWidth: 10,
+                  borderColor:
                     (result?.impactScore || 0) > 5
                       ? colors.success
                       : colors.danger,
+                  justifyContent: "center",
+                  alignItems: "center",
+                  marginBottom: 20,
                 }}
               >
-                {translate("yourEnvironmentalImactScore")} {result?.impactScore}
-                /10
+                <CustomText
+                  style={{
+                    fontSize: 40,
+                    color:
+                      (result?.impactScore || 0) > 5
+                        ? colors.success
+                        : colors.danger,
+                  }}
+                >
+                  {result?.impactScore}
+                </CustomText>
+                <CustomText
+                  style={{
+                    fontSize: 20,
+                    color: colors.black,
+                  }}
+                >
+                  /10
+                </CustomText>
+              </View>
+              <CustomText style={styles.explanationText}>
+                {convertMarkdownToPlainText(result?.scoreExplanation)}
               </CustomText>
-              <CustomText
-                style={{
-                  fontSize: 15,
-                  color: colors.black,
-                  textAlign: "center",
-                  padding: 10,
-                  paddingHorizontal: 30,
-                }}
-              >
-                {result?.scoreExplanation}
-                {"\n"}
-                {result?.recommendations}
+              <CustomText style={styles.recommendationText}>
+                {convertMarkdownToPlainText(result?.recommendations)}
               </CustomText>
-
               <Button
-                style={{ width: 300, alignSelf: "center" }}
+                style={styles.finishButton}
                 label={translate("finish")}
                 labelStyle={{ fontFamily: "marcellus" }}
                 backgroundColor={colors.primary}
@@ -270,10 +287,10 @@ const EnvironmentalImpactQuestionnaire = ({ onFinish }: Props) => {
                 <ActivityIndicator
                   size="large"
                   color={colors.primary}
-                  style={{ marginBottom: 20 }}
+                  style={{ marginTop: 20 }}
                 />
               )}
-            </>
+            </Animated.View>
           )}
         </View>
       </ScrollView>
@@ -281,7 +298,54 @@ const EnvironmentalImpactQuestionnaire = ({ onFinish }: Props) => {
   );
 };
 
-const styles = {
+const styles = StyleSheet.create({
+  contentContainer: {
+    justifyContent: "center",
+    flexGrow: 1,
+    alignItems: "center",
+    backgroundColor: colors.background,
+    paddingVertical: 20,
+  },
+  resultContainer: {
+    backgroundColor: colors.white,
+    padding: 20,
+    borderRadius: 15,
+    shadowColor: colors.black,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  resultText: {
+    fontSize: 20,
+    color: colors.black,
+    fontWeight: '600',
+    textAlign: "center",
+    marginVertical: 10,
+  },
+  explanationText: {
+    fontSize: 16,
+    color: colors.secondary,
+    fontWeight: '600',
+    textAlign: "center",
+    marginVertical: 10,
+  },
+  recommendationText: {
+    fontSize: 15,
+    color: colors.secondary,
+    textAlign: "center",
+    paddingHorizontal: 20,
+    marginBottom: 20,
+  },
+  finishButton: {
+    width: 300,
+    alignSelf: "center",
+  },
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -296,6 +360,6 @@ const styles = {
     fontSize: 20,
     color: colors.white,
   },
-};
+});
 
 export default EnvironmentalImpactQuestionnaire;

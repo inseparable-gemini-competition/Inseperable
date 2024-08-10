@@ -133,11 +133,13 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: colors.black,
     marginBottom: 10,
+    textAlign: "center",
   },
   description: {
     fontSize: 16,
     color: colors.black,
     marginBottom: 20,
+    textAlign: "center",
   },
   button: {
     marginVertical: 8,
