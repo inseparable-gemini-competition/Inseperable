@@ -52,6 +52,7 @@ interface ChatMessage extends IMessage {
   audio?: string;
   image?: string;
   video?: string;
+  text: string;
 }
 
 const Chat: React.FC = () => {
@@ -250,10 +251,11 @@ const Chat: React.FC = () => {
                       name: userData?.email ? userData.email.split('@')[0] : 'Unknown',
                     },
                     image: downloadURL,
+                    text: "",
                   };
 
                   handleSend([newMediaMessage]);
-                } catch (error) {
+                } catch (error: any) {
                   console.error("Error picking or uploading image:", error);
                   Alert.alert("Error", `Failed to upload image: ${error.message}`);
                 } finally {
@@ -265,7 +267,7 @@ const Chat: React.FC = () => {
           { cancelable: true }
         );
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error picking image:", error);
       Alert.alert("Error", `Failed to pick image: ${error.message}`);
     }
@@ -385,12 +387,11 @@ const Chat: React.FC = () => {
           showAvatarForEveryMessage
           renderMessageImage={(props) => (
             <Image
-              source={{ uri: props.currentMessage.image }}
+              source={{ uri: props?.currentMessage?.image || "" }}
               style={styles.messageImage}
             />
           )}
           messagesContainerStyle={styles.messagesContainer}
-          textInputStyle={styles.textInput}
           bottomOffset={Platform.OS === 'ios' ? 30 : 0}
         />
       </SafeAreaView>

@@ -74,7 +74,7 @@ const MainPresentation: React.FC<MainPresentationProps> = ({
               onCancelCountdown={imageCapture.handleCancelCountdown}
               onBackPress={() => imageCapture.handleCleanup(textFeedBack.stop)}
               cameraAnimatedStyle={imageCapture.cameraAnimatedStyle}
-              facing={imageCapture.facing}
+              facing={imageCapture.facing || 'back'}
               countdown={imageCapture.countdown || 0}
               isLoadingFromGemini={textFeedBack.isLoadingFromGemini}
               feedbackText={textFeedBack.feedbackText || ""}

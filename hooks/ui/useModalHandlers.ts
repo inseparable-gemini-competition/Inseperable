@@ -99,7 +99,7 @@ export const useModalHandlers = (
     }
   };
 
-  const handleTripRecommendationSubmit = async (voiceMood: string) => {
+  const handleTripRecommendationSubmit = async (voiceMood: string = "") => {
     try {
       setUserMoodModalLoading(true);
       updateUserScore({
