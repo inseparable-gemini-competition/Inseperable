@@ -72,7 +72,7 @@ function NavigationWrapper({ onFinish }: any) {
       <Stack.Screen name="Plan" component={Plan} />
       <Stack.Screen name="Photos" component={TravelPhotoScreen} />
       <Stack.Screen name="Shopping" component={HandmadeItems} />
-      <Stack.Screen name="ChatScreenModal" component={ChatScreenModal} />
+      <Stack.Screen name="ChatScreenModal" component={ChatScreenModal as any} />
       <Stack.Screen name="EnvImpact">
         {(props) => (
           <EnvironmentalImpactQuestionnaire {...props} onFinish={goBack} />

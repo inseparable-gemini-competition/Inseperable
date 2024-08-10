@@ -1,12 +1,10 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import {
-  View,
   StyleSheet,
   TouchableOpacity,
   ViewStyle,
   TextStyle,
   Animated,
-  Dimensions,
   Platform,
 } from "react-native";
 import {
@@ -25,6 +23,7 @@ import { useGenerateContent } from "@/hooks";
 import { CustomText } from "@/app/components/CustomText";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { colors } from "@/app/theme";
+import { useNavigation } from "expo-router";
 
 type RootStackParamList = {
   ChatScreenModal: { placeName: string };
@@ -52,12 +51,9 @@ interface StylesProps {
 }
 
 const HEADER_HEIGHT = 60;
-const { width } = Dimensions.get("window");
 
-const ChatScreenModal: React.FC<ChatScreenModalProps> = ({
-  navigation,
-  route,
-}) => {
+const ChatScreenModal: React.FC<ChatScreenModalProps> = () => {
+  const { navigation, route } = useNavigation<ChatScreenModalProps>();
   const { placeName } = route.params;
   const { translate, isRTL } = useTranslations();
   const [messages, setMessages] = useState<IMessage[]>([]);
