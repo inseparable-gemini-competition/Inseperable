@@ -296,7 +296,6 @@ const styles = StyleSheet.create({
   },
   insightsTitle: {
     fontSize: 24,
-    fontWeight: "bold",
     color: colors.primary,
     marginBottom: 10,
     textAlign: "center",

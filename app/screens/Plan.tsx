@@ -469,7 +469,6 @@ const styles = StyleSheet.create({
   museumName: {
     color: colors.white,
     fontSize: 32,
-    fontWeight: "bold",
   },
   description: {
     color: colors.white,
@@ -514,7 +513,6 @@ const styles = StyleSheet.create({
   visitingIndicatorText: {
     color: colors.white,
     fontSize: 24,
-    fontWeight: "bold",
   },
 });
 

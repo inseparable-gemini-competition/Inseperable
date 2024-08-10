@@ -1,3 +1,4 @@
+import { colors } from "@/app/theme";
 import { StyleSheet } from "react-native";
 export const styles = StyleSheet.create({
   background: {
@@ -46,12 +47,12 @@ export const styles = StyleSheet.create({
   title: {
     fontSize: 48,
     marginTop: 16,
-    textAlign: 'left',
+    textAlign: "left",
   },
   subtitle: {
     fontSize: 18,
     marginVertical: 16,
-    textAlign: 'left',
+    textAlign: "left",
   },
   seeMoreText: {
     fontSize: 16,
@@ -59,23 +60,21 @@ export const styles = StyleSheet.create({
     textDecorationLine: "underline",
   },
   environmentalScoreContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#e6f7ff',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#e6f7ff",
     padding: 10,
     borderRadius: 8,
     marginBottom: 16,
   },
   environmentalScoreLabel: {
     fontSize: 16,
-    fontWeight: 'bold',
     marginRight: 5,
   },
   environmentalScoreValue: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#4caf50',
+    color: colors.success,
   },
   cardContainer: {
     justifyContent: "space-between",
@@ -83,7 +82,7 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 16, // Increase touchable area
   },
   card: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: colors.white,
     borderRadius: 16,
     width: "42%",
     alignItems: "center",
@@ -130,7 +129,6 @@ export const styles = StyleSheet.create({
   recognizing: {
     fontSize: 14,
     color: "white",
-    fontWeight: "bold",
     textShadowColor: "rgba(0, 0, 0, 0.75)",
     textShadowOffset: { width: -1, height: 1 },
     textShadowRadius: 10,
@@ -138,7 +136,7 @@ export const styles = StyleSheet.create({
   cancelButton: {
     marginTop: 20,
     padding: 10,
-    backgroundColor: "#ffb33e",
+    backgroundColor: colors.info,
     borderRadius: 15,
   },
   cancelText: {
@@ -152,16 +150,16 @@ export const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: "#fff",
+    backgroundColor: colors.white,
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#000",
+    shadowColor: colors.black,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 8,
     borderWidth: 2,
-    borderColor: "#000",
+    borderColor: colors.black,
   },
   bottomOverlay: {
     position: "absolute",
@@ -175,15 +173,15 @@ export const styles = StyleSheet.create({
   loadingContainer: {
     flexDirection: "row",
     alignItems: "center",
-    alignSelf: 'center',
+    alignSelf: "center",
   },
   loadingText: {
-    color: "#ffffff",
+    color: colors.white,
     fontSize: 24,
     marginStart: 10,
   },
   feedbackText: {
-    color: "#ffffff",
+    color: colors.white,
     fontSize: 18,
     textAlign: "center",
     paddingHorizontal: 20,
@@ -204,27 +202,26 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 8, // Increase touchable area
   },
   resetButton: {
-    backgroundColor: "#f44336",
+    backgroundColor: colors.danger,
     padding: 10,
     borderRadius: 20,
     elevation: 5,
     zIndex: 1,
     marginBottom: 10,
-    alignSelf: 'flex-start',
-    
+    alignSelf: "flex-start",
   },
   resetButton2: {
-    backgroundColor: "#f44336",
+    backgroundColor: colors.danger,
     padding: 10,
     borderRadius: 20,
     elevation: 5,
     zIndex: 1,
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
   },
   resetButtonText: {
     color: "white",
     fontSize: 18,
-    textAlign: 'left'
+    textAlign: "left",
   },
 });
 
@@ -277,7 +274,7 @@ export const modalStyles = StyleSheet.create({
     textAlign: "center",
   },
   modalButton: {
-    backgroundColor: "#4CAF50",
+    backgroundColor: colors.success,
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 10,
@@ -288,20 +285,20 @@ export const modalStyles = StyleSheet.create({
     fontSize: 18,
   },
   modalCloseButton: {
-    backgroundColor: "#f44336",
+    backgroundColor: colors.success,
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 10,
   },
   modalCloseButtonText: {
-    color: "white",
+    color: colors.white,
     fontSize: 18,
   },
   textInput: {
     width: 340,
     alignSelf: "center",
     height: 100,
-    borderColor: "gray",
+    borderColor: colors.info,
     borderWidth: 1,
     borderRadius: 10,
     padding: 10,
@@ -348,10 +345,10 @@ export const modalStyles = StyleSheet.create({
     color: "#333",
   },
   dialogContainer: {
-    backgroundColor: 'white',
+    backgroundColor: colors.white,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    maxHeight: '80%', 
+    maxHeight: "80%",
   },
   dialogContent: {
     padding: 20,

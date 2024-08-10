@@ -66,7 +66,6 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 50,
-    fontWeight: "bold",
     color: colors.white,
   },
   buttonContainer: {

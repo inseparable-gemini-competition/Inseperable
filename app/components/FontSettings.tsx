@@ -113,7 +113,6 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 22,
-    fontWeight: "bold",
     marginBottom: 16,
     color: colors.primary,
   },
@@ -155,7 +154,6 @@ const styles = StyleSheet.create({
   fontSizeButtonText: {
     color: colors.white,
     fontSize: 20,
-    fontWeight: "bold",
   },
   closeButton: {
     backgroundColor: colors.primary,
@@ -167,7 +165,6 @@ const styles = StyleSheet.create({
   closeButtonText: {
     color: colors.white,
     fontSize: 16,
-    fontWeight: "bold",
   },
 });
 

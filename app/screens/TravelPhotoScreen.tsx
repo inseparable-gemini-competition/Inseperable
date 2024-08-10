@@ -472,7 +472,6 @@ const styles = StyleSheet.create({
   uploadButtonText: {
     color: colors.white,
     fontSize: 16,
-    fontWeight: "bold",
     marginLeft: 8,
   },
   searchContainer: {

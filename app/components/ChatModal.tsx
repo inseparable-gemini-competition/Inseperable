@@ -202,7 +202,6 @@ const styles = StyleSheet.create<StylesProps>({
   title: {
     color: colors.white,
     fontSize: 18,
-    fontWeight: "bold",
     marginLeft: 15,
   },
   messagesContainer: {
@@ -227,7 +226,6 @@ const styles = StyleSheet.create<StylesProps>({
   },
   sendButtonText: {
     color: colors.primary,
-    fontWeight: "bold",
   },
   userBubble: {
     backgroundColor: colors.bubbleRight,

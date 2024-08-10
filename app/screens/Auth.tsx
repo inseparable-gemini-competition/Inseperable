@@ -187,11 +187,9 @@ const styles = StyleSheet.create({
     marginTop: 20,
     fontSize: 18,
     color: colors.primary,
-    fontWeight: "bold",
   },
   title: {
     fontSize: 32,
-    fontWeight: "bold",
     color: colors.primary,
     marginBottom: 40,
     textShadowColor: "rgba(0, 0, 0, 0.1)",
@@ -235,7 +233,6 @@ const styles = StyleSheet.create({
   buttonText: {
     color: colors.white,
     fontSize: 18,
-    fontWeight: "bold",
     textAlign: "center",
   },
   biometricButton: {
@@ -250,7 +247,6 @@ const styles = StyleSheet.create({
   biometricButtonText: {
     color: colors.white,
     fontSize: 16,
-    fontWeight: "bold",
     marginLeft: 10,
   },
   switchText: {

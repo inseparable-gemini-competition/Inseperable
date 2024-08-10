@@ -1,5 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { FlatList, ListRenderItem, TouchableOpacity, Image, TextStyle, StyleSheet } from "react-native";
+import {
+  FlatList,
+  ListRenderItem,
+  TouchableOpacity,
+  Image,
+  TextStyle,
+  StyleSheet,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { View, Card, Button } from "react-native-ui-lib";
 import { useNavigation, NavigationProp } from "@react-navigation/native";
@@ -13,7 +20,11 @@ import Animated, {
 } from "react-native-reanimated";
 import { LinearGradient } from "expo-linear-gradient";
 import { useInfiniteQuery, useQueryClient } from "react-query";
-import { getFunctions, httpsCallable, HttpsCallableResult } from "firebase/functions";
+import {
+  getFunctions,
+  httpsCallable,
+  HttpsCallableResult,
+} from "firebase/functions";
 import {
   getFirestore,
   doc,
@@ -26,6 +37,7 @@ import { useTranslations } from "@/hooks/ui/useTranslations";
 import { convertMarkdownToPlainText } from "@/app/helpers/markdown";
 import useStore from "@/app/store";
 import { CustomText } from "@/app/components/CustomText";
+import { useFont } from "@/app/context/fontContext";
 
 interface HandmadeItem {
   id: string;
@@ -78,16 +90,22 @@ const fetchHandmadeItems = async ({
 const HandMade: React.FC = () => {
   const navigation = useNavigation<NavigationProp<any>>();
   const queryClient = useQueryClient();
-  const [translationUpdates, setTranslationUpdates] = useState<TranslationUpdate>({});
+  const [translationUpdates, setTranslationUpdates] =
+    useState<TranslationUpdate>({});
   const { userData } = useStore();
   const country = userData?.country || "";
   const { translate, isRTL, currentLanguage } = useTranslations();
+  const { selectedFont, fontSize } = useFont();
 
   const { data, isLoading, isFetching, fetchNextPage, hasNextPage } =
     useInfiniteQuery<FetchResponse, Error>({
       queryKey: ["handmadeItems", country],
       queryFn: ({ pageParam }) =>
-        fetchHandmadeItems({ pageParam: pageParam as string | undefined, country, language: currentLanguage }),
+        fetchHandmadeItems({
+          pageParam: pageParam as string | undefined,
+          country,
+          language: currentLanguage,
+        }),
       getNextPageParam: (lastPage) => lastPage.lastVisible,
       staleTime: 1000,
     });
@@ -186,7 +204,9 @@ const HandMade: React.FC = () => {
       return (
         <View>
           <CustomText style={style}>{original}</CustomText>
-          <CustomText style={[style, { color: colors.translatedTextLight }]}>{translate("translating")}</CustomText>
+          <CustomText style={[style, { color: colors.translatedTextLight }]}>
+            {translate("translating")}
+          </CustomText>
         </View>
       );
     }
@@ -225,7 +245,9 @@ const HandMade: React.FC = () => {
                 {translate("carbonFootprint")}
               </CustomText>
               <TranslatingText
-                original={convertMarkdownToPlainText(item.carbonFootprint.original)}
+                original={convertMarkdownToPlainText(
+                  item.carbonFootprint.original
+                )}
                 translated={
                   item.carbonFootprint.translated &&
                   convertMarkdownToPlainText(item.carbonFootprint.translated)
@@ -248,7 +270,10 @@ const HandMade: React.FC = () => {
             label={translate("contactSeller")}
             onPress={() => purchaseItem(item)}
             style={styles.buyButton}
-            labelStyle={styles.buyButtonLabel}
+            labelStyle={[
+              styles.buyButtonLabel,
+              { fontFamily: selectedFont, fontSize },
+            ]}
           />
         </View>
       </Card>
@@ -333,12 +358,18 @@ const HandMade: React.FC = () => {
               color={colors.white}
             />
           </TouchableOpacity>
-          <CustomText style={styles.title}>{translate("handmadeItems")}</CustomText>
+          <CustomText style={styles.title}>
+            {translate("handmadeItems")}
+          </CustomText>
         </Animated.View>
         {isLoading && (
-          <Animated.View style={[styles.loadingContainer, loadingAnimatedStyle]}>
+          <Animated.View
+            style={[styles.loadingContainer, loadingAnimatedStyle]}
+          >
             <Ionicons name="reload" size={48} color={colors.primary} />
-            <CustomText style={styles.loadingText}>{translate("loading")}</CustomText>
+            <CustomText style={styles.loadingText}>
+              {translate("loading")}
+            </CustomText>
           </Animated.View>
         )}
         {data && (
@@ -355,23 +386,29 @@ const HandMade: React.FC = () => {
             onEndReachedThreshold={0.5}
             ListFooterComponent={
               isFetching ? (
-                <Animated.View style={[styles.loadingContainer, loadingAnimatedStyle]}>
+                <Animated.View
+                  style={[styles.loadingContainer, loadingAnimatedStyle]}
+                >
                   <Ionicons name="reload" size={48} color={colors.primary} />
-                  <CustomText style={styles.loadingText}>{translate("loadingMore")}</CustomText>
+                  <CustomText style={styles.loadingText}>
+                    {translate("loadingMore")}
+                  </CustomText>
                 </Animated.View>
               ) : null
             }
           />
         )}
         {!data && !isLoading && (
-          <CustomText style={styles.noDataText}>{translate("noHandmadeItems")}</CustomText>
+          <CustomText style={styles.noDataText}>
+            {translate("noHandmadeItems")}
+          </CustomText>
         )}
       </LinearGradient>
     </SafeAreaView>
   );
 };
 
-const styles =  StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
@@ -379,8 +416,8 @@ const styles =  StyleSheet.create({
     flex: 1,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: 16,
     backgroundColor: colors.headerBackground,
   },
@@ -389,7 +426,6 @@ const styles =  StyleSheet.create({
   },
   title: {
     fontSize: 20,
-    fontWeight: 'bold',
     color: colors.white,
   },
   itemContainer: {
@@ -397,20 +433,20 @@ const styles =  StyleSheet.create({
   },
   card: {
     borderRadius: 12,
-    overflow: 'hidden',
+    overflow: "hidden",
     marginBottom: 16,
     backgroundColor: colors.white,
   },
   imageContainer: {
-    position: 'relative',
+    position: "relative",
   },
   itemImage: {
-    width: '100%',
+    width: "100%",
     height: 200,
-    resizeMode: 'cover',
+    resizeMode: "cover",
   },
   priceTag: {
-    position: 'absolute',
+    position: "absolute",
     top: 10,
     end: 10,
     backgroundColor: colors.primary,
@@ -420,7 +456,6 @@ const styles =  StyleSheet.create({
   },
   priceText: {
     color: colors.white,
-    fontWeight: 'bold',
     fontSize: 16,
   },
   cardContent: {
@@ -428,13 +463,12 @@ const styles =  StyleSheet.create({
   },
   itemName: {
     fontSize: 20,
-    fontWeight: 'bold',
     marginBottom: 8,
     color: colors.dark,
   },
   itemRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 8,
   },
   icon: {
@@ -463,13 +497,12 @@ const styles =  StyleSheet.create({
   },
   buyButtonLabel: {
     fontSize: 16,
-    fontWeight: 'bold',
     color: colors.white,
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   loadingText: {
     marginTop: 16,
@@ -479,7 +512,7 @@ const styles =  StyleSheet.create({
   noDataText: {
     fontSize: 16,
     color: colors.secondary,
-    textAlign: 'center',
+    textAlign: "center",
     marginTop: 32,
   },
 });
