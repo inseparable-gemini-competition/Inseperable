@@ -107,7 +107,8 @@ const GenericBottomSheet: React.FC<GenericBottomSheetProps> = ({
       keyboardBehavior="interactive"
       keyboardBlurBehavior="restore"
       android_keyboardInputMode="adjustResize"
-      // enablePanDownToClose
+      enablePanDownToClose
+      enableContentPanningGesture={false}
     >
       <ContentComponent
         contentContainerStyle={[styles.contentContainer, contentContainerStyle]}
