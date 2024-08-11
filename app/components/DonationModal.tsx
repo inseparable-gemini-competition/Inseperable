@@ -52,7 +52,9 @@ const DonationModal: React.FC<DonationModalProps> = ({
       textToSpeak={result?.description}
     >
       <View style={styles.container}>
-        <CustomText style={styles.title}>{translate("donationInfo")}</CustomText>
+        <CustomText style={styles.title}>
+          {translate("donationInfo")}
+        </CustomText>
         <CustomText
           style={{
             marginVertical: 5,
@@ -61,7 +63,7 @@ const DonationModal: React.FC<DonationModalProps> = ({
         >
           {translate("weWillRecommendADonationEntityToYou")}
         </CustomText>
-        {isLoading ? (
+        {isLoading || !result?.description ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={colors.primary} />
             <CustomText style={styles.loadingText}>
@@ -71,7 +73,9 @@ const DonationModal: React.FC<DonationModalProps> = ({
         ) : (
           <View style={styles.contentContainer}>
             <CustomText style={styles.name}>{result?.name}</CustomText>
-            <CustomText style={styles.description}>{result?.description}</CustomText>
+            <CustomText style={styles.description}>
+              {result?.description}
+            </CustomText>
             <Button
               size={ButtonSize.large}
               borderRadius={10}

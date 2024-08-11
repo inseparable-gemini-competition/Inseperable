@@ -62,7 +62,7 @@ const TripRecommendationModal: React.FC<TripRecommendationModalProps> = ({
   const handleChatOpen = () => {
     if (recommendedTrips?.[activeIndex]) {
       navigation.navigate("ChatScreenModal", {
-        subject: recommendedTrips[activeIndex]?.name,
+        subject: recommendedTrips[activeIndex]?.name + '\n' + recommendedTrips[activeIndex]?.description,
         promptType: "aiQuestion"
       });
     }

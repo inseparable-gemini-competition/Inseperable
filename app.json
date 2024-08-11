@@ -24,12 +24,7 @@
       "permissions": [
         "android.permission.RECORD_AUDIO"
       ],
-      "package": "com.competition.inseparable",
-      "config": {
-        "googleMaps": {
-          "apiKey": "AIzaSyDVYTI7arlD0a4lcyo1VXaydDkDLdPMFKQ"
-        }
-      }
+      "package": "com.competition.inseparable"
     },
     "web": {
       "bundler": "metro",

@@ -51,6 +51,7 @@ const CategoryList: React.FC<CategoryListProps> = ({
         ) : (
           <ActivityIndicator />
         )}
+        {isLoading && <ActivityIndicator />}
       </View>
       <CustomText style={styles.subtitle}>
         {showFullDescription ? description : description.slice(0, 160) + "..."}
