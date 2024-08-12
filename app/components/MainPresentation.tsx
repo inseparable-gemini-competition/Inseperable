@@ -19,6 +19,7 @@ import { useVoiceActivation } from "@/hooks/ui/useVoiceActivation";
 import { useTranslations } from "@/hooks/ui/useTranslations";
 import useStore from "@/app/store";
 import { CustomText } from "@/app/components/CustomText";
+import { isLoading } from "expo-font";
 
 interface MainPresentationProps {
   modals: ReturnType<typeof useModals>;
@@ -102,6 +103,7 @@ const MainPresentation: React.FC<MainPresentationProps> = ({
                   })
                 }
                 isListening={!!voiceActivation.isListening}
+                isLoading={!!voiceActivation.isProcessing}
               />
             </>
           )}

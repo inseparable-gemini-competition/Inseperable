@@ -3,6 +3,7 @@ import useStore from "@/app/store";
 import { auth } from "@/app/helpers/firebaseConfig";
 import { I18nManager } from "react-native";
 import * as Updates from "expo-updates";
+import { useState } from "react";
 
 export const useNavigationAndUser = () => {
   const {
@@ -13,7 +14,10 @@ export const useNavigationAndUser = () => {
     translations,
   } = useStore();
 
+  const [isLoading, setIsloading] = useState(false);
+
   const handleResetAndLogout = async () => {
+    setIsloading(true);
     const isRTL = translations?.isRTL;
     try {
       await signOut(auth);
@@ -24,8 +28,10 @@ export const useNavigationAndUser = () => {
         I18nManager.forceRTL(false);
         Updates.reloadAsync();
       }
+      setIsloading(false);
     } catch (error) {
       console.error("Error logging out:", error);
+      setIsloading(false);
     }
   };
 
@@ -40,5 +46,6 @@ export const useNavigationAndUser = () => {
   return {
     handleResetAndLogout,
     handleRecommendation,
+    isLoading,
   };
 };

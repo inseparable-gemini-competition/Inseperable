@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, ReactNode, useState } from "react";
+import React, { useMemo, useRef, ReactNode, useState, useEffect } from "react";
 import {
   StyleSheet,
   ViewStyle,
@@ -19,6 +19,7 @@ import SpeechControlIcon from "@/app/components/SpeechControlIcon";
 
 import { Ionicons } from "@expo/vector-icons";
 import { useVoiceToText } from "@/hooks/ui/useVoiceToText";
+import { colors } from "@/app/theme";
 
 interface GenericBottomSheetProps {
   visible: boolean;
@@ -62,6 +63,7 @@ const GenericBottomSheet: React.FC<GenericBottomSheetProps> = ({
   const [isSpeaking, setIsSpeaking] = useState(false);
   const { isListening, startListening, stopListening, isSendingMessage } =
     useVoiceToText(onSubmit ?? (() => {}));
+  const [isButtonDisabled, setIsButtonDisabled] = useState(false);
 
   const memoizedSnapPoints = useMemo(() => snapPoints, [snapPoints]);
 
@@ -79,10 +81,17 @@ const GenericBottomSheet: React.FC<GenericBottomSheetProps> = ({
     }
   };
 
+  useEffect(() => {
+    if (isListening) {
+      setIsButtonDisabled(false);
+    }
+  }, [isListening]);
+
   const handleVoiceToggle = () => {
     if (isListening) {
       stopListening();
     } else {
+      setIsButtonDisabled(true);
       startListening();
     }
   };
@@ -95,7 +104,7 @@ const GenericBottomSheet: React.FC<GenericBottomSheetProps> = ({
       onChange={(index) => {
         if (index === -1) {
           onClose();
-          Keyboard.dismiss()
+          Keyboard.dismiss();
           if (isSpeaking) {
             stop();
             setIsSpeaking(false);
@@ -108,8 +117,7 @@ const GenericBottomSheet: React.FC<GenericBottomSheetProps> = ({
       keyboardBlurBehavior="restore"
       android_keyboardInputMode="adjustResize"
       enablePanDownToClose
-      overDragResistanceFactor={10} // This should increase resistance
-
+      overDragResistanceFactor={10}
     >
       <ContentComponent
         contentContainerStyle={[styles.contentContainer, contentContainerStyle]}
@@ -129,12 +137,22 @@ const GenericBottomSheet: React.FC<GenericBottomSheetProps> = ({
             (Boolean(!isSendingMessage) ? (
               <TouchableOpacity
                 onPress={handleVoiceToggle}
-                style={styles.voiceIcon}
+                style={[
+                  styles.voiceIcon,
+                  isButtonDisabled && styles.disabledButton,
+                ]}
+                disabled={isButtonDisabled}
               >
                 <Ionicons
                   name={isListening ? "mic" : "mic-outline"}
                   size={24}
-                  color={isListening ? "red" : "black"}
+                  color={
+                    isListening
+                      ? colors.danger
+                      : isButtonDisabled
+                      ? colors.secondary
+                      : colors.black
+                  }
                 />
               </TouchableOpacity>
             ) : (
@@ -200,6 +218,9 @@ const styles = StyleSheet.create({
   },
   voiceIcon: {
     padding: 8,
+  },
+  disabledButton: {
+    opacity: 0.5,
   },
   transcript: {
     marginTop: 16,

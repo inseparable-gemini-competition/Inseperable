@@ -7,7 +7,7 @@ import {
   Animated,
   Easing,
 } from "react-native";
-import { View, Text } from "react-native-ui-lib";
+import { View } from "react-native-ui-lib";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "@/hooks/logic/useAuth";
@@ -15,7 +15,7 @@ import { useTranslations } from "@/hooks/ui/useTranslations";
 import { colors } from "@/app/theme";
 import { CustomText } from "@/app/components/CustomText";
 
-const LoadingAnimation = ({ text }: {text: string}) => {
+const LoadingAnimation = ({ text }: { text: string }) => {
   const [rotation] = useState(new Animated.Value(0));
 
   useEffect(() => {
@@ -31,12 +31,14 @@ const LoadingAnimation = ({ text }: {text: string}) => {
 
   const spin = rotation.interpolate({
     inputRange: [0, 1],
-    outputRange: ['0deg', '360deg'],
+    outputRange: ["0deg", "360deg"],
   });
 
   return (
     <View style={styles.loadingContainer}>
-      <Animated.View style={[styles.loadingCircle, { transform: [{ rotate: spin }] }]} />
+      <Animated.View
+        style={[styles.loadingCircle, { transform: [{ rotate: spin }] }]}
+      />
       <CustomText style={styles.loadingText}>{text}</CustomText>
     </View>
   );
@@ -46,7 +48,15 @@ export default function AuthScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLogin, setIsLogin] = useState(true);
-  const { signIn, signUp, biometricLogin, saveBiometricCredentials, isLoading, isTranslating } = useAuth();
+  const {
+    signIn,
+    signUp,
+    biometricLogin,
+    saveBiometricCredentials,
+    isLoading,
+    isTranslating,
+    setIsLoading,
+  } = useAuth();
   const { translate } = useTranslations();
 
   const handleAuth = async () => {
@@ -63,6 +73,7 @@ export default function AuthScreen() {
       }
     } catch (error) {
       console.error(error);
+      setIsLoading(false);
       alert(translate("authFailed"));
     }
   };
@@ -70,8 +81,10 @@ export default function AuthScreen() {
   const handleBiometricLogin = async () => {
     try {
       await biometricLogin();
+      setIsLoading(false);
     } catch (error) {
       console.error(error);
+      setIsLoading(false);
       alert(translate("didYouSignedInBefore"));
     }
   };
@@ -126,8 +139,8 @@ export default function AuthScreen() {
             placeholderTextColor={colors.placeholder}
           />
         </View>
-        <TouchableOpacity 
-          style={styles.button} 
+        <TouchableOpacity
+          style={styles.button}
           onPress={handleAuth}
           disabled={isLoading}
         >
@@ -173,7 +186,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: colors.background 
+    backgroundColor: colors.background,
   },
   loadingCircle: {
     width: 60,
@@ -181,7 +194,7 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     borderWidth: 3,
     borderColor: colors.primary,
-    borderTopColor: 'transparent',
+    borderTopColor: "transparent",
   },
   loadingText: {
     marginTop: 20,

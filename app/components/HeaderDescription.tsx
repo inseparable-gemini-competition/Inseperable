@@ -1,5 +1,10 @@
 import React from "react";
-import { View, TouchableOpacity, StyleSheet } from "react-native";
+import {
+  View,
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+} from "react-native";
 import { useNavigationAndUser } from "@/hooks";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "@/app/theme";
@@ -14,15 +19,12 @@ const HeaderDescription: React.FC<HeaderDescriptionProps> = ({
   country,
   handleFontSettings,
 }) => {
-  const { handleRecommendation, handleResetAndLogout } = useNavigationAndUser();
+  const { handleRecommendation, handleResetAndLogout, isLoading } =
+    useNavigationAndUser();
   return (
     <View style={styles.container}>
       <View style={styles.titleContainer}>
-        <CustomText 
-          style={styles.title}
-          numberOfLines={2}
-          ellipsizeMode="tail"
-        >
+        <CustomText style={styles.title} numberOfLines={2} ellipsizeMode="tail">
           {country}
         </CustomText>
       </View>
@@ -33,12 +35,16 @@ const HeaderDescription: React.FC<HeaderDescriptionProps> = ({
         >
           <Ionicons name="text" size={24} color={colors.white} />
         </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.iconButton}
-          onPress={handleResetAndLogout}
-        >
-          <Ionicons name="log-out" size={24} color={colors.white} />
-        </TouchableOpacity>
+        {isLoading ? (
+          <ActivityIndicator size={"small"} />
+        ) : (
+          <TouchableOpacity
+            style={styles.iconButton}
+            onPress={handleResetAndLogout}
+          >
+            <Ionicons name="log-out" size={24} color={colors.white} />
+          </TouchableOpacity>
+        )}
         <TouchableOpacity
           style={styles.iconButton}
           onPress={handleRecommendation}

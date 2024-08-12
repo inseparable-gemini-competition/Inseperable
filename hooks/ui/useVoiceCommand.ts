@@ -13,6 +13,7 @@ export const useVoiceCommands = () => {
   const recordingRef = useRef<Audio.Recording | null>(null);
   const { currentLanguage } = useStore();
   const { speak } = useTextToSpeech();
+  const [isLocallyLoading, setIsLocallyLoading] = useState(false);
 
   const { sendMessage, aiResponse, isLoading } = useGenerateContent({
     promptType: "audioCommand",
@@ -88,23 +89,29 @@ export const useVoiceCommands = () => {
           speak(translate("processing"), {
             language: currentLanguage || "en",
           });
+          setIsLocallyLoading(false);
           await sendAudioToGemini(uri);
         } else {
           console.error("No URI obtained from recording");
+          setIsLocallyLoading(false);
         }
       } catch (error) {
         console.error("Error stopping recording:", error);
+        setIsLocallyLoading(false);
       } finally {
         setRecording(null);
         recordingRef.current = null;
+        setIsLocallyLoading(false);
       }
     } else {
       console.warn("No active recording to stop");
+      setIsLocallyLoading(false);
     }
     setIsListening(false);
   }, []);
 
   const activateVoiceCommand = useCallback(() => {
+    setIsLocallyLoading(true);
     speak(translate("pleaseStartSpeakingAndLongPresToStop"), {
       onDone: () => {
         startRecording();
@@ -118,6 +125,7 @@ export const useVoiceCommands = () => {
       stopListening();
     }
     setIsListening(false);
+    setIsLocallyLoading(false)
   }, [stopListening]);
 
   return {
@@ -126,6 +134,6 @@ export const useVoiceCommands = () => {
     stopListening,
     cancelVoiceCommand,
     command: aiResponse,
-    isProcessing: isLoading,
+    isProcessing: isLoading || isLocallyLoading,
   };
 };

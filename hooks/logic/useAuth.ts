@@ -87,6 +87,7 @@ export function useAuth({ fromLayout = false }: { fromLayout?: boolean } = {}) {
                 ...updatedUserData,
                 ...userDocSnap.data(),
               };
+              setIsLoading(false);
             }
           } catch (error) {
             console.error("Error fetching user data from Firestore:", error);
@@ -101,7 +102,6 @@ export function useAuth({ fromLayout = false }: { fromLayout?: boolean } = {}) {
         I18nManager.forceRTL(translations.isRTL === true);
         setUserData(updatedUserData);
         if (translations.isRTl) Updates.reloadAsync();
-        setIsLoading(false);
       }
     });
     return unsubscribe;
@@ -109,48 +109,37 @@ export function useAuth({ fromLayout = false }: { fromLayout?: boolean } = {}) {
 
   const signUp = async (email: string, password: string) => {
     setIsLoading(true);
-    try {
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-      return userCredential.user;
-    } finally {
-      setIsLoading(false);
-    }
+    const userCredential = await createUserWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
+    return userCredential.user;
   };
 
   const signIn = async (email: string, password: string) => {
     setIsLoading(true);
-    try {
-      const userCredential = await signInWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-      return userCredential.user;
-    } finally {
-      setIsLoading(false);
-    }
+    const userCredential = await signInWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
+    return userCredential.user;
   };
 
   const biometricLogin = async () => {
     setIsLoading(true);
-    try {
-      const savedEmail = await AsyncStorage.getItem("userEmail");
-      const savedPassword = await AsyncStorage.getItem("userPassword");
 
-      if (savedEmail && savedPassword) {
-        const { success } = await LocalAuthentication.authenticateAsync();
-        if (success) {
-          return signIn(savedEmail, savedPassword);
-        }
+    const savedEmail = await AsyncStorage.getItem("userEmail");
+    const savedPassword = await AsyncStorage.getItem("userPassword");
+
+    if (savedEmail && savedPassword) {
+      const { success } = await LocalAuthentication.authenticateAsync();
+      if (success) {
+        return signIn(savedEmail, savedPassword);
       }
-      throw new Error("Did you sign in before?");
-    } finally {
-      setIsLoading(false);
     }
+    throw new Error("Did you sign in before?");
   };
 
   const saveBiometricCredentials = async (email: string, password: string) => {
@@ -166,5 +155,6 @@ export function useAuth({ fromLayout = false }: { fromLayout?: boolean } = {}) {
     saveBiometricCredentials,
     isLoading,
     isTranslating,
+    setIsLoading,
   };
 }
