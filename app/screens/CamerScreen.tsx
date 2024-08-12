@@ -39,19 +39,14 @@ const CameraScreen: React.FC<CameraScreenProps> = ({
   const { speak, stop } = useTextToSpeech();
   const navigation = useNavigation<any>();
   useEffect(() => {
-    const onBackPress = () => {
-      // Call the onCloseFeedback function
-      onCloseFeedback();
-
-      // Return true to prevent default back button behavior (exiting the screen)
+    const handleBackPress = () => {
+      onBackPress();
       return true;
     };
-    // Add the event listener for hardware back button
     const backHandler = BackHandler.addEventListener(
       "hardwareBackPress",
-      onBackPress
+      handleBackPress
     );
-    // Clean up the event listener when the component unmounts
     return () => backHandler.remove();
   }, [onCloseFeedback]);
 
