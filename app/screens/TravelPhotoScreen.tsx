@@ -5,12 +5,11 @@ import {
   StyleSheet,
   TouchableOpacity,
   TextInput,
-  Alert,
   Share,
   Dimensions,
   Platform,
 } from "react-native";
-import { View, Text } from "react-native-ui-lib";
+import { View } from "react-native-ui-lib";
 import * as ImagePicker from "expo-image-picker";
 import {
   collection,
@@ -23,8 +22,15 @@ import {
   QueryDocumentSnapshot,
   onSnapshot,
   getDocs,
+  deleteDoc,
+  doc,
 } from "firebase/firestore";
-import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import {
+  ref,
+  uploadBytesResumable,
+  getDownloadURL,
+  deleteObject,
+} from "firebase/storage";
 import { useMutation } from "react-query";
 import { db, auth, storage, functions } from "@/app/helpers/firebaseConfig";
 import { LinearGradient } from "expo-linear-gradient";
@@ -44,6 +50,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { useNavigation } from "expo-router";
 import { CustomText } from "@/app/components/CustomText";
+import Toast from "react-native-toast-message";
 
 // Types
 interface Photo {
@@ -174,7 +181,10 @@ const TravelPhotoScreen: React.FC = () => {
     {
       onError: (error: any) => {
         setUploading(false);
-        Alert.alert("Error", `Failed to upload image: ${error.message}`);
+        Toast.show({
+          type: "error",
+          text1: translate("uploadFailed") + error?.message,
+        });
       },
     }
   );
@@ -186,7 +196,9 @@ const TravelPhotoScreen: React.FC = () => {
     statusMessage =
       progress === 100
         ? translate("generatingYourBeautifulCaptions")
-        : `${translate("loadingYourBeautifulMemories")} ${progress.toFixed(2)}%`;
+        : `${translate("loadingYourBeautifulMemories")} ${progress.toFixed(
+            2
+          )}%`;
   } else if (uploadMutation.isLoading) {
     statusMessage = translate("processingYourUpload");
   }
@@ -207,7 +219,10 @@ const TravelPhotoScreen: React.FC = () => {
       }
     } catch (error: any) {
       console.error("Error picking or uploading image:", error);
-      Alert.alert("Error", `Failed to upload image: ${error.message}`);
+      Toast.show({
+        type: "error",
+        text1: translate("uploadFailed") + error?.message,
+      });
     }
   };
 
@@ -224,7 +239,10 @@ const TravelPhotoScreen: React.FC = () => {
 
       await Share.share(shareContent);
     } catch (error: any) {
-      Alert.alert("Error", error.message);
+      Toast.show({
+        type: "error",
+        text1: error?.message,
+      });
     }
   };
 
@@ -250,7 +268,10 @@ const TravelPhotoScreen: React.FC = () => {
       } catch (error: any) {
         console.error("Error searching photos:", error);
         setLoading(false);
-        Alert.alert("Error", "Failed to search photos");
+        Toast.show({
+          type: "error",
+          text1: translate("searchFailed") + error?.message,
+        });
       }
     },
     [userData?.id]
@@ -302,6 +323,54 @@ const TravelPhotoScreen: React.FC = () => {
     }
   };
 
+  const deletePhoto = async (photoId: string, photoUrl: string) => {
+    if (!auth.currentUser) {
+      throw new Error("User not authenticated");
+    }
+
+    try {
+      // Delete the photo from Firebase storage
+      const photoRef = ref(storage, photoUrl);
+      await deleteObject(photoRef);
+
+      // Delete the photo from Firestore
+      const photoDocRef = doc(db, "photos", photoId);
+      await deleteDoc(photoDocRef);
+
+      // Refetch photos after deletion
+      const q = query(
+        collection(db, "photos"),
+        where("userId", "==", userData.id),
+        orderBy("timestamp", "desc"),
+        limit(10)
+      );
+
+      const snapshot = await getDocs(q);
+      const newPhotos = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as Photo[];
+
+      setPhotos(newPhotos);
+      setOriginalPhotos(newPhotos);
+      setLastVisible(
+        snapshot.docs.length > 0
+          ? snapshot.docs[snapshot.docs.length - 1]
+          : null
+      );
+      Toast.show({
+        type: "success",
+        text1: translate("photoDeleted"),
+      });
+    } catch (error) {
+      console.error("Error deleting photo:", error);
+      Toast.show({
+        type: "success",
+        text1: translate("photoDeletionFailed"),
+      });
+    }
+  };
+
   const renderPhoto = ({ item }: { item: Photo }): React.ReactElement => (
     <View style={styles.photoCard}>
       <FastImage source={{ uri: item.url }} style={styles.photoImage} />
@@ -322,12 +391,20 @@ const TravelPhotoScreen: React.FC = () => {
       <CustomText style={styles.photoTimestamp}>
         {new Date(item.timestamp).toLocaleString()}
       </CustomText>
-      <TouchableOpacity
-        onPress={() => handleShare(item)}
-        style={styles.shareButton}
-      >
-        <FontAwesome name="share-alt" size={20} color={colors.white} />
-      </TouchableOpacity>
+      <View style={styles.actionButtonsContainer}>
+        <TouchableOpacity
+          onPress={() => handleShare(item)}
+          style={styles.shareButton}
+        >
+          <FontAwesome name="share-alt" size={20} color={colors.white} />
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => deletePhoto(item.id, item.url)}
+          style={styles.deleteButton}
+        >
+          <Ionicons name="trash-outline" size={20} color={colors.white} />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 
@@ -405,6 +482,9 @@ const TravelPhotoScreen: React.FC = () => {
             </TouchableOpacity>
           </View>
         </View>
+        <CustomText style={styles.subText}>
+          {translate("uploadYourPhotosAndWeWillGenerateCaption")}
+        </CustomText>
 
         {(loading || uploading || uploadMutation.isLoading) && (
           <View style={styles.loadingContainer}>
@@ -466,6 +546,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     color: colors.white,
+  },
+  subText: {
+    maxWidth: "80%",
+    textAlign: "center",
+    alignSelf: "center",
   },
   actionContainer: {
     flexDirection: "row",
@@ -579,11 +664,24 @@ const styles = StyleSheet.create({
     color: colors.light,
     marginTop: 8,
   },
+  actionButtonsContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+  },
   shareButton: {
-    position: "absolute",
-    right: 16,
-    top: 16,
     backgroundColor: colors.primary,
+    borderRadius: 20,
+    padding: 8,
+    elevation: 3,
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+  },
+  deleteButton: {
+    backgroundColor: colors.danger,
     borderRadius: 20,
     padding: 8,
     elevation: 3,
