@@ -132,6 +132,7 @@ export function useAuth({ fromLayout = false }: { fromLayout?: boolean } = {}) {
 
     const savedEmail = await AsyncStorage.getItem("userEmail");
     const savedPassword = await AsyncStorage.getItem("userPassword");
+    console.log("savedEmail", savedEmail, savedPassword);
 
     if (savedEmail && savedPassword) {
       const { success } = await LocalAuthentication.authenticateAsync();
@@ -139,7 +140,7 @@ export function useAuth({ fromLayout = false }: { fromLayout?: boolean } = {}) {
         return signIn(savedEmail, savedPassword);
       }
     }
-    throw new Error("Did you sign in before?");
+    throw new Error("Session expired, can you try normal logging?");
   };
 
   const saveBiometricCredentials = async (email: string, password: string) => {
