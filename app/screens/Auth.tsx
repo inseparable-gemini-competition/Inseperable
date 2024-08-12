@@ -1,11 +1,10 @@
 // AuthScreen.tsx
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   StyleSheet,
   TouchableOpacity,
   TextInput as TextField,
-  Animated,
-  Easing,
+  ActivityIndicator,
 } from "react-native";
 import { View } from "react-native-ui-lib";
 import { LinearGradient } from "expo-linear-gradient";
@@ -17,29 +16,9 @@ import { CustomText } from "@/app/components/CustomText";
 import Toast from "react-native-toast-message";
 
 const LoadingAnimation = ({ text }: { text: string }) => {
-  const [rotation] = useState(new Animated.Value(0));
-
-  useEffect(() => {
-    Animated.loop(
-      Animated.timing(rotation, {
-        toValue: 1,
-        duration: 2000,
-        easing: Easing.linear,
-        useNativeDriver: true,
-      })
-    ).start();
-  }, [rotation]);
-
-  const spin = rotation.interpolate({
-    inputRange: [0, 1],
-    outputRange: ["0deg", "360deg"],
-  });
-
   return (
     <View style={styles.loadingContainer}>
-      <Animated.View
-        style={[styles.loadingCircle, { transform: [{ rotate: spin }] }]}
-      />
+      <ActivityIndicator color={colors.black} size={"large"} />
       <CustomText style={styles.loadingText}>{text}</CustomText>
     </View>
   );
