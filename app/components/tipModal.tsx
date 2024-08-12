@@ -7,6 +7,7 @@ import { useTranslations } from "@/hooks/ui/useTranslations";
 import { colors } from "@/app/theme";
 import { CustomText } from "@/app/components/CustomText";
 import { convertMarkdownToPlainText } from "@/app/helpers/markdown";
+import { useFont } from "@/app/context/fontContext";
 
 interface TipsModalProps {
   visible: boolean;
@@ -26,6 +27,7 @@ const TipsModal: React.FC<TipsModalProps> = ({
   const [selectedTipType, setSelectedTipType] = useState("");
   const [isVisible, setIsVisible] = useState(false);
   const { translate } = useTranslations();
+  const { selectedFont } = useFont();
 
   const tipTypes = [
     { label: translate("ecofriendly"), value: "ecoFriendly" },
@@ -69,12 +71,16 @@ const TipsModal: React.FC<TipsModalProps> = ({
       <Picker
         style={globalStyles.picker}
         placeholder={translate("selectTipType")}
+        labelStyle={{ fontFamily: selectedFont }}
         value={selectedTipType}
         onChange={handleTipTypeChange as any}
       >
         {tipTypes.map((item) => (
           <Picker.Item
             key={item.value}
+            labelStyle={{
+              fontFamily: selectedFont,
+            }}
             value={item.value}
             label={translate(item.label)}
           />
