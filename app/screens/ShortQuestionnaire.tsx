@@ -70,7 +70,7 @@ const Questionnaire = ({ onFinish }: Props) => {
         style={styles.container}
       >
         <ActivityIndicator size="large" color={colors.primary} />
-        <CustomText>{translate("recommending")}</CustomText>
+        <CustomText>{translate("fetchingYourTravellingCountryData")}</CustomText>
       </View>
     );
   }

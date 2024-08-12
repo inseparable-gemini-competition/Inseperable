@@ -56,7 +56,6 @@ interface CustomImageProps {
   style: ICard;
 }
 
-
 const CustomImage: React.FC<CustomImageProps> = React.memo(
   ({ source, style }) => {
     const [imageLoaded, setImageLoaded] = useState(false);
@@ -86,6 +85,10 @@ interface VisitingIndicatorProps {
   text: string;
   style: any;
 }
+
+const shuffleArray = (array: ICard[]) => {
+  return array.sort(() => Math.random() - 0.5);
+};
 
 const VisitingIndicator: React.FC<VisitingIndicatorProps> = React.memo(
   ({ visible, text, style }) => {
@@ -148,7 +151,7 @@ const openGoogleMaps = (latitude: number, longitude: number) => {
 };
 
 const Plan: React.FC = () => {
-  const [categoryData, setCategoryData] = useState<any[]>([]);
+  const [categoryData, setCategoryData] = useState<ICard[]>([]);
   const { reset } = useNavigation<any>();
   const [loading, setLoading] = useState<boolean>(true);
   const { userData } = useStore();
@@ -160,6 +163,7 @@ const Plan: React.FC = () => {
   const rotateAnim = useRef(new Animated.Value(0)).current;
   const visitingOpacity = useRef(new Animated.Value(0)).current;
   const notVisitingOpacity = useRef(new Animated.Value(0)).current;
+  const [cardIndex, setCardIndex] = useState(0);
 
   const { translate, isRTL } = useTranslations();
   const insets = useSafeAreaInsets();
@@ -205,8 +209,12 @@ const Plan: React.FC = () => {
         if (userDoc.exists()) {
           const userData = userDoc.data();
           const travelPlan = userData?.travelPlan || {};
-          const data = travelPlan[selectedCategory] || [];
-          setCategoryData(data);
+          const data: ICard[] = travelPlan[selectedCategory] || [];
+
+          // Shuffle the data array
+          const shuffledData = shuffleArray(data);
+          setCategoryData(shuffledData);
+          setCardIndex(0); // Reset the card index on category change
         } else {
           setCategoryData([]);
         }
@@ -290,10 +298,11 @@ const Plan: React.FC = () => {
   }, [resetIndicators]);
 
   const renderCard = useCallback(
-    (card: any) => {
+    (card: ICard, index: number) => {
       return (
         <CategoryCard
           item={card}
+          key={`${card.name}-${index}`} 
           onPressMap={() => openGoogleMaps(card?.latitude, card?.longitude)}
         />
       );
@@ -316,14 +325,16 @@ const Plan: React.FC = () => {
         </TouchableOpacity>
       </Animated.View>
       <View style={styles.menu}>
-        {categories.map((category) => (
-          <MenuButton
-            key={category.name}
-            iconName={category.icon}
-            selected={selectedCategory === category.action}
-            onPress={() => setSelectedCategory(category.action)}
-          />
-        ))}
+        <View style={styles.menu}>
+          {categories.map((category, index) => (
+            <MenuButton
+              key={`${category.name}-${index}`} // Ensuring a unique key by combining name and index
+              iconName={category.icon}
+              selected={selectedCategory === category.action}
+              onPress={() => setSelectedCategory(category.action)}
+            />
+          ))}
+        </View>
       </View>
       {loading ? (
         <View style={styles.loadingContainer}>
@@ -348,7 +359,7 @@ const Plan: React.FC = () => {
             onSwipedRight={handleSwipedRight}
             onTapCard={handleSwipeRelease}
             onTapCardDeadZone={5}
-            cardIndex={0}
+            cardIndex={cardIndex}
             backgroundColor={"transparent"}
             stackSize={3}
             infinite
@@ -407,7 +418,7 @@ const styles = StyleSheet.create({
   menu: {
     position: "absolute",
     start: 10,
-    top: 100,
+    top: 70,
     zIndex: 1,
   },
   button: {
@@ -465,7 +476,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 25,
     alignSelf: "center",
-    marginTop: 10,
+    marginVertical: 10,
   },
   loadingContainer: {
     flex: 1,
@@ -486,7 +497,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: colors.primary,
     textAlign: "center",
-    maxWidth: '70%'
+    maxWidth: "70%",
   },
   visitingIndicator: {
     position: "absolute",
