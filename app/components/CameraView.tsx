@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { styles } from '@/app/screens/MainStyles';
 import { useTranslations } from '@/hooks/ui/useTranslations';
 import { CustomText } from '@/app/components/CustomText';
+import { colors } from '@/app/theme';
 
 interface CameraViewProps {
   countdown: number | null;
@@ -53,7 +54,7 @@ const CameraView: React.FC<CameraViewProps> = ({
         style={styles.flipButton} 
         onPress={flipCamera}
       >
-        <Ionicons name="sync-outline" size={40} color="black" />
+        <Ionicons name="sync-outline" size={40} color={colors.white} />
       </TouchableOpacity>
     </View>
   );
