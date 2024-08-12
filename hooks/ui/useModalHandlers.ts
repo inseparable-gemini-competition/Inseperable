@@ -61,18 +61,9 @@ export const useModalHandlers = (
   const openMapWithLocation = async (latitude: number, longitude: number) => {
     const mapsUrl = `https://www.google.com/maps?q=${latitude},${longitude}`;
 
-    try {
-      const supported = await Linking.canOpenURL(mapsUrl);
-      if (supported) {
-        await Linking.openURL(mapsUrl);
-      } else {
-        Alert.alert(translate("unableToOpenMaps"));
-      }
-    } catch (err) {
-      Alert.alert(
-        err instanceof Error ? err.message : translate("unknownError")
-      );
-    }
+    Linking.openURL(mapsUrl).catch(() => {
+      Alert.alert(translate("unableToOpenMaps"));
+    });
   };
 
   const openUber = async (latitude: number, longitude: number) => {

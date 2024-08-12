@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Image,
@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import Animated from "react-native-reanimated";
+import { BackHandler } from "react-native";
 import { Dialog } from "react-native-ui-lib";
 import { CameraScreenProps } from "../types";
 import { styles as globalStyles } from "@/app/screens/MainStyles";
@@ -37,6 +38,22 @@ const CameraScreen: React.FC<CameraScreenProps> = ({
   const [isSpeaking, setIsSpeaking] = useState(false);
   const { speak, stop } = useTextToSpeech();
   const navigation = useNavigation<any>();
+  useEffect(() => {
+    const onBackPress = () => {
+      // Call the onCloseFeedback function
+      onCloseFeedback();
+
+      // Return true to prevent default back button behavior (exiting the screen)
+      return true;
+    };
+    // Add the event listener for hardware back button
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      onBackPress
+    );
+    // Clean up the event listener when the component unmounts
+    return () => backHandler.remove();
+  }, [onCloseFeedback]);
 
   const handleToggleSpeech = () => {
     if (isSpeaking) {
@@ -128,7 +145,11 @@ const CameraScreen: React.FC<CameraScreenProps> = ({
                   style={styles.speechButton} // Using the same style for consistency
                   onPress={handleNavigateToChatScreenModal}
                 >
-                  <Ionicons name="arrow-forward" size={24} color={colors.white} />
+                  <Ionicons
+                    name="arrow-forward"
+                    size={24}
+                    color={colors.white}
+                  />
                   <CustomText style={styles.speechButtonText}>
                     {translate("askMore")}
                   </CustomText>
