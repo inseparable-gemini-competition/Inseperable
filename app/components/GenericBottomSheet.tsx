@@ -36,6 +36,7 @@ interface GenericBottomSheetProps {
   textStyle?: TextStyle;
   textToSpeak?: string;
   onSubmit?: (text: string) => void;
+  cancelSpeaking?: boolean;
 }
 
 const defaultRenderBackdrop = (props: any) => (
@@ -57,9 +58,18 @@ const GenericBottomSheet: React.FC<GenericBottomSheetProps> = ({
   textStyle,
   textToSpeak,
   onSubmit,
+  cancelSpeaking,
 }) => {
   const bottomSheetRef = useRef<BottomSheet>(null);
   const { speak, stop } = useTextToSpeech();
+
+  useEffect(() => {
+    if (cancelSpeaking) {
+      stop();
+      setIsSpeaking(false);
+    }
+  }, [cancelSpeaking]);
+
   const [isSpeaking, setIsSpeaking] = useState(false);
   const { isListening, startListening, stopListening, isSendingMessage } =
     useVoiceToText(onSubmit ?? (() => {}));
@@ -76,7 +86,7 @@ const GenericBottomSheet: React.FC<GenericBottomSheetProps> = ({
       stop();
       setIsSpeaking(false);
     } else if (textToSpeak) {
-      speak(textToSpeak);
+      speak(textToSpeak, { onDone: () => setIsSpeaking(false) });
       setIsSpeaking(true);
     }
   };

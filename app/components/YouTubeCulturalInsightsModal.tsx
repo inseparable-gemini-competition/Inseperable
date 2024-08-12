@@ -34,7 +34,7 @@ const VideoCulturalInsightsModal: React.FC<VideoCulturalInsightsModalProps> = ({
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
   const [culturalInsights, setCulturalInsights] = useState<string | null>(null);
-  const {selectedFont} = useFont();
+  const { selectedFont } = useFont();
 
   const pickVideo = useCallback(async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -125,7 +125,7 @@ const VideoCulturalInsightsModal: React.FC<VideoCulturalInsightsModalProps> = ({
         resetState();
       }}
       enableScroll={true}
-      textToSpeak={culturalInsights || ""}
+      textToSpeak={convertMarkdownToPlainText(culturalInsights || "")}
     >
       {!culturalInsights ? (
         <>

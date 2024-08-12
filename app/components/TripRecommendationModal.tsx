@@ -19,6 +19,7 @@ import GenericBottomSheet, {
 } from "./GenericBottomSheet";
 import { CustomText } from "@/app/components/CustomText";
 import FastImage from "react-native-fast-image";
+import { convertMarkdownToPlainText } from "@/app/helpers/markdown";
 
 const { width: screenWidth } = Dimensions.get("window");
 
@@ -38,7 +39,7 @@ interface TripRecommendationModalProps {
   userMoodAndDesires: string;
   setUserMoodAndDesires: (input: string) => void;
   recommendedTrips: Array<RecommendedTrip> | null;
-  onViewMap: (latitude: number, longitude: number, name: string) => void;
+  onViewMap: (latitude: number, longitude: number) => void;
   onOpenUber: (latitude: number, longitude: number) => void;
 }
 
@@ -62,13 +63,22 @@ const TripRecommendationModal: React.FC<TripRecommendationModalProps> = ({
   const handleChatOpen = () => {
     if (recommendedTrips?.[activeIndex]) {
       navigation.navigate("ChatScreenModal", {
-        subject: recommendedTrips[activeIndex]?.name + '\n' + recommendedTrips[activeIndex]?.description,
-        promptType: "aiQuestion"
+        subject:
+          recommendedTrips[activeIndex]?.name +
+          "\n" +
+          recommendedTrips[activeIndex]?.description,
+        promptType: "aiQuestion",
       });
     }
   };
 
-  const renderCarouselItem: any = ({ item: trip, index }: { item: RecommendedTrip; index: number }) => (
+  const renderCarouselItem: any = ({
+    item: trip,
+    index,
+  }: {
+    item: RecommendedTrip;
+    index: number;
+  }) => (
     <View key={index} style={styles.carouselItem}>
       <FastImage
         style={styles.carouselImage}
@@ -97,7 +107,9 @@ const TripRecommendationModal: React.FC<TripRecommendationModalProps> = ({
       onSubmit={(data) => {
         onSubmit(data);
       }}
-      textToSpeak={recommendedTrips?.[activeIndex]?.description}
+      textToSpeak={convertMarkdownToPlainText(
+        recommendedTrips?.[activeIndex]?.description || ""
+      )}
     >
       {!recommendedTrips?.[0]?.name ? (
         <>
@@ -162,8 +174,8 @@ const TripRecommendationModal: React.FC<TripRecommendationModalProps> = ({
             activeDotStyle={styles.paginationDotActive}
             containerStyle={[
               styles.paginationContainer,
-              translations?.isRTL ? { transform: [{ scaleX: -1 }] } : {}
-          ]}
+              translations?.isRTL ? { transform: [{ scaleX: -1 }] } : {},
+            ]}
             onPress={onPressPagination}
           />
 
@@ -180,8 +192,7 @@ const TripRecommendationModal: React.FC<TripRecommendationModalProps> = ({
               onPress={() =>
                 onViewMap(
                   recommendedTrips[activeIndex]?.latitude,
-                  recommendedTrips[activeIndex]?.longitude,
-                  recommendedTrips[activeIndex]?.name
+                  recommendedTrips[activeIndex]?.longitude
                 )
               }
             >
@@ -289,13 +300,11 @@ const styles = StyleSheet.create({
     height: "100%",
   },
   paginationContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
     marginTop: 10,
     marginBottom: 20,
-
-  
   },
   paginationDot: {
     width: 8,

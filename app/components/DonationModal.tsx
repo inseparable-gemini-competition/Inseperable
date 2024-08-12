@@ -6,6 +6,7 @@ import { useTranslations } from "@/hooks/ui/useTranslations";
 import { colors } from "@/app/theme";
 import { CustomText } from "@/app/components/CustomText";
 import { useFont } from "@/app/context/fontContext";
+import { convertMarkdownToPlainText } from "@/app/helpers/markdown";
 
 interface DonationModalProps {
   visible: boolean;
@@ -27,7 +28,7 @@ const DonationModal: React.FC<DonationModalProps> = ({
   userLanguage,
 }) => {
   const { translate } = useTranslations();
-  const {selectedFont} = useFont();
+  const { selectedFont } = useFont();
 
   const handleOpenLink = () => {
     if (result?.websiteLink) {
@@ -45,7 +46,7 @@ const DonationModal: React.FC<DonationModalProps> = ({
       visible={visible}
       onClose={onClose}
       enableScroll
-      textToSpeak={result?.description}
+      textToSpeak={convertMarkdownToPlainText(result?.description || "")}
     >
       <View style={styles.container}>
         <CustomText style={styles.title}>

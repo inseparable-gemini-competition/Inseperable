@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, ActivityIndicator, StyleSheet } from "react-native";
+import { View, ActivityIndicator, StyleSheet } from "react-native";
 import { Picker } from "react-native-ui-lib";
 import { modalStyles, styles as globalStyles } from "@/app/screens/MainStyles";
 import GenericBottomSheet from "./GenericBottomSheet"; // Adjust the import path as needed
 import { useTranslations } from "@/hooks/ui/useTranslations";
 import { colors } from "@/app/theme";
 import { CustomText } from "@/app/components/CustomText";
+import { convertMarkdownToPlainText } from "@/app/helpers/markdown";
 
 interface TipsModalProps {
   visible: boolean;
@@ -52,15 +53,19 @@ const TipsModal: React.FC<TipsModalProps> = ({
       visible={isVisible}
       onClose={handleClose}
       enableScroll={true}
-      textToSpeak={result}
+      cancelSpeaking={isLoading}
+      textToSpeak={convertMarkdownToPlainText(result)}
     >
       <CustomText style={styles.title}>{translate("selectTipType")}</CustomText>
-      <CustomText style={{
-        marginVertical: 5,
-        fontFamily: "marcellus",
-        textAlign: "center",
-
-      }}>{translate("pickAnyCategoryYouWantTipsAbout")}</CustomText>
+      <CustomText
+        style={{
+          marginVertical: 5,
+          fontFamily: "marcellus",
+          textAlign: "center",
+        }}
+      >
+        {translate("pickAnyCategoryYouWantTipsAbout")}
+      </CustomText>
       <Picker
         style={globalStyles.picker}
         placeholder={translate("selectTipType")}
@@ -78,7 +83,9 @@ const TipsModal: React.FC<TipsModalProps> = ({
       {isLoading && (
         <View style={[globalStyles.loadingContainer, { height: 100 }]}>
           <ActivityIndicator color={colors.primary} />
-          <CustomText style={styles.loadingText}>{translate("fetchingTips")}</CustomText>
+          <CustomText style={styles.loadingText}>
+            {translate("fetchingTips")}
+          </CustomText>
         </View>
       )}
 

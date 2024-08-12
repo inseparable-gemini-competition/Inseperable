@@ -58,13 +58,8 @@ export const useModalHandlers = (
     });
   };
 
-  const openMapWithLocation = async (
-    latitude: number,
-    longitude: number,
-    name: string
-  ) => {
-    const encodedName = encodeURIComponent(name);
-    const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}&query_place_id=${encodedName}`;
+  const openMapWithLocation = async (latitude: number, longitude: number) => {
+    const mapsUrl = `https://www.google.com/maps?q=${latitude},${longitude}`;
 
     try {
       const supported = await Linking.canOpenURL(mapsUrl);

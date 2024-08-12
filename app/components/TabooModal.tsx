@@ -10,6 +10,7 @@ import { useTranslations } from "@/hooks/ui/useTranslations";
 import GenericBottomSheet from "./GenericBottomSheet";
 import { colors } from "@/app/theme";
 import { CustomText } from "@/app/components/CustomText";
+import { convertMarkdownToPlainText } from "@/app/helpers/markdown";
 
 interface TabooModalProps {
   visible: boolean;
@@ -31,10 +32,10 @@ const TabooModal: React.FC<TabooModalProps> = ({
       visible={visible}
       onClose={onClose}
       enableScroll
-      textToSpeak={result}
+      textToSpeak={convertMarkdownToPlainText(result)}
     >
       <View style={styles.container}>
-      <CustomText style={styles.modalTitle}>{translate("taboo")}</CustomText>
+        <CustomText style={styles.modalTitle}>{translate("taboo")}</CustomText>
         <CustomText
           style={{
             marginBottom: 20,

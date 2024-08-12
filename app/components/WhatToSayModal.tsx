@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, ActivityIndicator, StyleSheet } from "react-native";
+import { View, ActivityIndicator, StyleSheet } from "react-native";
 import { Button, ButtonSize } from "react-native-ui-lib";
 import { styles as globalStyles, modalStyles } from "@/app/screens/MainStyles";
 import GenericBottomSheet, {
@@ -9,6 +9,7 @@ import { useTranslations } from "@/hooks/ui/useTranslations";
 import { colors } from "@/app/theme";
 import { CustomText } from "@/app/components/CustomText";
 import { useFont } from "@/app/context/fontContext";
+import { convertMarkdownToPlainText } from "@/app/helpers/markdown";
 
 interface WhatToSayModalProps {
   visible: boolean;
@@ -30,7 +31,7 @@ const WhatToSayModal: React.FC<WhatToSayModalProps> = ({
   setUserSituation,
 }) => {
   const { translate } = useTranslations();
-  const {selectedFont} = useFont();
+  const { selectedFont } = useFont();
 
   return (
     <GenericBottomSheet
@@ -44,7 +45,7 @@ const WhatToSayModal: React.FC<WhatToSayModalProps> = ({
       onSubmit={(data) => {
         onSubmit(data);
       }}
-      textToSpeak={result || ""}
+      textToSpeak={convertMarkdownToPlainText(result || "")}
     >
       <CustomText style={styles.title}>{translate("whatToSay")}</CustomText>
       <CustomText
