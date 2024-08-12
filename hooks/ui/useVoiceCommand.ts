@@ -125,7 +125,7 @@ export const useVoiceCommands = () => {
 
   const activateVoiceCommand = useCallback(() => {
     setIsLocallyLoading(true);
-    speak(translate("pleaseStartSpeakingAndLongPresToStop"), {
+    speak(translate("pleaseStartSpeakingAndPressAgainToStop"), {
       onDone: () => {
         startRecording();
       },
@@ -133,7 +133,7 @@ export const useVoiceCommands = () => {
     });
     Toast.show({
       type: "success",
-      text1: translate("pleaseStartSpeakingAndLongPresToStop"),
+      text1: translate("pleaseStartSpeakingAndPressAgainToStop"),
     });
   }, [translate]);
 

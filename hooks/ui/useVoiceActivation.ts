@@ -16,7 +16,7 @@ export const useVoiceActivation = (
     isProcessing: isLoading,
   } = useVoiceCommands();
 
-  const handleLongPress = (event: any) => {
+  const handleMicPress = (event: any) => {
     if(!noModalVisible) return;
     const isActiveState = event.nativeEvent.state === State.ACTIVE;
     const canToggleVoiceCommand = !showCamera && !capturedImage;
@@ -33,6 +33,6 @@ export const useVoiceActivation = (
     cancelVoiceCommand,
     command: aiResponse,
     isProcessing: isLoading,
-    handleLongPress,
+    handleMicPress,
   };
 };

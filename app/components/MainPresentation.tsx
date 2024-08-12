@@ -1,6 +1,6 @@
 import React from "react";
 import { View } from "react-native";
-import { LongPressGestureHandler, State } from "react-native-gesture-handler";
+import { State } from "react-native-gesture-handler";
 import { Button, Text } from "react-native-ui-lib";
 import { styles } from "@/app/screens/MainStyles";
 import MainLayout from "@/app/components/MainLayout";
@@ -61,63 +61,58 @@ const MainPresentation: React.FC<MainPresentationProps> = ({
 
   return (
     <MainLayout backgroundImage={userData?.mostFamousLandmark || ""}>
-      <LongPressGestureHandler
-        onHandlerStateChange={voiceActivation.handleLongPress}
-        minDurationMs={500}
-      >
-        <View style={{ flex: 1 }}>
-          {imageCapture.showCamera || imageCapture.capturedImage ? (
-            <CameraScreen
-              showCamera={imageCapture.showCamera}
-              capturedImage={imageCapture.capturedImage}
-              cameraRef={imageCapture.cameraRef}
-              onManualCapture={imageCapture.handleManualCapture}
-              onCancelCountdown={imageCapture.handleCancelCountdown}
-              onBackPress={() => imageCapture.handleCleanup(textFeedBack.stop)}
-              cameraAnimatedStyle={imageCapture.cameraAnimatedStyle}
-              facing={imageCapture.facing || 'back'}
-              countdown={imageCapture.countdown || 0}
-              isLoadingFromGemini={textFeedBack.isLoadingFromGemini}
-              feedbackText={textFeedBack.feedbackText || ""}
-              onDismissFeedback={textFeedBack.dismissFeedback}
-              onCloseFeedback={() => {
-                imageCapture.setCapturedImage(null);
-                textFeedBack.stop();
-                textFeedBack.reset();
-              }}
-            />
-          ) : (
-            <>
-              <CategoryScreen
-                categories={categories as any}
-                handleFontSettings={modalHandlers.handleFontSettings}
-                onCategoryPress={(category) => handleCommand(category)}
-                country={userData?.country || ""}
-                description={userData?.description || ""}
-                animatedStyle={imageCapture.animatedStyle}
-              />
-              <VoiceActivationButton
-                onPress={() =>
-                  voiceActivation.handleLongPress({
-                    nativeEvent: { state: State.ACTIVE },
-                  })
-                }
-                isListening={!!voiceActivation.isListening}
-                isLoading={!!voiceActivation.isProcessing}
-              />
-            </>
-          )}
-
-          <ModalFactory
-            modals={modals}
-            donation={donation}
-            feedback={textFeedBack}
-            modalHandlers={modalHandlers}
-            tipSelection={tipSelection}
-            userData={userData}
+      <View style={{ flex: 1 }}>
+        {imageCapture.showCamera || imageCapture.capturedImage ? (
+          <CameraScreen
+            showCamera={imageCapture.showCamera}
+            capturedImage={imageCapture.capturedImage}
+            cameraRef={imageCapture.cameraRef}
+            onManualCapture={imageCapture.handleManualCapture}
+            onCancelCountdown={imageCapture.handleCancelCountdown}
+            onBackPress={() => imageCapture.handleCleanup(textFeedBack.stop)}
+            cameraAnimatedStyle={imageCapture.cameraAnimatedStyle}
+            facing={imageCapture.facing || "back"}
+            countdown={imageCapture.countdown || 0}
+            isLoadingFromGemini={textFeedBack.isLoadingFromGemini}
+            feedbackText={textFeedBack.feedbackText || ""}
+            onDismissFeedback={textFeedBack.dismissFeedback}
+            onCloseFeedback={() => {
+              imageCapture.setCapturedImage(null);
+              textFeedBack.stop();
+              textFeedBack.reset();
+            }}
           />
-        </View>
-      </LongPressGestureHandler>
+        ) : (
+          <>
+            <CategoryScreen
+              categories={categories as any}
+              handleFontSettings={modalHandlers.handleFontSettings}
+              onCategoryPress={(category) => handleCommand(category)}
+              country={userData?.country || ""}
+              description={userData?.description || ""}
+              animatedStyle={imageCapture.animatedStyle}
+            />
+            <VoiceActivationButton
+              onPress={() =>
+                voiceActivation.handleMicPress({
+                  nativeEvent: { state: State.ACTIVE },
+                })
+              }
+              isListening={!!voiceActivation.isListening}
+              isLoading={!!voiceActivation.isProcessing}
+            />
+          </>
+        )}
+
+        <ModalFactory
+          modals={modals}
+          donation={donation}
+          feedback={textFeedBack}
+          modalHandlers={modalHandlers}
+          tipSelection={tipSelection}
+          userData={userData}
+        />
+      </View>
     </MainLayout>
   );
 };
