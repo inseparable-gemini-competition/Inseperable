@@ -222,6 +222,7 @@ const Questionnaire = ({ onFinish }: Props) => {
               label={translate("finish")}
               labelStyle={{ fontFamily: "marcellus" }}
               backgroundColor={colors.primary}
+              disabled={localLoading}
               onPress={() => {
                 onFinish({
                   result,

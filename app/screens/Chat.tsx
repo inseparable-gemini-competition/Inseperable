@@ -7,6 +7,7 @@ import {
   Alert,
   ActivityIndicator,
   Platform,
+  I18nManager,
 } from "react-native";
 import {
   GiftedChat,
@@ -41,7 +42,7 @@ import { colors } from "@/app/theme";
 import { CustomText } from "@/app/components/CustomText";
 
 type RootStackParamList = {
-  ChatScreen: { recipientId: string; itemName: string };
+  ChatScreen: { recipientId: string; itemName: string; productId: string };
 };
 
 type ChatScreenRouteProp = RouteProp<RootStackParamList, "ChatScreen">;
@@ -56,10 +57,7 @@ interface ChatMessage extends IMessage {
 
 const Chat: React.FC = () => {
   const route = useRoute<ChatScreenRouteProp>();
-  const { recipientId, itemName } = route.params || {
-    recipientId: "2iecagcxcgYrnOj8AaiZEYZfvrf2",
-    itemName: "Default Item",
-  };
+  const { recipientId, itemName, productId } = route.params;
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loadingMore, setLoadingMore] = useState(false);
   const { translate } = useTranslations();
@@ -73,14 +71,18 @@ const Chat: React.FC = () => {
   const navigation = useNavigation();
   const userId = userData?.id || "";
 
-  const getChatRoomId = (userId1: string, userId2: string) => {
-    return [userId1, userId2].sort().join("_");
+  const getChatRoomId = (
+    userId1: string,
+    userId2: string,
+    productId: string
+  ) => {
+    return [userId1, userId2, productId].sort().join("_");
   };
 
   useEffect(() => {
     const fetchInitialMessages = async () => {
       if (!userId) return;
-      const chatRoomId = getChatRoomId(userId, recipientId);
+      const chatRoomId = getChatRoomId(userId, recipientId, productId);
       const q = query(
         collection(db, "chatRooms", chatRoomId, "messages"),
         orderBy("createdAt", "desc"),
@@ -159,7 +161,7 @@ const Chat: React.FC = () => {
 
     setLoadingMore(true);
 
-    const chatRoomId = getChatRoomId(userId, recipientId);
+    const chatRoomId = getChatRoomId(userId, recipientId, productId);
     const q = query(
       collection(db, "chatRooms", chatRoomId, "messages"),
       orderBy("createdAt", "desc"),
@@ -196,7 +198,7 @@ const Chat: React.FC = () => {
       const newMessage = newMessages[0];
       if (newMessage && userId) {
         try {
-          const chatRoomId = getChatRoomId(userId, recipientId);
+          const chatRoomId = getChatRoomId(userId, recipientId, productId);
           await addDoc(collection(db, "chatRooms", chatRoomId, "messages"), {
             text: newMessage.text || "",
             translatedText: "",
@@ -353,7 +355,12 @@ const Chat: React.FC = () => {
     return (
       <Send {...props}>
         <View style={styles.sendButton}>
-          <Ionicons name="send" size={24} color={colors.primary} />
+          <Ionicons
+            name="send"
+            size={24}
+            style={I18nManager.isRTL ? styles.sendIconRTL : {marginHorizontal: 10}}
+            color={colors.primary}
+          />
         </View>
       </Send>
     );
@@ -493,6 +500,11 @@ const styles = StyleSheet.create({
     borderRadius: 13,
     margin: 3,
     resizeMode: "cover",
+  },
+  sendIconRTL: {
+    transform: [{ scaleX: -1 }],
+    marginStart: 10,
+    marginBottom: 5,
   },
   translatedText: {
     fontSize: 12,

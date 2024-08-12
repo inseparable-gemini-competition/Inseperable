@@ -127,6 +127,7 @@ const HandMade: React.FC = () => {
     navigation.navigate("Chat", {
       recipientId: item.ownerId,
       itemName: item.name.original,
+      productId: item.id,
     });
   };
 
