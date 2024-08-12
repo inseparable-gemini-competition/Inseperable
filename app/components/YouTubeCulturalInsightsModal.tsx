@@ -12,6 +12,7 @@ import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { httpsCallable } from "firebase/functions";
 import { functions, storage } from "../helpers/firebaseConfig";
 import { CustomText } from "@/app/components/CustomText";
+import { useFont } from "@/app/context/fontContext";
 
 interface VideoCulturalInsightsModalProps {
   visible: boolean;
@@ -33,6 +34,7 @@ const VideoCulturalInsightsModal: React.FC<VideoCulturalInsightsModalProps> = ({
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
   const [culturalInsights, setCulturalInsights] = useState<string | null>(null);
+  const {selectedFont} = useFont();
 
   const pickVideo = useCallback(async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -186,7 +188,7 @@ const VideoCulturalInsightsModal: React.FC<VideoCulturalInsightsModalProps> = ({
                     color: "white",
                     fontSize: 18,
                     fontWeight: "normal",
-                    fontFamily: "marcellus",
+                    fontFamily: selectedFont,
                     textShadowOffset: { width: 0, height: 0.1 },
                     textShadowRadius: 0.1,
                     textShadowColor: "rgba(0, 0, 0, 0.3)",
@@ -209,7 +211,7 @@ const VideoCulturalInsightsModal: React.FC<VideoCulturalInsightsModalProps> = ({
                     color: "white",
                     fontSize: 18,
                     fontWeight: "normal",
-                    fontFamily: "marcellus",
+                    fontFamily: selectedFont,
                     textShadowOffset: { width: 0, height: 0.1 },
                     textShadowRadius: 0.1,
                     textShadowColor: "rgba(0, 0, 0, 0.3)",
@@ -241,7 +243,7 @@ const VideoCulturalInsightsModal: React.FC<VideoCulturalInsightsModalProps> = ({
               color: "white",
               fontSize: 18,
               fontWeight: "normal",
-              fontFamily: "marcellus",
+              fontFamily: selectedFont,
               textShadowOffset: { width: 0, height: 0.1 },
               textShadowRadius: 0.1,
               textShadowColor: "rgba(0, 0, 0, 0.3)",

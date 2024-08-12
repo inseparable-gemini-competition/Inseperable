@@ -4,6 +4,7 @@ import Option from "./Option/Option";
 import { colors } from "@/app/theme";
 import { useTranslations } from "@/hooks/ui/useTranslations";
 import { CustomText } from "@/app/components/CustomText";
+import { useFont } from "@/app/context/fontContext";
 
 
 type Props = {
@@ -33,6 +34,9 @@ const Question = ({
   currentAnswer,
 }: Props) => {
   const { translate } = useTranslations();
+
+  //seleted font
+ const {selectedFont} = useFont();
 
   const handleOptionSelect = (option: string) => {
     onNext(option);
@@ -122,13 +126,13 @@ const Question = ({
           label={translate("previous")}
             backgroundColor={colors.primary}
             onPress={onPrevious}
-            labelStyle={{fontFamily: 'marcellus'}}
+            labelStyle={{fontFamily: selectedFont}}
           />
         )}
         {showNext && (
           <Button
             label={translate("next")}
-            labelStyle={{fontFamily: 'marcellus'}}
+            labelStyle={{fontFamily: selectedFont}}
             backgroundColor={colors.primary}
             onPress={() => {
               onNext(currentText);

@@ -25,6 +25,7 @@ import { useUpdateUserScore } from "@/hooks/logic/useUserScore";
 import { convertMarkdownToPlainText } from "@/app/helpers/markdown";
 import { colors } from "@/app/theme";
 import { useNavigation } from "expo-router";
+import { useFont } from "@/app/context/fontContext";
 
 type Props = {
   onFinish: (params?: { setLocalLoading: (loading: boolean) => void }) => void;
@@ -35,7 +36,7 @@ const EnvironmentalImpactQuestionnaire = ({ onFinish }: Props) => {
   const [answers, setAnswers] = useState<string[]>([]);
   const [localLoading, setLocalLoading] = useState(false);
   const { translate, isRTL } = useTranslations();
-
+  const {selectedFont} = useFont();
   const defaultQuestions = [
     {
       id: 1,
@@ -275,7 +276,7 @@ const EnvironmentalImpactQuestionnaire = ({ onFinish }: Props) => {
               <Button
                 style={styles.finishButton}
                 label={translate("finish")}
-                labelStyle={{ fontFamily: "marcellus" }}
+                labelStyle={{ fontFamily: selectedFont }}
                 backgroundColor={colors.primary}
                 onPress={() =>
                   onFinish({

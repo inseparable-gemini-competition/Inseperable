@@ -6,6 +6,7 @@ import { ActivityIndicator, ScrollView, StyleSheet } from "react-native";
 import { useJsonControlledGeneration } from "@/hooks/gemini/useJsonControlledGeneration";
 import { useTranslations } from "@/hooks/ui/useTranslations";
 import { CustomText } from "@/app/components/CustomText";
+import { useFont } from "@/app/context/fontContext";
 
 type Props = {
   onFinish: (params?: {
@@ -28,6 +29,8 @@ const Questionnaire = ({ onFinish }: Props) => {
   });
   const [localLoading, setLocalLoading] = useState(false);
 
+
+  const { selectedFont } = useFont();
   const [questions] = useState([
     {
       id: 1,
@@ -66,11 +69,11 @@ const Questionnaire = ({ onFinish }: Props) => {
 
   if (isLoadingCountryData) {
     return (
-      <View
-        style={styles.container}
-      >
+      <View style={styles.container}>
         <ActivityIndicator size="large" color={colors.primary} />
-        <CustomText>{translate("fetchingYourTravellingCountryData")}</CustomText>
+        <CustomText>
+          {translate("fetchingYourTravellingCountryData")}
+        </CustomText>
       </View>
     );
   }
@@ -107,7 +110,7 @@ const Questionnaire = ({ onFinish }: Props) => {
             <Button
               style={styles.button}
               label={translate("finish")}
-              labelStyle={{ fontFamily: "marcellus" }}
+              labelStyle={{ fontFamily: selectedFont }}
               backgroundColor={colors.primary}
               onPress={() => {
                 onFinish({
@@ -150,10 +153,10 @@ const styles = StyleSheet.create({
     width: 300,
     alignSelf: "center",
   },
-  largeText :{
+  largeText: {
     fontSize: 70,
     color: colors.black,
     textAlign: "center",
     padding: 10,
-  }
+  },
 });

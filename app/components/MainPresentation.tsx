@@ -19,7 +19,7 @@ import { useVoiceActivation } from "@/hooks/ui/useVoiceActivation";
 import { useTranslations } from "@/hooks/ui/useTranslations";
 import useStore from "@/app/store";
 import { CustomText } from "@/app/components/CustomText";
-import { isLoading } from "expo-font";
+import { useFont } from "@/app/context/fontContext";
 
 interface MainPresentationProps {
   modals: ReturnType<typeof useModals>;
@@ -43,6 +43,7 @@ const MainPresentation: React.FC<MainPresentationProps> = ({
   handleCommand,
 }) => {
   const { translate } = useTranslations();
+  const {selectedFont} = useFont();
   const { userData } = useStore();
   if (imageCapture.showCamera && !imageCapture.permission?.granted) {
     return (
@@ -53,7 +54,7 @@ const MainPresentation: React.FC<MainPresentationProps> = ({
         <Button
           onPress={imageCapture.requestPermission}
           label={translate("grantPermission")}
-          labelStyle={{ fontFamily: "marcellus" }}
+          labelStyle={{ fontFamily: selectedFont }}
         />
       </View>
     );

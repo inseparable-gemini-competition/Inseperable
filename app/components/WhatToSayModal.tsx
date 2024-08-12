@@ -8,6 +8,7 @@ import GenericBottomSheet, {
 import { useTranslations } from "@/hooks/ui/useTranslations";
 import { colors } from "@/app/theme";
 import { CustomText } from "@/app/components/CustomText";
+import { useFont } from "@/app/context/fontContext";
 
 interface WhatToSayModalProps {
   visible: boolean;
@@ -29,6 +30,7 @@ const WhatToSayModal: React.FC<WhatToSayModalProps> = ({
   setUserSituation,
 }) => {
   const { translate } = useTranslations();
+  const {selectedFont} = useFont();
 
   return (
     <GenericBottomSheet
@@ -83,7 +85,7 @@ const WhatToSayModal: React.FC<WhatToSayModalProps> = ({
                   color: "white",
                   fontSize: 18,
                   fontWeight: "normal",
-                  fontFamily: "marcellus",
+                  fontFamily: selectedFont,
                   textShadowOffset: { width: 0, height: 0.1 },
                   textShadowRadius: 0.1,
                   textShadowColor: "rgba(0, 0, 0, 0.3)",

@@ -22,6 +22,7 @@ import { useTranslations } from "@/hooks/ui/useTranslations";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import useStore from "@/app/store";
 import { CustomText } from "@/app/components/CustomText";
+import { useFont } from "@/app/context/fontContext";
 
 const { width, height } = Dimensions.get("window");
 
@@ -109,6 +110,7 @@ interface CategoryCardProps {
 const CategoryCard: React.FC<CategoryCardProps> = React.memo(
   ({ item, onPressMap }) => {
     const { translate } = useTranslations();
+    const { selectedFont } = useFont();
     const cardStyle = [styles.cardContainer];
 
     return (
@@ -137,7 +139,7 @@ const CategoryCard: React.FC<CategoryCardProps> = React.memo(
             color="white"
             onPress={onPressMap}
             style={styles.mapsButton}
-            labelStyle={{ fontFamily: "marcellus" }}
+            labelStyle={{ fontFamily: selectedFont }}
           />
         </View>
       </Animated.View>
@@ -302,7 +304,7 @@ const Plan: React.FC = () => {
       return (
         <CategoryCard
           item={card}
-          key={`${card.name}-${index}`} 
+          key={`${card.name}-${index}`}
           onPressMap={() => openGoogleMaps(card?.latitude, card?.longitude)}
         />
       );

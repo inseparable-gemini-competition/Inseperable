@@ -1,16 +1,11 @@
 import React from "react";
-import {
-  View,
-  Text,
-  ActivityIndicator,
-  Linking,
-  StyleSheet,
-} from "react-native";
+import { View, ActivityIndicator, Linking, StyleSheet } from "react-native";
 import { Button, ButtonSize } from "react-native-ui-lib";
 import GenericBottomSheet from "./GenericBottomSheet";
 import { useTranslations } from "@/hooks/ui/useTranslations";
 import { colors } from "@/app/theme";
 import { CustomText } from "@/app/components/CustomText";
+import { useFont } from "@/app/context/fontContext";
 
 interface DonationModalProps {
   visible: boolean;
@@ -32,6 +27,7 @@ const DonationModal: React.FC<DonationModalProps> = ({
   userLanguage,
 }) => {
   const { translate } = useTranslations();
+  const {selectedFont} = useFont();
 
   const handleOpenLink = () => {
     if (result?.websiteLink) {
@@ -86,7 +82,7 @@ const DonationModal: React.FC<DonationModalProps> = ({
                 color: colors.white,
                 fontSize: 18,
                 fontWeight: "normal",
-                fontFamily: "marcellus",
+                fontFamily: selectedFont,
                 textShadowOffset: { width: 0, height: 0.1 },
                 textShadowRadius: 0.1,
                 textShadowColor: "rgba(0, 0, 0, 0.3)",

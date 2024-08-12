@@ -9,6 +9,7 @@ import { useGenerateContent } from "@/hooks/gemini/useGeminiStream";
 import { useTranslations } from "@/hooks/ui/useTranslations";
 import { useNavigation } from "expo-router";
 import { CustomText } from "@/app/components/CustomText";
+import { useFont } from "@/app/context/fontContext";
 
 type Props = {
   onFinish: (params?: {
@@ -24,6 +25,7 @@ const Questionnaire = ({ onFinish }: Props) => {
   const { translate, setTranslations, setCurrentLanguage, translations } =
     useTranslations();
   const [localLoading, setLocalLoading] = useState(false);
+  const { selectedFont } = useFont();
 
   const { navigate } = useNavigation<any>();
 
@@ -220,7 +222,7 @@ const Questionnaire = ({ onFinish }: Props) => {
             <Button
               style={styles.button}
               label={translate("finish")}
-              labelStyle={{ fontFamily: "marcellus" }}
+              labelStyle={{ fontFamily: selectedFont }}
               backgroundColor={colors.primary}
               disabled={localLoading}
               onPress={() => {
