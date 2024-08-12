@@ -16,7 +16,6 @@
   },
   "dependencies": {
     "@expo/vector-icons": "^14.0.2",
-    "@google/generative-ai": "^0.14.1",
     "@gorhom/bottom-sheet": "^4.6.3",
     "@react-native-async-storage/async-storage": "^1.24.0",
     "@react-native-community/masked-view": "^0.1.11",
@@ -46,7 +45,6 @@
     "expo-status-bar": "~1.12.1",
     "expo-system-ui": "~3.0.7",
     "expo-updates": "~0.25.21",
-    "expo-web-browser": "~13.0.3",
     "firebase": "^10.12.3",
     "react": "18.2.0",
     "react-dom": "18.2.0",
@@ -57,7 +55,6 @@
     "react-native-fs": "^2.20.0",
     "react-native-gesture-handler": "~2.16.1",
     "react-native-gifted-chat": "^2.4.0",
-    "react-native-maps": "^1.15.6",
     "react-native-polyfill-globals": "^3.1.0",
     "react-native-reanimated": "~3.10.1",
     "react-native-reanimated-carousel": "4.0.0-alpha.12",
@@ -66,9 +63,7 @@
     "react-native-toast-message": "^2.2.0",
     "react-native-ui-lib": "^7.25.0",
     "react-native-web": "~0.19.10",
-    "react-native-webrtc": "^124.0.3",
     "react-native-webview": "^13.10.5",
-    "react-native-youtube-iframe": "^2.3.0",
     "react-query": "^3.39.3",
     "zustand": "^4.5.4"
   },

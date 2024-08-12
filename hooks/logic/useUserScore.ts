@@ -61,7 +61,7 @@ export const useUpdateUserScore = () => {
   return useMutation<void, Error, UserScore>(
     (data) => updateUserScoreFunction({...data, userId: userData?.id}).then(() => {}),
     {
-      onSuccess: (_, variables) => {
+      onSuccess: (_) => {
         Toast.show({
           type: "success",
           text1: translate("userScoreUpdated"),

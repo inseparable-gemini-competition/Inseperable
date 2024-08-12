@@ -5,6 +5,7 @@ import { useGenerateContent } from "@/hooks/gemini";
 import * as FileSystem from "expo-file-system";
 import useStore from "@/app/store";
 import { useTextToSpeech } from "@/app/context/TextToSpeechContext";
+import Toast from "react-native-toast-message";
 
 export const useVoiceCommands = () => {
   const [isListening, setIsListening] = useState<boolean>(false);
@@ -19,13 +20,21 @@ export const useVoiceCommands = () => {
     promptType: "audioCommand",
     onSuccess: (data) => {
       setRecording(null);
-      if (data === "none") {
+      if (data?.includes("none")) {
         speak(translate("unidentifiedCategory"), {
           language: currentLanguage || "en",
+        });
+        Toast.show({
+          type: "error",
+          text1: translate("unidentifiedCategory"),
         });
       } else {
         speak(translate("identifiedCategory"), {
           language: currentLanguage || "en",
+        });
+        Toast.show({
+          type: "success",
+          text1: translate("identifiedCategory"),
         });
       }
       setIsListening(false);
@@ -53,6 +62,7 @@ export const useVoiceCommands = () => {
         data: base64Audio,
         mimeType: "audio/mp4",
       });
+      setIsLocallyLoading(false);
     } catch (error) {
       console.error("Error sending audio to Gemini:", error);
     }
@@ -89,7 +99,10 @@ export const useVoiceCommands = () => {
           speak(translate("processing"), {
             language: currentLanguage || "en",
           });
-          setIsLocallyLoading(false);
+          Toast.show({
+            type: "success",
+            text1: translate("processing"),
+          });
           await sendAudioToGemini(uri);
         } else {
           console.error("No URI obtained from recording");
@@ -118,6 +131,10 @@ export const useVoiceCommands = () => {
       },
       language: currentLanguage || "en",
     });
+    Toast.show({
+      type: "success",
+      text1: translate("pleaseStartSpeakingAndLongPresToStop"),
+    });
   }, [translate]);
 
   const cancelVoiceCommand = useCallback(() => {
@@ -125,7 +142,6 @@ export const useVoiceCommands = () => {
       stopListening();
     }
     setIsListening(false);
-    setIsLocallyLoading(false)
   }, [stopListening]);
 
   return {
