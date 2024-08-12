@@ -14,6 +14,7 @@ import { useAuth } from "@/hooks/logic/useAuth";
 import { useTranslations } from "@/hooks/ui/useTranslations";
 import { colors } from "@/app/theme";
 import { CustomText } from "@/app/components/CustomText";
+import Toast from "react-native-toast-message";
 
 const LoadingAnimation = ({ text }: { text: string }) => {
   const [rotation] = useState(new Animated.Value(0));
@@ -71,21 +72,23 @@ export default function AuthScreen() {
       if (user) {
         await saveBiometricCredentials(email, password);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
       setIsLoading(false);
-      alert(translate("authFailed"));
+      Toast.show({
+        type: "error",
+        text1: translate("authFailed") + error.message,
+      });
     }
   };
 
   const handleBiometricLogin = async () => {
     try {
       await biometricLogin();
-      setIsLoading(false);
     } catch (error) {
       console.error(error);
       setIsLoading(false);
-      alert(translate("didYouSignedInBefore"));
+      alert(translate("didYouSignInBefore") + "?");
     }
   };
 

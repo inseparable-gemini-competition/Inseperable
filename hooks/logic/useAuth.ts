@@ -75,7 +75,6 @@ export function useAuth({ fromLayout = false }: { fromLayout?: boolean } = {}) {
                 const result = (await generateTranslations({
                   baseLanguage: userDocSnap.data().baseLanguage,
                 })) as any;
-                console.log("result", result);
                 setTranslations({
                   en: translations.en,
                   [result.baseLanguage]: result.translations,
@@ -91,6 +90,7 @@ export function useAuth({ fromLayout = false }: { fromLayout?: boolean } = {}) {
             }
           } catch (error) {
             console.error("Error fetching user data from Firestore:", error);
+            setIsLoading(false);
           }
         } else {
           updatedUserData = {
@@ -137,10 +137,11 @@ export function useAuth({ fromLayout = false }: { fromLayout?: boolean } = {}) {
     if (savedEmail && savedPassword) {
       const { success } = await LocalAuthentication.authenticateAsync();
       if (success) {
-        return signIn(savedEmail, savedPassword);
+        await signIn(savedEmail, savedPassword);
+        return true;
       }
     }
-    throw new Error("Session expired, can you try normal logging?");
+    throw new Error("Did you sign in before?");
   };
 
   const saveBiometricCredentials = async (email: string, password: string) => {
