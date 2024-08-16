@@ -273,7 +273,7 @@ const styles = StyleSheet.create({
     fontFamily: "marcellus",
     padding: 15,
     marginTop: 20,
-    backgroundColor: colors.background,
+    backgroundColor: colors.black,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,

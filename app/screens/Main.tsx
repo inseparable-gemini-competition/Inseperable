@@ -9,8 +9,7 @@ import {
 } from "@/hooks";
 import MainPresentation from "@/app/components/MainPresentation";
 import { useCommandHandler } from "@/hooks/ui/useCommandHandler";
-
-
+import useExitHandler from "@/hooks/ui/useExitHandler";
 
 const MainContainer: React.FC = () => {
   const modals = useModals();
@@ -22,12 +21,10 @@ const MainContainer: React.FC = () => {
   const modalHandlers = useModalHandlers(
     textFeedBack.mutateAsync,
     modals.setTabooModalVisible,
-    modals.setFontSettingsVisible,
+    modals.setFontSettingsVisible
   );
   const tipSelection = useTipSelection(textFeedBack.mutateAsync);
-  const donation = useDonation(
-    modals.setDonationModalVisible
-  );
+  const donation = useDonation(modals.setDonationModalVisible);
 
   const { handleCommand, voiceActivation } = useCommandHandler({
     imageCapture,
@@ -36,6 +33,8 @@ const MainContainer: React.FC = () => {
     modals,
     textFeedBack,
   });
+
+  useExitHandler(modals.noModalVisible);
 
   return (
     <MainPresentation

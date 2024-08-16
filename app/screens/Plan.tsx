@@ -420,7 +420,7 @@ const styles = StyleSheet.create({
   menu: {
     position: "absolute",
     start: 10,
-    top: 70,
+    top: 40,
     zIndex: 1,
   },
   button: {

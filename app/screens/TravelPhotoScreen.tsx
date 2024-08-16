@@ -277,7 +277,7 @@ const TravelPhotoScreen: React.FC = () => {
     [userData?.id]
   );
 
-  const debouncedSearch = useCallback(debounce(searchPhotos, 500), [
+  const debouncedSearch = useCallback(debounce(searchPhotos, 1000), [
     searchPhotos,
   ]);
 
@@ -290,7 +290,7 @@ const TravelPhotoScreen: React.FC = () => {
   }, [searchQuery, debouncedSearch, originalPhotos]);
 
   const loadMorePhotos = async () => {
-    if (loading || searchQuery.length > 3 || !lastVisible) return;
+    if (loading || searchQuery.length >= 3 || !lastVisible) return;
 
     try {
       setLoading(true);

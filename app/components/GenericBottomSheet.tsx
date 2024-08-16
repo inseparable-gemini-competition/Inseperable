@@ -20,6 +20,7 @@ import SpeechControlIcon from "@/app/components/SpeechControlIcon";
 import { Ionicons } from "@expo/vector-icons";
 import { useVoiceToText } from "@/hooks/ui/useVoiceToText";
 import { colors } from "@/app/theme";
+import useExitHandler from "@/hooks/ui/useExitHandler";
 
 interface GenericBottomSheetProps {
   visible: boolean;
@@ -62,6 +63,7 @@ const GenericBottomSheet: React.FC<GenericBottomSheetProps> = ({
 }) => {
   const bottomSheetRef = useRef<BottomSheet>(null);
   const { speak, stop } = useTextToSpeech();
+  useExitHandler(false, onClose);
 
   useEffect(() => {
     if (cancelSpeaking) {
